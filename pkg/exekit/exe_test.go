@@ -7,8 +7,9 @@ import (
 	"time"
 
 	"github.com/ctx42/testing/pkg/assert"
-	"github.com/ctx42/testing/pkg/kit/randkit"
 	"github.com/ctx42/testing/pkg/tester"
+
+	"github.com/ctx42/testkit/pkg/randkit"
 )
 
 func Test_WithWd(t *testing.T) {

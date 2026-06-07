@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ctx42/testing/pkg/kit/selfkit"
+	"github.com/ctx42/testkit/pkg/selfkit"
 )
 
 func TestMain(m *testing.M) {
