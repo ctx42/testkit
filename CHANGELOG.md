@@ -1,3 +1,6 @@
+## v0.2.0 (Sun, 07 Jun 2026 17:20:57 UTC)
+- docs: update documentation.
+
 ## v0.1.0 (Sun, 07 Jun 2026 17:10:39 UTC)
 - feat: establish testkit module with seven sub-packages.
 
