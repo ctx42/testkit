@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: (c) 2026 Rafal Zajac
 // SPDX-License-Identifier: MIT
 
-// Package kit provides a curated collection of sub-packages and helpers
+// Package testkit provides a curated collection of sub-packages and helpers
 // designed to streamline common testing tasks in Go.
 //
 // In addition to the sub-packages, a few top-level helpers are provided:

@@ -55,7 +55,7 @@ go get github.com/ctx42/testkit
 `randkit` generates unpredictable test fixtures using `crypto/rand`
 so tests never accidentally pass because they share a hardcoded value.
 All functions panic if randomness is unavailable, which is the right
-behaviour in tests.
+behavior in tests.
 
 ```go
 import "github.com/ctx42/testkit/pkg/randkit"
@@ -314,7 +314,7 @@ reference and flag-combination examples.
 ### SHA-1 helpers
 
 Convenience wrappers for computing SHA-1 hashes in tests. They panic
-on error, which is the right behaviour when unexpected I/O failures
+on error, which is the right behavior when unexpected I/O failures
 should abort the test immediately.
 
 ```go
@@ -348,7 +348,7 @@ func TestMain(m *testing.M) {
 
 > **Warning:** `AddGlobalCleanup` uses package-level mutable state
 > visible to all goroutines. See the godoc for the full list of
-> caveats before reaching for this API.
+> warnings before reaching for this API.
 
 ---
 

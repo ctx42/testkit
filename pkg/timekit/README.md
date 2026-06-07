@@ -1,11 +1,14 @@
 <!-- TOC -->
 * [The `timekit` package](#the-timekit-package)
   * [Clocks](#clocks)
+    * [ClockFixed](#clockfixed)
+    * [ClockDeterministic](#clockdeterministic)
+    * [TikTak](#tiktak)
 <!-- TOC -->
 
 # The `timekit` package
 
-The `timekit` package provides `time.Time` related helpers. 
+The `timekit` package provides `time.Time` related helpers.
 
 ## Clocks
 

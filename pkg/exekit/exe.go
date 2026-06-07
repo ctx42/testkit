@@ -128,7 +128,7 @@ func New(t tester.T, opts ...func(*Exe)) *Exe {
 }
 
 // Exe runs cmd with the given args and returns what the command wrote to stdout
-// and stderr. On error it marks the test as failed. It always returns both
+// and stderr. On error, it marks the test as failed. It always returns both
 // outputs.
 func (ex *Exe) Exe(cmd string, args ...string) (string, string) {
 	ex.t.Helper()
@@ -182,7 +182,7 @@ func (ex *Exe) Exe(cmd string, args ...string) (string, string) {
 }
 
 // ExeStdout runs cmd with the given args and returns the command's stdout. On
-// error it marks the test as failed. It always returns what was written to
+// error, it marks the test as failed. It always returns what was written to
 // stdout.
 func (ex *Exe) ExeStdout(cmd string, args ...string) string {
 	ex.t.Helper()
@@ -194,7 +194,7 @@ func (ex *Exe) ExeStdout(cmd string, args ...string) string {
 }
 
 // ExeStderr runs cmd with the given args and returns the command's stderr. On
-// error it marks the test as failed. It always returns what was written to
+// error, it marks the test as failed. It always returns what was written to
 // stderr.
 func (ex *Exe) ExeStderr(cmd string, args ...string) string {
 	ex.t.Helper()

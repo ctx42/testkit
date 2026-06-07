@@ -61,8 +61,7 @@ func ClockDeterministic(start time.Time, tick time.Duration) func() time.Time {
 }
 
 // TikTak is a convenience wrapper around [ClockDeterministic] that advances
-// exactly one second on every call. Named after the classic "tick-tock"
-// pattern for second-granularity test clocks.
+// exactly one second on every call.
 func TikTak(start time.Time) func() time.Time {
 	return ClockDeterministic(start, time.Second)
 }

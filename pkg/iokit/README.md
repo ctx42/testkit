@@ -4,11 +4,14 @@
     * [WetBuffer](#wetbuffer)
     * [DryBuffer](#drybuffer)
   * [Error writers and readers](#error-writers-and-readers)
+    * [ErrReader](#errreader)
+    * [ErrReader — custom error](#errreader--custom-error)
+    * [ErrWriter](#errwriter)
 <!-- TOC -->
 
 # The `iokit` package
 
-The `iokit` package provides I/O and buffer related helpers. 
+The `iokit` package provides I/O and buffer related helpers.
 
 ## The `Buffer` Type
 
@@ -29,7 +32,7 @@ func TestAction(t *testing.T) {
 
     // --- Then ---
     // Fails if Action doesn't write to buf or if buf.String() is not called.
-    assert.Equal(t, "expected output", buf.String())   
+    assert.Equal(t, "expected output", buf.String())
 }
 ```
 
