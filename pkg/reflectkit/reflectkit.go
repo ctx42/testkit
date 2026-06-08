@@ -2,14 +2,6 @@
 // SPDX-License-Identifier: MIT
 
 // Package reflectkit provides lightweight reflection utilities for testing.
-//
-// It is part of the [github.com/ctx42/testing/pkg/kit] curated collection
-// and offers safe helpers for inspecting struct fields via [tester.T],
-// ensuring proper error reporting and test lifecycle integration.
-//
-// See the [kit] package README for context on the full collection.
-// All helpers are designed to work with [tester.T] and the assertion
-// packages.
 package reflectkit
 
 import (

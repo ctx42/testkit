@@ -1,9 +1,9 @@
 // SPDX-FileCopyrightText: (c) 2026 Rafal Zajac
 // SPDX-License-Identifier: MIT
 
-// Package selfkit enables test cases that need to exec a binary and
-// assert its exit code, stdout, and stderr — by reusing the test
-// binary itself. Wire it into TestMain via [New] and [Self.Run].
+// Package selfkit enables test cases that need to exec a binary and assert its
+// exit code, stdout, and stderr — by reusing the test binary itself. Wire it
+// into TestMain via [New] and [Self.Run].
 package selfkit
 
 import (

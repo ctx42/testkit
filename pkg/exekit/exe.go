@@ -29,7 +29,7 @@ import (
 // DefaultTimeout is the timeout applied to every new [Exe] instance created
 // by [New]. Prefer [WithTimeout] to override it for a single instance.
 //
-// WARNING: this is package-level mutable state shared across all goroutines.
+// WARNING: this is a package-level mutable state shared across all goroutines.
 // Mutating it in one test affects all concurrent and subsequent [New] calls.
 var DefaultTimeout = 5 * time.Second
 
