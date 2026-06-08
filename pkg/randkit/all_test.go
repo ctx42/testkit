@@ -25,7 +25,8 @@ func optionsCheck(want, have any, opts ...any) error {
 		check.Equal(w.n, h.n, fName("n")),
 		check.Equal(w.prefix, h.prefix, fName("prefix")),
 		check.Equal(w.suffix, h.suffix, fName("suffix")),
-		check.Fields(4, w, fName("{field count}")),
+		check.Equal(w.rng == nil, h.rng == nil, fName("rng is nil")),
+		check.Fields(5, w, fName("{field count}")),
 	}
 	return notice.Join(ers...)
 }

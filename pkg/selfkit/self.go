@@ -114,10 +114,11 @@ func New(opts ...func(*Self)) *Self {
 	return se
 }
 
-// Run executes the behavior requested by Self flags. It returns runTests
-// (true when the caller should proceed with m.Run()) and exitCode (the
-// value to pass to os.Exit). When runTests is false the binary should
-// exit immediately without running any tests.
+// Run processes selfkit flags, writing any requested output to stdout
+// and stderr. When no selfkit flag is active, it returns (true, 0) —
+// the caller should proceed with m.Run(). When a flag is active it
+// returns (false, exitCode) — the caller should exit immediately
+// without running tests.
 func (slf *Self) Run(stdout, stderr io.Writer) (bool, int) {
 	// By default, run tests.
 	runTests := true

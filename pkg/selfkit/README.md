@@ -37,9 +37,20 @@ func TestMain(m *testing.M) {
 }
 ```
 
-`selfkit.New()` reads `os.Args` by default. When the binary is
-launched normally by the test runner, no selfkit flags are present,
-so `Run` returns `(true, 0)` and tests proceed as usual.
+When no selfkit flags are present (normal test run), `Run` returns
+`(true, 0)` and the caller proceeds with `m.Run()`:
+
+<!-- gmdoceg:ExampleNew -->
+```go
+// No selfkit flags: Run signals the caller to proceed with tests.
+se := New(WithArgs([]string{"prog"}))
+runTests, exitCode := se.Run(io.Discard, io.Discard)
+fmt.Println(runTests)
+fmt.Println(exitCode)
+// Output:
+// true
+// 0
+```
 
 ## Writing a subprocess test
 
@@ -81,16 +92,24 @@ it from other binary noise:
 --toStderr VALUE  →  |eout: VALUE|
 ```
 
+Both flags may be combined in one invocation:
+
+<!-- gmdoceg:ExampleSelf_Run_toStdout -->
 ```go
-cmd := exec.Command(os.Args[0], "-test.run=^$",
+var sout, eout strings.Builder
+se := New(WithArgs([]string{"prog",
     "--toStdout", "hello",
     "--toStderr", "world",
-)
-// stdout → "|sout: hello|"
-// stderr → "|eout: world|"
+}))
+runTests, _ := se.Run(&sout, &eout)
+fmt.Println(sout.String())
+fmt.Println(eout.String())
+fmt.Println(runTests)
+// Output:
+// |sout: hello|
+// |eout: world|
+// false
 ```
-
-Both flags may be combined in one invocation.
 
 ### --exitCode
 
@@ -98,11 +117,15 @@ Exit with the given code without running tests. Any integer value
 including 0 is accepted; 0 explicitly means "exit success without
 running tests".
 
+<!-- gmdoceg:ExampleSelf_Run_exitCode -->
 ```go
-cmd := exec.Command(os.Args[0], "-test.run=^$",
-    "--exitCode", "1",
-)
-// exits with code 1
+se := New(WithArgs([]string{"prog", "--exitCode", "42"}))
+runTests, exitCode := se.Run(io.Discard, io.Discard)
+fmt.Println(runTests)
+fmt.Println(exitCode)
+// Output:
+// false
+// 42
 ```
 
 ### --printEnv
@@ -111,12 +134,18 @@ Read an environment variable by name and print its value to stdout
 (wrapped as `|env: VALUE|`). Useful for asserting that a subprocess
 inherits or sets a particular environment variable.
 
+<!-- gmdoceg:ExampleSelf_Run_printEnv -->
 ```go
-cmd := exec.Command(os.Args[0], "-test.run=^$",
-    "--printEnv", "MY_VAR",
-)
-cmd.Env = append(os.Environ(), "MY_VAR=secret")
-// stdout → "|env: secret|"
+os.Setenv("MY_VAR", "secret")
+defer os.Unsetenv("MY_VAR")
+var sout strings.Builder
+se := New(WithArgs([]string{"prog", "--printEnv", "MY_VAR"}))
+runTests, _ := se.Run(&sout, io.Discard)
+fmt.Println(sout.String())
+fmt.Println(runTests)
+// Output:
+// |env: secret|
+// false
 ```
 
 ### --printArgs
@@ -125,11 +154,14 @@ Print a label followed by any remaining (non-flag) arguments to
 stdout, wrapped as `|args: LABEL REST1,REST2|`. Put `--printArgs`
 last so trailing positional arguments are captured correctly.
 
+<!-- gmdoceg:ExampleSelf_Run_printArgs -->
 ```go
-cmd := exec.Command(os.Args[0], "-test.run=^$",
-    "--printArgs", "label", "arg1", "arg2",
-)
-// stdout → "|args: label arg1,arg2|"
+var sout strings.Builder
+se := New(WithArgs([]string{"prog", "--printArgs", "label", "arg1", "arg2"}))
+se.Run(&sout, io.Discard)
+fmt.Println(sout.String())
+// Output:
+// |args: label arg1,arg2|
 ```
 
 ### --noWrap
@@ -137,11 +169,14 @@ cmd := exec.Command(os.Args[0], "-test.run=^$",
 Remove the `|prefix: ...|` sentinel wrappers from all output. Use
 this when the caller needs the raw value without delimiters.
 
+<!-- gmdoceg:ExampleSelf_Run_noWrap -->
 ```go
-cmd := exec.Command(os.Args[0], "-test.run=^$",
-    "--noWrap", "--toStdout", "hello",
-)
-// stdout → "hello"
+var sout strings.Builder
+se := New(WithArgs([]string{"prog", "--noWrap", "--toStdout", "hello"}))
+se.Run(&sout, io.Discard)
+fmt.Println(sout.String())
+// Output:
+// hello
 ```
 
 ### --printToStderr
@@ -149,10 +184,14 @@ cmd := exec.Command(os.Args[0], "-test.run=^$",
 Redirect the output of `--printEnv` and `--printArgs` to stderr
 instead of stdout.
 
+<!-- gmdoceg:ExampleSelf_Run_printToStderr -->
 ```go
-cmd := exec.Command(os.Args[0], "-test.run=^$",
-    "--printToStderr", "--printEnv", "MY_VAR",
-)
-// stderr → "|env: VALUE|"
-// stdout → ""
+os.Setenv("MY_VAR", "value")
+defer os.Unsetenv("MY_VAR")
+var eout strings.Builder
+se := New(WithArgs([]string{"prog", "--printToStderr", "--printEnv", "MY_VAR"}))
+se.Run(io.Discard, &eout)
+fmt.Println(eout.String())
+// Output:
+// |env: value|
 ```
