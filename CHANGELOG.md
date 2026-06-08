@@ -1,3 +1,6 @@
+## v0.3.1 (Mon, 08 Jun 2026 06:52:06 UTC)
+- docs: improve package code documentation.
+
 ## v0.3.0 (Sun, 07 Jun 2026 17:47:18 UTC)
 - chore: update module imports and bump ctx42/testing to v0.51.0.
 
