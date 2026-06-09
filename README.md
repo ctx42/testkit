@@ -5,6 +5,7 @@
   * [exekit — running external commands](#exekit--running-external-commands)
   * [oskit — OS and filesystem helpers](#oskit--os-and-filesystem-helpers)
   * [pathkit — path resolution helpers](#pathkit--path-resolution-helpers)
+  * [modkit — Go module helpers](#modkit--go-module-helpers)
   * [iokit — buffers and error injection](#iokit--buffers-and-error-injection)
     * [Thread-safe test buffers](#thread-safe-test-buffers)
     * [Error-injecting readers and writers](#error-injecting-readers-and-writers)
@@ -51,6 +52,7 @@ go get github.com/ctx42/testkit
 |--------------|-------------------------------------------|-------------------------------------------------------------------------|
 | `exekit`     | `github.com/ctx42/testkit/pkg/exekit`     | Run external commands and assert their output and exit code             |
 | `iokit`      | `github.com/ctx42/testkit/pkg/iokit`      | Thread-safe test buffers; error-injecting readers and writers           |
+| `modkit`     | `github.com/ctx42/testkit/pkg/modkit`     | Find the module root and read versions from go.mod files                |
 | `oskit`      | `github.com/ctx42/testkit/pkg/oskit`      | File, directory, working-directory, and environment test helpers        |
 | `pathkit`    | `github.com/ctx42/testkit/pkg/pathkit`    | Resolve absolute paths and symbolic links; fail test on error           |
 | `randkit`    | `github.com/ctx42/testkit/pkg/randkit`    | Random strings, integers, passwords, and file names for test fixtures   |
@@ -159,6 +161,31 @@ resolved := pathkit.EvalSymlinks(t, "testdata", "dir_sym_link")
 ```
 
 See the [pathkit README](pkg/pathkit/README.md) for the full reference.
+
+---
+
+## modkit — Go module helpers
+
+`modkit` locates the Go module under test and reads values out of its
+`go.mod`. `Root`, `Path`, and `Ver` resolve against the module root and
+panic on failure; `ModVer` and `GoVer` read an explicit `go.mod` path
+and return an error; `Tmp` reports through `tester.T`.
+
+```go
+import "github.com/ctx42/testkit/pkg/modkit"
+
+// Absolute path to a file relative to the module root.
+golden := modkit.Path("testdata", "golden.json")
+
+// Scratch directory under <module-root>/tmp, removed on cleanup.
+dir := modkit.Tmp(t, "cache")
+
+// Version a go.mod pins for a module, and its Go version.
+ver, _ := modkit.ModVer("go.mod", "github.com/ctx42/testing")
+goVer, _ := modkit.GoVer("go.mod")
+```
+
+See the [modkit README](pkg/modkit/README.md) for the full reference.
 
 ---
 
@@ -513,6 +540,7 @@ sched := NewScheduler(timekit.TikTak(base))
 
 - `exekit` [README](pkg/exekit/README.md)
 - `iokit` [README](pkg/iokit/README.md)
+- `modkit` [README](pkg/modkit/README.md)
 - `oskit` [README](pkg/oskit/README.md)
 - `pathkit` [README](pkg/pathkit/README.md)
 - `randkit` [README](pkg/randkit/README.md)
