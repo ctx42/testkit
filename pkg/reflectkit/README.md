@@ -31,7 +31,7 @@ type Event struct {
     Score int    `json:"score"`
 }
 e := &Event{}
-fld := GetField(&testing.T{}, e, "ID")
+fld := reflectkit.GetField(&testing.T{}, e, "ID")
 fmt.Println(fld.Tag.Get("json"))
 fmt.Println(fld.Tag.Get("validate"))
 // Output:
@@ -55,7 +55,7 @@ type Event struct {
     Score int    `json:"score"`
 }
 e := &Event{ID: "evt-1"}
-val := GetValue(&testing.T{}, e, "ID")
+val := reflectkit.GetValue(&testing.T{}, e, "ID")
 fmt.Println(val.Kind())
 fmt.Println(val.String())
 // Output:

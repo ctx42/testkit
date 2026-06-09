@@ -1,15 +1,17 @@
 // SPDX-FileCopyrightText: (c) 2026 Rafal Zajac
 // SPDX-License-Identifier: MIT
 
-package timekit
+package timekit_test
 
 import (
 	"fmt"
 	"time"
+
+	"github.com/ctx42/testkit/pkg/timekit"
 )
 
 func ExampleClockFixed() {
-	clk := ClockFixed(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC))
+	clk := timekit.ClockFixed(time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC))
 
 	fmt.Println(clk())
 	fmt.Println(clk())
@@ -22,7 +24,7 @@ func ExampleClockFixed() {
 
 func ExampleClockDeterministic() {
 	start := time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)
-	clk := ClockDeterministic(start, time.Hour)
+	clk := timekit.ClockDeterministic(start, time.Hour)
 
 	fmt.Println(clk())
 	fmt.Println(clk())
@@ -35,7 +37,7 @@ func ExampleClockDeterministic() {
 
 func ExampleTikTak() {
 	start := time.Date(2022, 1, 1, 0, 0, 0, 0, time.UTC)
-	clk := TikTak(start)
+	clk := timekit.TikTak(start)
 
 	fmt.Println(clk())
 	fmt.Println(clk())

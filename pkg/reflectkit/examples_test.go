@@ -1,8 +1,13 @@
-package reflectkit
+// SPDX-FileCopyrightText: (c) 2026 Rafal Zajac
+// SPDX-License-Identifier: MIT
+
+package reflectkit_test
 
 import (
 	"fmt"
 	"testing"
+
+	"github.com/ctx42/testkit/pkg/reflectkit"
 )
 
 func ExampleGetField() {
@@ -11,7 +16,7 @@ func ExampleGetField() {
 		Score int    `json:"score"`
 	}
 	e := &Event{}
-	fld := GetField(&testing.T{}, e, "ID")
+	fld := reflectkit.GetField(&testing.T{}, e, "ID")
 	fmt.Println(fld.Tag.Get("json"))
 	fmt.Println(fld.Tag.Get("validate"))
 	// Output:
@@ -25,7 +30,7 @@ func ExampleGetValue() {
 		Score int    `json:"score"`
 	}
 	e := &Event{ID: "evt-1"}
-	val := GetValue(&testing.T{}, e, "ID")
+	val := reflectkit.GetValue(&testing.T{}, e, "ID")
 	fmt.Println(val.Kind())
 	fmt.Println(val.String())
 	// Output:

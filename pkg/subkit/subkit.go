@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: (c) 2026 Rafal Zajac
+// SPDX-License-Identifier: MIT
+
 // Package subkit runs Go tests in a child "go test" process. The primary use
 // case is code that terminates the process (os.Exit, log.Fatal) — calls that
 // kill the entire test binary and cannot be tested in-process. A sentinel

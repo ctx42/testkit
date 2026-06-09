@@ -7,20 +7,31 @@
     * [ErrReader](#errreader)
     * [ErrReader — custom error](#errreader--custom-error)
     * [ErrWriter](#errwriter)
+  * [Seek and offset helpers](#seek-and-offset-helpers)
+    * [Offset](#offset)
+    * [Seek](#seek)
+    * [ReadAllFromStart](#readallfromstart)
 <!-- TOC -->
 
 # The `iokit` package
 
-The `iokit` package provides I/O and buffer related helpers.
+`iokit` provides I/O helpers for tests: self-checking buffers and a
+family of readers and writers that fail on demand. Both let you assert
+output and exercise error-handling paths without mocking the
+filesystem.
 
 ## The `Buffer` Type
 
-The `Buffer` type, defined in `buffer.go`, is a thread-safe wrapper around
-`bytes.Buffer`. It supports three kinds of behavior for test cleanup:
+`Buffer` is a thread-safe wrapper around `bytes.Buffer`. The
+constructors register a `t.Cleanup` hook that fails the test when a
+post-condition is violated, so you do not have to write the assertion
+boilerplate yourself.
 
 ### WetBuffer
 
-A `WetBuffer` uses `Buffer` and ensures it's written to and its contents are examined during the test.
+A `WetBuffer` fails the test unless it is both written to *and*
+examined via `buf.String()` — a guard against output that is produced
+but never asserted:
 
 ```go
 func TestAction(t *testing.T) {
@@ -31,21 +42,23 @@ func TestAction(t *testing.T) {
     Action(buf) // Writes to buf.
 
     // --- Then ---
-    // Fails if Action doesn't write to buf or if buf.String() is not called.
+    // Fails if Action does not write to buf, or if buf.String is unread.
     assert.Equal(t, "expected output", buf.String())
 }
 ```
 
-To skip the examination requirement:
+Call `SkipExamine` when you only care that something was written, not
+what:
 
 ```go
 buf := iokit.WetBuffer(t, "wet-buffer").SkipExamine()
-buf.WriteString("data") // No failure for unexamined content
+_, _ = buf.WriteString("data") // No failure for unexamined content.
 ```
 
 ### DryBuffer
 
-A DryBuffer ensures the buffer remains empty.
+A `DryBuffer` fails the test if anything is ever written to it — use
+it for the stream that should stay empty:
 
 ```go
 func TestAction(t *testing.T) {
@@ -56,28 +69,32 @@ func TestAction(t *testing.T) {
     DoSomething(buf) // Must not write to buf.
 
     // --- Then ---
-    // Fails if DoSomething writes to buf.
+    // Cleanup fails the test if DoSomething wrote anything.
 }
 ```
 
 ## Error writers and readers
 
-Package provides helpers for controlling when and how the most important
-I/O interfaces return an error.
+These helpers control when, and with what error, the most common I/O
+interfaces fail. Each one wraps a real reader or writer and returns the
+configured error after a precise byte count:
 
-- `ErrReader` — control when and what error an `io.Reader` returns.
-- `ErrReadCloser` — control when and what error an `io.ReadCloser` returns.
-- `ErrReadSeeker` — control when and what error an `io.ReadSeeker` returns.
-- `ErrReadSeekCloser` — control when and what error an `io.ReadSeekCloser` returns.
-- `ErrWriter` — control when and what error an `io.Writer` returns.
-- `ErrWriteCloser` — control when and what error an `io.WriteCloser` returns.
+- `ErrReader` — a failing `io.Reader`.
+- `ErrReadCloser` — a failing `io.ReadCloser`.
+- `ErrReadSeeker` — a failing `io.ReadSeeker`.
+- `ErrReadSeekCloser` — a failing `io.ReadSeekCloser`.
+- `ErrWriter` — a failing `io.Writer`.
+- `ErrWriteCloser` — a failing `io.WriteCloser`.
+
+Use `WithReadErr`, `WithWriteErr`, `WithCloseErr`, and `WithSeekErr` to
+set the error returned by each operation.
 
 ### ErrReader
 
 <!-- gmdoceg:ExampleErrReader -->
 ```go
 rdr := strings.NewReader("some text")
-rcs := ErrReader(rdr, 3)
+rcs := iokit.ErrReader(rdr, 3)
 
 data, err := io.ReadAll(rcs)
 
@@ -94,7 +111,7 @@ fmt.Printf(" data: %s\n", string(data))
 ```go
 mye := errors.New("my error")
 rdr := strings.NewReader("some text")
-rcs := ErrReader(rdr, 4, WithReadErr(mye))
+rcs := iokit.ErrReader(rdr, 4, iokit.WithReadErr(mye))
 
 data, err := io.ReadAll(rcs)
 
@@ -111,7 +128,7 @@ fmt.Printf(" data: %s\n", string(data))
 ```go
 dst := &bytes.Buffer{}
 ce := errors.New("my error")
-ew := ErrWriter(dst, 3, WithWriteErr(ce))
+ew := iokit.ErrWriter(dst, 3, iokit.WithWriteErr(ce))
 
 n, err := ew.Write([]byte{0, 1, 2, 3})
 
@@ -122,4 +139,40 @@ fmt.Printf("  dst: %v\n", dst.Bytes())
 //     n: 3
 // error: my error
 //   dst: [0 1 2]
+```
+
+## Seek and offset helpers
+
+These helpers wrap the `io.Seeker` operations that tests reach for
+most often. Each one panics on error instead of returning it, which
+keeps test setup terse — an unexpected seek failure aborts the test
+immediately rather than forcing an error check at every call site.
+
+### Offset
+
+`Offset` reports the current offset of an `io.Seeker`:
+
+```go
+off := iokit.Offset(rs)
+```
+
+### Seek
+
+`Seek` moves to a position and returns the new offset. The arguments
+mirror `io.Seeker.Seek`: an offset and a `whence` — one of
+`io.SeekStart`, `io.SeekCurrent`, or `io.SeekEnd`:
+
+```go
+// Rewind to the start.
+iokit.Seek(rs, 0, io.SeekStart)
+```
+
+### ReadAllFromStart
+
+`ReadAllFromStart` reads the entire content of an `io.ReadSeeker` from
+offset 0, then restores the original position — handy for inspecting
+what a seeker holds mid-test without disturbing the code under test:
+
+```go
+data := iokit.ReadAllFromStart(rs)
 ```

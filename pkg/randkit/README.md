@@ -29,7 +29,7 @@ random letters `[a-zA-Z]`:
 
 <!-- gmdoceg:ExampleStr -->
 ```go
-fmt.Println(Str(WithSeed(1)))
+fmt.Println(randkit.Str(randkit.WithSeed(1)))
 // Output:
 // qLKZasgepC
 ```
@@ -38,7 +38,7 @@ Use `WithLen` to change the length:
 
 <!-- gmdoceg:ExampleStr_withLen -->
 ```go
-fmt.Println(Str(WithSeed(1), WithLen(6)))
+fmt.Println(randkit.Str(randkit.WithSeed(1), randkit.WithLen(6)))
 // Output:
 // qLKZas
 ```
@@ -49,7 +49,12 @@ composed freely:
 
 <!-- gmdoceg:ExampleStr_withChars -->
 ```go
-fmt.Println(Str(WithChars(Digits), WithSeed(1), WithLen(8)))
+s := randkit.Str(
+    randkit.WithChars(randkit.Digits),
+    randkit.WithLen(8),
+    randkit.WithSeed(1),
+)
+fmt.Println(s)
 // Output:
 // 37790310
 ```
@@ -59,7 +64,13 @@ Use `WithPrefix` and `WithSuffix` (or `WithExt`, an alias for
 
 <!-- gmdoceg:ExampleStr_withPrefixSuffix -->
 ```go
-fmt.Println(Str(WithPrefix("test-"), WithSuffix("-end"), WithLen(6), WithSeed(1)))
+s := randkit.Str(
+    randkit.WithPrefix("test-"),
+    randkit.WithSuffix("-end"),
+    randkit.WithLen(6),
+    randkit.WithSeed(1),
+)
+fmt.Println(s)
 // Output:
 // test-qLKZas-end
 ```
@@ -74,7 +85,7 @@ extension `".txt"`:
 
 <!-- gmdoceg:ExampleFileName -->
 ```go
-fmt.Println(FileName("/tmp", WithSeed(1)))
+fmt.Println(randkit.FileName("/tmp", randkit.WithSeed(1)))
 // Output:
 // /tmp/file-qLKZasg.txt
 ```
@@ -83,7 +94,8 @@ Use `WithExt` to change the extension:
 
 <!-- gmdoceg:ExampleFileName_withExt -->
 ```go
-fmt.Println(FileName("/tmp", WithExt(".json"), WithSeed(1)))
+name := randkit.FileName("/tmp", randkit.WithExt(".json"), randkit.WithSeed(1))
+fmt.Println(name)
 // Output:
 // /tmp/file-qLKZasg.json
 ```
@@ -96,7 +108,7 @@ fmt.Println(FileName("/tmp", WithExt(".json"), WithSeed(1)))
 
 <!-- gmdoceg:ExampleInt -->
 ```go
-fmt.Println(Int(100, WithSeed(1)))
+fmt.Println(randkit.Int(100, randkit.WithSeed(1)))
 // Output:
 // 32
 ```
@@ -110,7 +122,7 @@ digits. No special characters are included:
 
 <!-- gmdoceg:ExamplePassword -->
 ```go
-fmt.Println(Password(16, WithSeed(1)))
+fmt.Println(randkit.Password(16, randkit.WithSeed(1)))
 // Output:
 // tSR9avhesITXkYun
 ```

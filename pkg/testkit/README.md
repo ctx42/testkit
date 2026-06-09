@@ -27,7 +27,7 @@ and returns it as a lowercase hex string:
 <!-- gmdoceg:ExampleSHA1Reader -->
 ```go
 r := strings.NewReader("hello")
-fmt.Println(SHA1Reader(r))
+fmt.Println(testkit.SHA1Reader(r))
 // Output:
 // aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d
 ```
@@ -52,10 +52,11 @@ package have finished. Wire both calls into `TestMain`:
 
 <!-- gmdoceg:ExampleAddGlobalCleanup -->
 ```go
-AddGlobalCleanup(func() {
+testkit.AddGlobalCleanup(func() {
     // cleanup logic, e.g. stopping a shared database container
 })
-RunGlobalCleanups()
+testkit.RunGlobalCleanups()
+// Output:
 ```
 
 A typical `TestMain` looks like this:

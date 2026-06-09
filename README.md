@@ -3,6 +3,7 @@
   * [Installation](#installation)
   * [Packages at a glance](#packages-at-a-glance)
   * [exekit — running external commands](#exekit--running-external-commands)
+  * [oskit — OS and filesystem helpers](#oskit--os-and-filesystem-helpers)
   * [iokit — buffers and error injection](#iokit--buffers-and-error-injection)
     * [Thread-safe test buffers](#thread-safe-test-buffers)
     * [Error-injecting readers and writers](#error-injecting-readers-and-writers)
@@ -16,18 +17,28 @@
     * [Global post-test cleanup](#global-post-test-cleanup)
   * [timekit — deterministic clocks](#timekit--deterministic-clocks)
   * [Further reading](#further-reading)
+  * [License](#license)
 <!-- TOC -->
 
 # testkit
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/ctx42/testkit.svg)](https://pkg.go.dev/github.com/ctx42/testkit)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE.md)
+
 `testkit` is a curated collection of focused Go testing utilities.
 Each sub-package solves one problem well: deterministic time, I/O
 error injection, subprocess control, random fixture data, and more.
-Every helper is designed to integrate naturally with
-[`tester.T`](https://github.com/ctx42/testing/blob/master/pkg/tester/t.go#L21)
-and the assertion packages in the CTX42 testing module.
+
+Where a helper can fail a test, it takes a test handle as its first
+argument and reports through it — so the failure is attributed to the
+calling test and the surrounding run keeps going. That handle is the
+[`tester.T`](https://pkg.go.dev/github.com/ctx42/testing/pkg/tester#T)
+interface from the CTX42 testing module; it is a subset of
+`*testing.T`, so the standard `*testing.T` satisfies it directly.
 
 ## Installation
+
+`testkit` requires Go 1.26 or newer.
 
 ```
 go get github.com/ctx42/testkit
@@ -39,6 +50,7 @@ go get github.com/ctx42/testkit
 |--------------|-------------------------------------------|-------------------------------------------------------------------------|
 | `exekit`     | `github.com/ctx42/testkit/pkg/exekit`     | Run external commands and assert their output and exit code             |
 | `iokit`      | `github.com/ctx42/testkit/pkg/iokit`      | Thread-safe test buffers; error-injecting readers and writers           |
+| `oskit`      | `github.com/ctx42/testkit/pkg/oskit`      | File, directory, working-directory, and environment test helpers        |
 | `randkit`    | `github.com/ctx42/testkit/pkg/randkit`    | Random strings, integers, passwords, and file names for test fixtures   |
 | `reflectkit` | `github.com/ctx42/testkit/pkg/reflectkit` | Struct field and value inspection via reflection                        |
 | `selfkit`    | `github.com/ctx42/testkit/pkg/selfkit`    | Use the test binary as an exec target; assert stdout, stderr, exit code |
@@ -70,12 +82,60 @@ out := exe.ExeStdout("go", "env", "GOPATH")
 errMsg := exe.ExeStderr("mybin", "--bad-flag")
 
 // Capture both.
-sout, seout := exe.Exe("git", "status", "--short")
+sout, eout := exe.Exe("git", "status", "--short")
 
 // Assert a specific exit code.
 exe = exekit.New(t, exekit.WithExitCode(1))
 exe.Exe("false")
 ```
+
+---
+
+## oskit — OS and filesystem helpers
+
+`oskit` provides test helpers for common [os] operations. Every
+function integrates with `tester.T`: on error it marks the test as
+failed, writes a diagnostic to the test log, and returns a safe zero
+value so the test can continue executing.
+
+```go
+import "github.com/ctx42/testkit/pkg/oskit"
+
+// Read a file — fails the test if it does not exist.
+data := oskit.ReadFile(t, "testdata/golden.json")
+
+// Write or append to a file.
+oskit.WriteStr(t, "hello\n", t.TempDir(), "out.txt")
+
+// Create (or overwrite) a file; truncates existing content.
+oskit.CreateStr(t, "fixture data", t.TempDir(), "fixture.txt")
+
+// Create nested directories with 0755 permissions.
+oskit.MkdirAll(t, t.TempDir(), "a", "b", "c")
+
+// Check existence (file, dir, or symlink).
+exists := oskit.PathExists(t, "testdata/file.txt")
+
+// List a directory; directories are prefixed with "d|".
+entries := oskit.List(t, "testdata/fixtures")
+// e.g. ["d|subdir", "file.txt"]
+
+// Copy a file into a destination directory.
+oskit.CopyFile(t, t.TempDir(), "testdata/file.txt")
+
+// Copy a directory tree recursively.
+oskit.CopyDir(t, t.TempDir(), "testdata/dir")
+
+// Change working directory; restored by t.Cleanup.
+oskit.Chdir(t, "testdata", "dir")
+
+// Parse os.Environ() slices.
+m := oskit.EnvSplit(os.Environ())
+m["EXTRA"] = "1"
+cmd.Env = oskit.EnvJoin(m)
+```
+
+See the [oskit README](pkg/oskit/README.md) for the full reference.
 
 ---
 
@@ -93,8 +153,10 @@ never examined via `buf.String()`:
 <!-- gmdoceg:ExampleWetBuffer -->
 ```go
 t := &testing.T{}
+
 buf := iokit.WetBuffer(t, "stdout")
 _, _ = buf.WriteString("hello")
+
 fmt.Println(buf.String())
 // Output:
 // hello
@@ -105,10 +167,13 @@ fmt.Println(buf.String())
 <!-- gmdoceg:ExampleDryBuffer -->
 ```go
 t := &testing.T{}
+
 errOut := iokit.DryBuffer(t, "stderr")
+
 // Pass errOut as io.Writer to code that should produce no output.
 // Cleanup calls t.Error if anything is written.
 _ = errOut
+// Output:
 ```
 
 Use `SkipExamine` when you only care that something was written, not what:
@@ -116,9 +181,11 @@ Use `SkipExamine` when you only care that something was written, not what:
 <!-- gmdoceg:ExampleBuffer_SkipExamine -->
 ```go
 t := &testing.T{}
+
 buf := iokit.WetBuffer(t, "stdout").SkipExamine()
 _, _ = buf.WriteString("data")
 // buf.String() need not be called — SkipExamine disables the check.
+
 fmt.Println(buf.Kind())
 // Output:
 // wet
@@ -140,14 +207,16 @@ data, err := io.ReadAll(r)
 r = iokit.ErrReader(src, 4, iokit.WithReadErr(io.ErrUnexpectedEOF))
 
 // Fail a write after 3 bytes.
-w := iokit.ErrWriter(&bytes.Buffer{}, 3, iokit.WithWriteErr(errors.New("my error")))
+w := iokit.ErrWriter(&bytes.Buffer{}, 3,
+    iokit.WithWriteErr(errors.New("my error")))
 n, err := w.Write([]byte{0, 1, 2, 3})
 // n = 3, err = "my error"
 
 // ReadCloser, ReadSeeker, ReadSeekCloser, and WriteCloser variants
 // follow the same pattern. Use WithCloseErr / WithSeekErr to
 // inject errors on those operations independently.
-rc := iokit.ErrReadCloser(src, 10, iokit.WithCloseErr(errors.New("close failed")))
+rc := iokit.ErrReadCloser(src, 10,
+    iokit.WithCloseErr(errors.New("close failed")))
 ```
 
 ### Seek and offset helpers
@@ -180,7 +249,10 @@ import "github.com/ctx42/testkit/pkg/randkit"
 name := randkit.Str()
 
 // Custom character set and length.
-token := randkit.Str(randkit.WithChars(randkit.Letters, randkit.Digits), randkit.WithLen(32))
+token := randkit.Str(
+    randkit.WithChars(randkit.Letters, randkit.Digits),
+    randkit.WithLen(32),
+)
 
 // Random integer in [1, 100].
 n := randkit.Int(100)
@@ -418,9 +490,16 @@ sched := NewScheduler(timekit.TikTak(base))
 
 - `exekit` [README](pkg/exekit/README.md)
 - `iokit` [README](pkg/iokit/README.md)
+- `oskit` [README](pkg/oskit/README.md)
 - `randkit` [README](pkg/randkit/README.md)
 - `reflectkit` [README](pkg/reflectkit/README.md)
 - `selfkit` [README](pkg/selfkit/README.md)
 - `subkit` [README](pkg/subkit/README.md)
 - `testkit` [README](pkg/testkit/README.md)
 - `timekit` [README](pkg/timekit/README.md)
+
+---
+
+## License
+
+`testkit` is released under the [MIT License](LICENSE.md).

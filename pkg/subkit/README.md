@@ -32,14 +32,15 @@ real test, pass `t.Name()` to match the enclosing test exactly:
 
 <!-- gmdoceg:ExampleNew -->
 ```go
-sub := New("Test_MyFunc/success")
+sub := subkit.New("Test_MyFunc/success")
 if sub.InMainProcess() {
-	sout, eout, err := sub.Run()
-	_, _, _ = sout, eout, err
-	return
+    // sout, eout, err := sub.Run()
+    return
 }
 // --- IN SUBPROCESS ---
 // The real test body runs here in the child process.
+
+// Output:
 ```
 
 `Run` spawns a child with `go test -v -test.run=<name>` and the
@@ -53,9 +54,10 @@ argument must be an import path accepted by `go test`:
 
 <!-- gmdoceg:ExampleNewPkg -->
 ```go
-sub := NewPkg("github.com/ctx42/testkit/pkg/myservice")
-sout, eout, err := sub.Run()
-_, _, _ = sout, eout, err
+sub := subkit.NewPkg("github.com/ctx42/testkit/pkg/myservice")
+// sout, eout, err := sub.Run()
+_ = sub
+// Output:
 ```
 
 ## Detection helpers
@@ -68,7 +70,7 @@ that `Run` sets before spawning the child:
 
 <!-- gmdoceg:ExampleSubProcess_InSubProcess -->
 ```go
-sub := New("Test_Example")
+sub := subkit.New("Test_Example")
 fmt.Println(sub.InSubProcess())
 // Output:
 // false
@@ -81,7 +83,7 @@ the parent process and is the usual guard condition:
 
 <!-- gmdoceg:ExampleSubProcess_InMainProcess -->
 ```go
-sub := New("Test_Example")
+sub := subkit.New("Test_Example")
 fmt.Println(sub.InMainProcess())
 // Output:
 // true
@@ -100,7 +102,7 @@ when absent. Pass `os.Args` to extract the flag from the current
 <!-- gmdoceg:ExampleGetCovProfile -->
 ```go
 args := []string{"-test.v", "-test.coverprofile", "/tmp/cover.out"}
-fmt.Println(GetCovProfile(args))
+fmt.Println(subkit.GetCovProfile(args))
 // Output:
 // [-test.coverprofile /tmp/cover.out]
 ```
@@ -110,7 +112,7 @@ When the flag is not present, `GetCovProfile` returns nil:
 <!-- gmdoceg:ExampleGetCovProfile_notPresent -->
 ```go
 args := []string{"-test.v", "-test.timeout", "30s"}
-fmt.Println(GetCovProfile(args))
+fmt.Println(subkit.GetCovProfile(args))
 // Output:
 // []
 ```

@@ -1,15 +1,20 @@
-package selfkit
+// SPDX-FileCopyrightText: (c) 2026 Rafal Zajac
+// SPDX-License-Identifier: MIT
+
+package selfkit_test
 
 import (
 	"fmt"
 	"io"
 	"os"
 	"strings"
+
+	"github.com/ctx42/testkit/pkg/selfkit"
 )
 
 func ExampleNew() {
 	// No selfkit flags: Run signals the caller to proceed with tests.
-	se := New(WithArgs([]string{"prog"}))
+	se := selfkit.New(selfkit.WithArgs([]string{"prog"}))
 
 	runTests, exitCode := se.Run(io.Discard, io.Discard)
 
@@ -24,7 +29,7 @@ func ExampleSelf_Run_toStdout() {
 	var sout, eout strings.Builder
 	args := []string{"prog", "--toStdout", "hello", "--toStderr", "world"}
 
-	se := New(WithArgs(args))
+	se := selfkit.New(selfkit.WithArgs(args))
 	testsRun, _ := se.Run(&sout, &eout)
 
 	fmt.Println(sout.String())
@@ -39,7 +44,7 @@ func ExampleSelf_Run_toStdout() {
 func ExampleSelf_Run_exitCode() {
 	args := []string{"prog", "--exitCode", "42"}
 
-	se := New(WithArgs(args))
+	se := selfkit.New(selfkit.WithArgs(args))
 	runTests, exitCode := se.Run(io.Discard, io.Discard)
 
 	fmt.Println(runTests)
@@ -55,7 +60,7 @@ func ExampleSelf_Run_printEnv() {
 	defer func() { _ = os.Unsetenv("MY_VAR") }()
 	args := []string{"prog", "--printEnv", "MY_VAR"}
 
-	se := New(WithArgs(args))
+	se := selfkit.New(selfkit.WithArgs(args))
 	testsRun, _ := se.Run(&sout, io.Discard)
 
 	fmt.Println(testsRun)
@@ -69,7 +74,7 @@ func ExampleSelf_Run_printArgs() {
 	var sout strings.Builder
 	args := []string{"prog", "--printArgs", "label", "arg1", "arg2"}
 
-	se := New(WithArgs(args))
+	se := selfkit.New(selfkit.WithArgs(args))
 	se.Run(&sout, io.Discard)
 
 	fmt.Println(sout.String())
@@ -81,7 +86,7 @@ func ExampleSelf_Run_noWrap() {
 	var sout strings.Builder
 	args := []string{"prog", "--noWrap", "--toStdout", "hello"}
 
-	se := New(WithArgs(args))
+	se := selfkit.New(selfkit.WithArgs(args))
 	se.Run(&sout, io.Discard)
 
 	fmt.Println(sout.String())
@@ -95,7 +100,7 @@ func ExampleSelf_Run_printToStderr() {
 	var eout strings.Builder
 	args := []string{"prog", "--printToStderr", "--printEnv", "MY_VAR"}
 
-	se := New(WithArgs(args))
+	se := selfkit.New(selfkit.WithArgs(args))
 	se.Run(io.Discard, &eout)
 
 	fmt.Println(eout.String())

@@ -43,8 +43,10 @@ When no selfkit flags are present (normal test run), `Run` returns
 <!-- gmdoceg:ExampleNew -->
 ```go
 // No selfkit flags: Run signals the caller to proceed with tests.
-se := New(WithArgs([]string{"prog"}))
+se := selfkit.New(selfkit.WithArgs([]string{"prog"}))
+
 runTests, exitCode := se.Run(io.Discard, io.Discard)
+
 fmt.Println(runTests)
 fmt.Println(exitCode)
 // Output:
@@ -97,14 +99,14 @@ Both flags may be combined in one invocation:
 <!-- gmdoceg:ExampleSelf_Run_toStdout -->
 ```go
 var sout, eout strings.Builder
-se := New(WithArgs([]string{"prog",
-    "--toStdout", "hello",
-    "--toStderr", "world",
-}))
-runTests, _ := se.Run(&sout, &eout)
+args := []string{"prog", "--toStdout", "hello", "--toStderr", "world"}
+
+se := selfkit.New(selfkit.WithArgs(args))
+testsRun, _ := se.Run(&sout, &eout)
+
 fmt.Println(sout.String())
 fmt.Println(eout.String())
-fmt.Println(runTests)
+fmt.Println(testsRun)
 // Output:
 // |sout: hello|
 // |eout: world|
@@ -119,8 +121,11 @@ running tests".
 
 <!-- gmdoceg:ExampleSelf_Run_exitCode -->
 ```go
-se := New(WithArgs([]string{"prog", "--exitCode", "42"}))
+args := []string{"prog", "--exitCode", "42"}
+
+se := selfkit.New(selfkit.WithArgs(args))
 runTests, exitCode := se.Run(io.Discard, io.Discard)
+
 fmt.Println(runTests)
 fmt.Println(exitCode)
 // Output:
@@ -136,16 +141,19 @@ inherits or sets a particular environment variable.
 
 <!-- gmdoceg:ExampleSelf_Run_printEnv -->
 ```go
-os.Setenv("MY_VAR", "secret")
-defer os.Unsetenv("MY_VAR")
 var sout strings.Builder
-se := New(WithArgs([]string{"prog", "--printEnv", "MY_VAR"}))
-runTests, _ := se.Run(&sout, io.Discard)
+_ = os.Setenv("MY_VAR", "secret")
+defer func() { _ = os.Unsetenv("MY_VAR") }()
+args := []string{"prog", "--printEnv", "MY_VAR"}
+
+se := selfkit.New(selfkit.WithArgs(args))
+testsRun, _ := se.Run(&sout, io.Discard)
+
+fmt.Println(testsRun)
 fmt.Println(sout.String())
-fmt.Println(runTests)
 // Output:
-// |env: secret|
 // false
+// |env: secret|
 ```
 
 ### --printArgs
@@ -157,8 +165,11 @@ last so trailing positional arguments are captured correctly.
 <!-- gmdoceg:ExampleSelf_Run_printArgs -->
 ```go
 var sout strings.Builder
-se := New(WithArgs([]string{"prog", "--printArgs", "label", "arg1", "arg2"}))
+args := []string{"prog", "--printArgs", "label", "arg1", "arg2"}
+
+se := selfkit.New(selfkit.WithArgs(args))
 se.Run(&sout, io.Discard)
+
 fmt.Println(sout.String())
 // Output:
 // |args: label arg1,arg2|
@@ -172,8 +183,11 @@ this when the caller needs the raw value without delimiters.
 <!-- gmdoceg:ExampleSelf_Run_noWrap -->
 ```go
 var sout strings.Builder
-se := New(WithArgs([]string{"prog", "--noWrap", "--toStdout", "hello"}))
+args := []string{"prog", "--noWrap", "--toStdout", "hello"}
+
+se := selfkit.New(selfkit.WithArgs(args))
 se.Run(&sout, io.Discard)
+
 fmt.Println(sout.String())
 // Output:
 // hello
@@ -186,11 +200,14 @@ instead of stdout.
 
 <!-- gmdoceg:ExampleSelf_Run_printToStderr -->
 ```go
-os.Setenv("MY_VAR", "value")
-defer os.Unsetenv("MY_VAR")
+_ = os.Setenv("MY_VAR", "value")
+defer func() { _ = os.Unsetenv("MY_VAR") }()
 var eout strings.Builder
-se := New(WithArgs([]string{"prog", "--printToStderr", "--printEnv", "MY_VAR"}))
+args := []string{"prog", "--printToStderr", "--printEnv", "MY_VAR"}
+
+se := selfkit.New(selfkit.WithArgs(args))
 se.Run(io.Discard, &eout)
+
 fmt.Println(eout.String())
 // Output:
 // |env: value|

@@ -94,7 +94,7 @@ with coverage enabled. It recognizes both `-coverprofile` and
 <!-- gmdoceg:ExampleIsWithCoverage -->
 ```go
 args := []string{"-test.v", "-test.coverprofile=/tmp/cover.out"}
-path, ok := IsWithCoverage(args)
+path, ok := exekit.IsWithCoverage(args)
 fmt.Println(path)
 fmt.Println(ok)
 // Output:
@@ -107,7 +107,7 @@ When the flag is absent, `IsWithCoverage` returns `("", false)`:
 <!-- gmdoceg:ExampleIsWithCoverage_absent -->
 ```go
 args := []string{"-test.v", "-test.timeout=30s"}
-_, ok := IsWithCoverage(args)
+_, ok := exekit.IsWithCoverage(args)
 fmt.Println(ok)
 // Output:
 // false
@@ -123,7 +123,7 @@ enabled in the given args. It is a no-op when coverage is not detected or when
 ```go
 env := []string{"HOME=/root"}
 args := []string{"-test.coverprofile=/tmp/cover.out"}
-env = MaybeAddGoCovDir(env, args, func() string { return "/tmp/covdir" })
+env = exekit.MaybeAddGoCovDir(env, args, func() string { return "/tmp/covdir" })
 fmt.Println(env)
 // Output:
 // [HOME=/root GOCOVERDIR=/tmp/covdir]

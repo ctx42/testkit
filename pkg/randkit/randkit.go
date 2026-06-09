@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: (c) 2026 Rafal Zajac
+// SPDX-License-Identifier: MIT
+
 // Package randkit provides random test helpers for generating strings,
 // file names, identifiers, and other test fixtures. The default source
 // is [math/rand/v2]'s automatically-seeded global PRNG, which is fast
