@@ -4,6 +4,7 @@
   * [Packages at a glance](#packages-at-a-glance)
   * [exekit — running external commands](#exekit--running-external-commands)
   * [oskit — OS and filesystem helpers](#oskit--os-and-filesystem-helpers)
+  * [pathkit — path resolution helpers](#pathkit--path-resolution-helpers)
   * [iokit — buffers and error injection](#iokit--buffers-and-error-injection)
     * [Thread-safe test buffers](#thread-safe-test-buffers)
     * [Error-injecting readers and writers](#error-injecting-readers-and-writers)
@@ -51,6 +52,7 @@ go get github.com/ctx42/testkit
 | `exekit`     | `github.com/ctx42/testkit/pkg/exekit`     | Run external commands and assert their output and exit code             |
 | `iokit`      | `github.com/ctx42/testkit/pkg/iokit`      | Thread-safe test buffers; error-injecting readers and writers           |
 | `oskit`      | `github.com/ctx42/testkit/pkg/oskit`      | File, directory, working-directory, and environment test helpers        |
+| `pathkit`    | `github.com/ctx42/testkit/pkg/pathkit`    | Resolve absolute paths and symbolic links; fail test on error           |
 | `randkit`    | `github.com/ctx42/testkit/pkg/randkit`    | Random strings, integers, passwords, and file names for test fixtures   |
 | `reflectkit` | `github.com/ctx42/testkit/pkg/reflectkit` | Struct field and value inspection via reflection                        |
 | `selfkit`    | `github.com/ctx42/testkit/pkg/selfkit`    | Use the test binary as an exec target; assert stdout, stderr, exit code |
@@ -136,6 +138,27 @@ cmd.Env = oskit.EnvJoin(m)
 ```
 
 See the [oskit README](pkg/oskit/README.md) for the full reference.
+
+---
+
+## pathkit — path resolution helpers
+
+`pathkit` wraps the `path/filepath` functions that tests reach for when
+they need a real, resolved path. Like `oskit`, each helper joins its
+segments with `filepath.Join`, reports failures through `t.Error`, and
+returns an empty string so the test can continue.
+
+```go
+import "github.com/ctx42/testkit/pkg/pathkit"
+
+// Resolve a path to its absolute form (segments are joined first).
+abs := pathkit.AbsPath(t, "testdata", "golden.json")
+
+// Resolve symbolic links to their real target.
+resolved := pathkit.EvalSymlinks(t, "testdata", "dir_sym_link")
+```
+
+See the [pathkit README](pkg/pathkit/README.md) for the full reference.
 
 ---
 
@@ -491,6 +514,7 @@ sched := NewScheduler(timekit.TikTak(base))
 - `exekit` [README](pkg/exekit/README.md)
 - `iokit` [README](pkg/iokit/README.md)
 - `oskit` [README](pkg/oskit/README.md)
+- `pathkit` [README](pkg/pathkit/README.md)
 - `randkit` [README](pkg/randkit/README.md)
 - `reflectkit` [README](pkg/reflectkit/README.md)
 - `selfkit` [README](pkg/selfkit/README.md)
