@@ -145,8 +145,6 @@ func Test_Ver(t *testing.T) {
 		have := Ver("github.com/ctx42/testing")
 
 		// --- Then ---
-		// TODO(rz): Make this test independent of the version of the package
-		//  used by this module.
 		assert.Equal(t, "v0.51.0", have)
 	})
 
