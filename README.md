@@ -6,6 +6,7 @@
   * [oskit — OS and filesystem helpers](#oskit--os-and-filesystem-helpers)
   * [pathkit — path resolution helpers](#pathkit--path-resolution-helpers)
   * [modkit — Go module helpers](#modkit--go-module-helpers)
+  * [netkit — networking helpers](#netkit--networking-helpers)
   * [iokit — buffers and error injection](#iokit--buffers-and-error-injection)
     * [Thread-safe test buffers](#thread-safe-test-buffers)
     * [Error-injecting readers and writers](#error-injecting-readers-and-writers)
@@ -53,6 +54,7 @@ go get github.com/ctx42/testkit
 | `exekit`     | `github.com/ctx42/testkit/pkg/exekit`     | Run external commands and assert their output and exit code             |
 | `iokit`      | `github.com/ctx42/testkit/pkg/iokit`      | Thread-safe test buffers; error-injecting readers and writers           |
 | `modkit`     | `github.com/ctx42/testkit/pkg/modkit`     | Find the module root and read versions from go.mod files                |
+| `netkit`     | `github.com/ctx42/testkit/pkg/netkit`     | Free TCP ports and local addresses; connectivity checks                 |
 | `oskit`      | `github.com/ctx42/testkit/pkg/oskit`      | File, directory, working-directory, and environment test helpers        |
 | `pathkit`    | `github.com/ctx42/testkit/pkg/pathkit`    | Resolve absolute paths and symbolic links; fail test on error           |
 | `randkit`    | `github.com/ctx42/testkit/pkg/randkit`    | Random strings, integers, passwords, and file names for test fixtures   |
@@ -186,6 +188,33 @@ goVer, _ := modkit.GoVer("go.mod")
 ```
 
 See the [modkit README](pkg/modkit/README.md) for the full reference.
+
+---
+
+## netkit — networking helpers
+
+`netkit` hands tests free TCP ports and local addresses, checks whether
+an address accepts connections, and skips tests when the network or
+Internet is unavailable. Port and address helpers return an error;
+`CanConnect`, `CanNotConnect`, and `SkipOnNoNetConn` report through
+`tester.T`.
+
+```go
+import "github.com/ctx42/testkit/pkg/netkit"
+
+// A free port, or a ready-to-use localhost address.
+port, _ := netkit.GetFreePort()
+addr, _ := netkit.GetLocalAddress("http://") // e.g. http://localhost:54321
+
+// Assert reachability (conn is closed on cleanup).
+conn := netkit.CanConnect(t, "1s", addr)
+netkit.CanNotConnect(t, "localhost:9")
+
+// Gate a test on Internet access.
+netkit.SkipOnNoNetConn(t)
+```
+
+See the [netkit README](pkg/netkit/README.md) for the full reference.
 
 ---
 
@@ -541,6 +570,7 @@ sched := NewScheduler(timekit.TikTak(base))
 - `exekit` [README](pkg/exekit/README.md)
 - `iokit` [README](pkg/iokit/README.md)
 - `modkit` [README](pkg/modkit/README.md)
+- `netkit` [README](pkg/netkit/README.md)
 - `oskit` [README](pkg/oskit/README.md)
 - `pathkit` [README](pkg/pathkit/README.md)
 - `randkit` [README](pkg/randkit/README.md)
