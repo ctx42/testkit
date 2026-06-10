@@ -49,20 +49,20 @@ go get github.com/ctx42/testkit
 
 ## Packages at a glance
 
-| Package      | Import path                               | What it does                                                            |
-|--------------|-------------------------------------------|-------------------------------------------------------------------------|
-| `exekit`     | `github.com/ctx42/testkit/pkg/exekit`     | Run external commands and assert their output and exit code             |
-| `iokit`      | `github.com/ctx42/testkit/pkg/iokit`      | Thread-safe test buffers; error-injecting readers and writers           |
-| `modkit`     | `github.com/ctx42/testkit/pkg/modkit`     | Find the module root and read versions from go.mod files                |
-| `netkit`     | `github.com/ctx42/testkit/pkg/netkit`     | Free TCP ports and local addresses; connectivity checks                 |
-| `oskit`      | `github.com/ctx42/testkit/pkg/oskit`      | File, directory, working-directory, and environment test helpers        |
-| `pathkit`    | `github.com/ctx42/testkit/pkg/pathkit`    | Resolve absolute paths and symbolic links; fail test on error           |
-| `randkit`    | `github.com/ctx42/testkit/pkg/randkit`    | Random strings, integers, passwords, and file names for test fixtures   |
-| `reflectkit` | `github.com/ctx42/testkit/pkg/reflectkit` | Struct field and value inspection via reflection                        |
-| `selfkit`    | `github.com/ctx42/testkit/pkg/selfkit`    | Use the test binary as an exec target; assert stdout, stderr, exit code |
-| `subkit`     | `github.com/ctx42/testkit/pkg/subkit`     | Run tests in a child go test process; same test detects parent vs child |
-| `testkit`    | `github.com/ctx42/testkit/pkg/testkit`    | SHA-1 hashing helpers and global post-test cleanup                      |
-| `timekit`    | `github.com/ctx42/testkit/pkg/timekit`    | Deterministic and fixed clocks for time-dependent tests                 |
+| Package                                   | What it does                                                            |
+|-------------------------------------------|-------------------------------------------------------------------------|
+| `github.com/ctx42/testkit/pkg/exekit`     | Run external commands and assert their output and exit code             |
+| `github.com/ctx42/testkit/pkg/iokit`      | Thread-safe test buffers; error-injecting readers and writers           |
+| `github.com/ctx42/testkit/pkg/modkit`     | Find the module root and read versions from go.mod files                |
+| `github.com/ctx42/testkit/pkg/netkit`     | Free TCP ports and local addresses; connectivity checks                 |
+| `github.com/ctx42/testkit/pkg/oskit`      | File, directory, working-directory, and environment test helpers        |
+| `github.com/ctx42/testkit/pkg/pathkit`    | Resolve absolute paths and symbolic links; fail test on error           |
+| `github.com/ctx42/testkit/pkg/randkit`    | Random strings, integers, passwords, and file names for test fixtures   |
+| `github.com/ctx42/testkit/pkg/reflectkit` | Struct field and value inspection via reflection                        |
+| `github.com/ctx42/testkit/pkg/selfkit`    | Use the test binary as an exec target; assert stdout, stderr, exit code |
+| `github.com/ctx42/testkit/pkg/subkit`     | Run tests in a child go test process; same test detects parent vs child |
+| `github.com/ctx42/testkit/pkg/testkit`    | SHA-1 hashing helpers and global post-test cleanup                      |
+| `github.com/ctx42/testkit/pkg/timekit`    | Deterministic and fixed clocks for time-dependent tests                 |
 
 ---
 
