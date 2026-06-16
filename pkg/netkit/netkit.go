@@ -51,7 +51,7 @@ func GetFreePort() (int, error) {
 // allocated ports.
 func GetFreePorts(count int) ([]int, error) {
 	var ports []int
-	for i := 0; i < count; i++ {
+	for range count {
 		port, err := GetFreePort()
 		if err != nil {
 			return nil, err
