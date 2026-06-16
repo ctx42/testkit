@@ -29,7 +29,7 @@ Wire `selfkit` into `TestMain` once per package that needs it:
 
 ```go
 func TestMain(m *testing.M) {
-    runTests, exitCode := selfkit.New().Run(os.Stdout, os.Stderr)
+    runTests, exitCode := selfkit.NewT().Run(os.Stdout, os.Stderr)
     if runTests {
         os.Exit(m.Run())
     }
@@ -43,7 +43,7 @@ When no selfkit flags are present (normal test run), `Run` returns
 <!-- gmdoceg:ExampleNew -->
 ```go
 // No selfkit flags: Run signals the caller to proceed with tests.
-se := selfkit.New(selfkit.WithArgs([]string{"prog"}))
+se := selfkit.NewT(selfkit.WithArgs([]string{"prog"}))
 
 runTests, exitCode := se.Run(io.Discard, io.Discard)
 
@@ -101,7 +101,7 @@ Both flags may be combined in one invocation:
 var sout, eout strings.Builder
 args := []string{"prog", "--toStdout", "hello", "--toStderr", "world"}
 
-se := selfkit.New(selfkit.WithArgs(args))
+se := selfkit.NewT(selfkit.WithArgs(args))
 testsRun, _ := se.Run(&sout, &eout)
 
 fmt.Println(sout.String())
@@ -123,7 +123,7 @@ running tests".
 ```go
 args := []string{"prog", "--exitCode", "42"}
 
-se := selfkit.New(selfkit.WithArgs(args))
+se := selfkit.NewT(selfkit.WithArgs(args))
 runTests, exitCode := se.Run(io.Discard, io.Discard)
 
 fmt.Println(runTests)
@@ -146,7 +146,7 @@ _ = os.Setenv("MY_VAR", "secret")
 defer func() { _ = os.Unsetenv("MY_VAR") }()
 args := []string{"prog", "--printEnv", "MY_VAR"}
 
-se := selfkit.New(selfkit.WithArgs(args))
+se := selfkit.NewT(selfkit.WithArgs(args))
 testsRun, _ := se.Run(&sout, io.Discard)
 
 fmt.Println(testsRun)
@@ -167,7 +167,7 @@ last so trailing positional arguments are captured correctly.
 var sout strings.Builder
 args := []string{"prog", "--printArgs", "label", "arg1", "arg2"}
 
-se := selfkit.New(selfkit.WithArgs(args))
+se := selfkit.NewT(selfkit.WithArgs(args))
 se.Run(&sout, io.Discard)
 
 fmt.Println(sout.String())
@@ -185,7 +185,7 @@ this when the caller needs the raw value without delimiters.
 var sout strings.Builder
 args := []string{"prog", "--noWrap", "--toStdout", "hello"}
 
-se := selfkit.New(selfkit.WithArgs(args))
+se := selfkit.NewT(selfkit.WithArgs(args))
 se.Run(&sout, io.Discard)
 
 fmt.Println(sout.String())
@@ -205,7 +205,7 @@ defer func() { _ = os.Unsetenv("MY_VAR") }()
 var eout strings.Builder
 args := []string{"prog", "--printToStderr", "--printEnv", "MY_VAR"}
 
-se := selfkit.New(selfkit.WithArgs(args))
+se := selfkit.NewT(selfkit.WithArgs(args))
 se.Run(io.Discard, &eout)
 
 fmt.Println(eout.String())
