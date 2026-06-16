@@ -1,3 +1,30 @@
+## v0.4.0 (Tue, 16 Jun 2026 20:09:15 UTC)
+- feat: improve documentation, add subkit, WithSeed for randkit, and runnable examples.
+- feat(oskit): add filesystem and environment test helpers.
+- docs: standardize examples and sync READMEs across packages.
+- feat(pathkit): add path resolution test helpers.
+- docs: document pathkit and list it in the module README.
+- feat(modkit): add Go module location and go.mod inspection helpers.
+- docs: document modkit and list it in the module README.
+- feat(netkit): add networking helpers for tests.
+- docs: document netkit and list it in the module README.
+- ci: add GitHub Actions workflow for Go tests.
+- docs: simplify README glance table by merging package and import path columns.
+- doc: modkit, testkit: remove outdated TODOs and improve Wait4File docs.
+- chore(idea): move run config from build/ to dev/.
+- refactor(netkit): use range-over-int loop in GetFreePorts.
+- refactor(oskit): remove redundant loop-variable captures in tests.
+- refactor(randkit): replace counted for-loops with range-over-int.
+- docs(selfkit): update README examples to use NewT.
+- docs(subkit): update README examples to use NewT; fix NewPkg godoc.
+- fix(iokit): correct function name in README examples.
+- fix(modkit): update version assertion and testdata module paths.
+- test(testkit): add tests for Wait4File.
+- feat(exekit): add WithLax option.
+- build(deps): bump testing to v0.54.0, add xdef v0.1.0.
+- feat(dkrkit): add Docker CLI wrapper for integration tests.
+- ci: pin Docker to v29.1.3 in GitHub Actions.
+
 ## v0.3.1 (Mon, 08 Jun 2026 06:52:06 UTC)
 - docs: improve package code documentation.
 
