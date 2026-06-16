@@ -283,7 +283,6 @@ func Test_addToList_tabular(t *testing.T) {
 	}
 
 	for _, tc := range tt {
-		tc := tc
 		t.Run(tc.testN, func(t *testing.T) {
 			// --- When ---
 			got := addToList(tc.curr, tc.path)
@@ -1542,7 +1541,6 @@ func Test_EnvSplit_tabular(t *testing.T) {
 	}
 
 	for _, tc := range tt {
-		tc := tc
 		t.Run(tc.testN, func(t *testing.T) {
 			// --- When ---
 			have := EnvSplit(tc.env)
