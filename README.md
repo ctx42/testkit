@@ -2,6 +2,7 @@
 * [testkit](#testkit)
   * [Installation](#installation)
   * [Packages at a glance](#packages-at-a-glance)
+  * [dkrkit — Docker test helpers](#dkrkit--docker-test-helpers)
   * [exekit — running external commands](#exekit--running-external-commands)
   * [oskit — OS and filesystem helpers](#oskit--os-and-filesystem-helpers)
   * [pathkit — path resolution helpers](#pathkit--path-resolution-helpers)
@@ -51,6 +52,7 @@ go get github.com/ctx42/testkit
 
 | Package                                   | What it does                                                            |
 |-------------------------------------------|-------------------------------------------------------------------------|
+| `github.com/ctx42/testkit/pkg/dkrkit`     | Build, run, and inspect Docker images and containers in tests           |
 | `github.com/ctx42/testkit/pkg/exekit`     | Run external commands and assert their output and exit code             |
 | `github.com/ctx42/testkit/pkg/iokit`      | Thread-safe test buffers; error-injecting readers and writers           |
 | `github.com/ctx42/testkit/pkg/modkit`     | Find the module root and read versions from go.mod files                |
@@ -66,6 +68,39 @@ go get github.com/ctx42/testkit
 
 ---
 
+## dkrkit — Docker test helpers
+
+`dkrkit` wraps the Docker CLI in Go helper functions for integration
+tests. It covers the full lifecycle of test images and containers:
+building, running, inspecting, and removing them.
+
+Two APIs are provided. `Docker` returns errors and suits shared
+fixtures or `TestMain`. `DockerT` calls `t.Error` on failure and
+registers automatic cleanup, so it reads cleanly inside test
+functions:
+
+```go
+import "github.com/ctx42/testkit/pkg/dkrkit"
+
+// --- Inside a test function ---
+dkr := dkrkit.NewT(t)
+
+ref, iid := dkr.Build(
+    dkrkit.WithBuildDkfPth("testdata/Dockerfile"),
+    dkrkit.WithBuildArg("BASE", dkrkit.TestImageBaseRef),
+)
+// iid is removed by t.Cleanup automatically
+
+out := dkr.CtrRun(ref, dkrkit.WithCtrRunArgs("echo", "hello"))
+
+dkrkit.HasLabel(t, iid, "com.example.version", "v1.2.3")
+dkrkit.HasEnv(t, ref, "APP_ENV", "test")
+```
+
+See the [dkrkit README](pkg/dkrkit/README.md) for the full reference.
+
+---
+
 ## exekit — running external commands
 
 `exekit` wraps `os/exec` with a `tester.T`-aware executor that handles timeouts,
@@ -76,7 +111,7 @@ misbehaves.
 ```go
 import "github.com/ctx42/testkit/pkg/exekit"
 
-exe := exekit.New(t,
+exe := exekit.NewT(t,
     exekit.WithTimeout(10*time.Second),
     exekit.WithEnv(append(os.Environ(), "APP_ENV=test")),
 )
@@ -91,7 +126,7 @@ errMsg := exe.ExeStderr("mybin", "--bad-flag")
 sout, eout := exe.Exe("git", "status", "--short")
 
 // Assert a specific exit code.
-exe = exekit.New(t, exekit.WithExitCode(1))
+exe = exekit.NewT(t, exekit.WithExitCode(1))
 exe.Exe("false")
 ```
 
@@ -287,7 +322,7 @@ r = iokit.ErrReader(src, 4, iokit.WithReadErr(io.ErrUnexpectedEOF))
 
 // Fail a write after 3 bytes.
 w := iokit.ErrWriter(&bytes.Buffer{}, 3,
-    iokit.WithWriteErr(errors.New("my error")))
+    iokit.WithWriteErr(errors.NewT("my error")))
 n, err := w.Write([]byte{0, 1, 2, 3})
 // n = 3, err = "my error"
 
@@ -295,7 +330,7 @@ n, err := w.Write([]byte{0, 1, 2, 3})
 // follow the same pattern. Use WithCloseErr / WithSeekErr to
 // inject errors on those operations independently.
 rc := iokit.ErrReadCloser(src, 10,
-    iokit.WithCloseErr(errors.New("close failed")))
+    iokit.WithCloseErr(errors.NewT("close failed")))
 ```
 
 ### Seek and offset helpers
@@ -398,7 +433,7 @@ can act as its own subprocess target. Wire it into `TestMain` once:
 import "github.com/ctx42/testkit/pkg/selfkit"
 
 func TestMain(m *testing.M) {
-    runTests, exitCode := selfkit.New().Run(os.Stdout, os.Stderr)
+    runTests, exitCode := selfkit.NewT().Run(os.Stdout, os.Stderr)
     if runTests {
         os.Exit(m.Run())
     }
@@ -410,11 +445,11 @@ Then in any test, re-invoke the binary with `exekit` or `exec.Command`
 and pass the `selfkit` flags to control what it does:
 
 ```go
-exe := exekit.New(t, exekit.WithExitCode(42), exekit.WithDevOsCov)
+exe := exekit.NewT(t, exekit.WithExitCode(42), exekit.WithDevOsCov)
 exe.Exe(os.Args[0], "-test.run=^$", "--exitCode", "42")
 
 // Assert that a specific string reaches stdout.
-exe2 := exekit.New(t, exekit.WithDevOsCov)
+exe2 := exekit.NewT(t, exekit.WithDevOsCov)
 out := exe2.ExeStdout(os.Args[0], "-test.run=^$",
     "--noWrap", "--toStdout", "hello")
 assert.Equal(t, "hello", out)
@@ -442,7 +477,7 @@ could exit:
 import "github.com/ctx42/testkit/pkg/subkit"
 
 func Test_MyCommand(t *testing.T) {
-    sub := subkit.New(t.Name())
+    sub := subkit.NewT(t.Name())
     if sub.InMainProcess() {
         sout, eout, err := sub.Run()
         assert.NoError(t, err)
@@ -567,6 +602,7 @@ sched := NewScheduler(timekit.TikTak(base))
 
 ## Further reading
 
+- `dkrkit` [README](pkg/dkrkit/README.md)
 - `exekit` [README](pkg/exekit/README.md)
 - `iokit` [README](pkg/iokit/README.md)
 - `modkit` [README](pkg/modkit/README.md)
