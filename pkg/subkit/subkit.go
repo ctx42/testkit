@@ -48,7 +48,7 @@ func New(name string) *SubProcess {
 }
 
 // NewPkg returns a 'go test' subprocess testing helper for a package.
-// pkg must be an import path accepted by "go test", for example
+// pkg must be an import path accepted by "go test", for minimal
 // "./pkg/foo" or "github.com/ctx42/testkit/pkg/foo". Use [New] to
 // target a specific test by name instead.
 func NewPkg(pkg string) *SubProcess {

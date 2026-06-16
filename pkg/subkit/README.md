@@ -1,7 +1,7 @@
 <!-- TOC -->
 * [The `subkit` package](#the-subkit-package)
   * [Subprocess test pattern](#subprocess-test-pattern)
-    * [New](#new)
+    * [NewT](#new)
     * [NewPkg](#newpkg)
   * [Detection helpers](#detection-helpers)
     * [InSubProcess](#insubprocess)
@@ -19,20 +19,20 @@ process — behaviour that cannot be tested in-process without aborting
 the parent binary.
 
 The package works by setting a per-test sentinel environment variable
-when launching the child. Both the parent and child call `New` (or
+when launching the child. Both the parent and child call `NewT` (or
 `NewPkg`) with the same name; `InMainProcess` and `InSubProcess` read
 that variable to determine which side of the fork is executing.
 
 ## Subprocess test pattern
 
-### New
+### NewT
 
-`New` creates a `SubProcess` targeting a single test by name. In a
+`NewT` creates a `SubProcess` targeting a single test by name. In a
 real test, pass `t.Name()` to match the enclosing test exactly:
 
 <!-- gmdoceg:ExampleNew -->
 ```go
-sub := subkit.New("Test_MyFunc/success")
+sub := subkit.NewT("Test_MyFunc/success")
 if sub.InMainProcess() {
     // sout, eout, err := sub.Run()
     return
@@ -70,7 +70,7 @@ that `Run` sets before spawning the child:
 
 <!-- gmdoceg:ExampleSubProcess_InSubProcess -->
 ```go
-sub := subkit.New("Test_Example")
+sub := subkit.NewT("Test_Example")
 fmt.Println(sub.InSubProcess())
 // Output:
 // false
@@ -83,7 +83,7 @@ the parent process and is the usual guard condition:
 
 <!-- gmdoceg:ExampleSubProcess_InMainProcess -->
 ```go
-sub := subkit.New("Test_Example")
+sub := subkit.NewT("Test_Example")
 fmt.Println(sub.InMainProcess())
 // Output:
 // true
