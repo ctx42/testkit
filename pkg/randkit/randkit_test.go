@@ -102,7 +102,7 @@ func Test_seededRand(t *testing.T) {
 		b := seededRand(42)
 
 		// --- Then ---
-		for i := 0; i < 100; i++ {
+		for range 100 {
 			assert.Equal(t, a(52), b(52))
 		}
 	})
@@ -114,7 +114,7 @@ func Test_seededRand(t *testing.T) {
 
 		// --- Then ---
 		differ := false
-		for i := 0; i < 100; i++ {
+		for range 100 {
 			if a(1000) != b(1000) {
 				differ = true
 				break
@@ -174,7 +174,7 @@ func Test_Str(t *testing.T) {
 		history := make(map[string]struct{})
 
 		// --- Then ---
-		for i := 0; i < 1000; i++ {
+		for range 1000 {
 			str := Str()
 			if _, ok := history[str]; ok {
 				t.Error("did not expect string to repeat")
@@ -215,7 +215,7 @@ func Test_Str(t *testing.T) {
 
 	t.Run("has only lowercase letters", func(t *testing.T) {
 		// --- Then ---
-		for i := 0; i < 500; i++ {
+		for range 500 {
 			str := Str(WithChars(Lowercase))
 			want := strings.ToLower(str)
 			have := str
@@ -227,7 +227,7 @@ func Test_Str(t *testing.T) {
 
 	t.Run("has only uppercase letters", func(t *testing.T) {
 		// --- Then ---
-		for i := 0; i < 500; i++ {
+		for range 500 {
 			str := Str(WithChars(Uppercase))
 			want := strings.ToUpper(str)
 			have := str
@@ -289,7 +289,7 @@ func Test_FileName(t *testing.T) {
 
 	t.Run("has only lowercase letters", func(t *testing.T) {
 		// --- Then ---
-		for i := 0; i < 500; i++ {
+		for range 500 {
 			name := FileName(
 				"/dir",
 				WithPrefix(""),
@@ -306,7 +306,7 @@ func Test_FileName(t *testing.T) {
 
 	t.Run("has only uppercase letters", func(t *testing.T) {
 		// --- Then ---
-		for i := 0; i < 500; i++ {
+		for range 500 {
 			name := FileName(
 				"/DIR",
 				WithPrefix(""),
@@ -333,7 +333,7 @@ func Test_Int(t *testing.T) {
 	t.Run("range", func(t *testing.T) {
 		const count = 100_000
 		const maxVal = 999
-		for i := 0; i < count; i++ {
+		for range count {
 			num := Int(maxVal)
 			if num < 1 || num > maxVal {
 				t.Errorf("expected num [1, %d]: %d", maxVal, num)
@@ -349,7 +349,7 @@ func Test_Int(t *testing.T) {
 func Test_Password(t *testing.T) {
 	t.Run("length", func(t *testing.T) {
 		const count = 100_000
-		for i := 0; i < count; i++ {
+		for range count {
 			pass := Password(16)
 			if len(pass) != 16 {
 				t.Errorf("expected password 16 characters long got: %s", pass)

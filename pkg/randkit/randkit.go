@@ -155,7 +155,7 @@ func seededRand(seed int64) func(n int) int {
 // with the byte's index, spreading entropy across the full key.
 func seedToBytes(seed int64) [32]byte {
 	var b [32]byte
-	for i := 0; i < 8; i++ {
+	for i := range 8 {
 		b[i] = byte(seed >> (i * 8))
 	}
 	for i := 8; i < 32; i++ {
