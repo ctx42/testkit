@@ -51,10 +51,14 @@ func WithTimeout(to time.Duration) func(*Exe) {
 	return func(ex *Exe) { ex.to = to }
 }
 
-// WithExitCode sets expected Exe exit code for a command execution.
+// WithExitCode sets expected exit code for a command execution.
 func WithExitCode(ec int) func(*Exe) {
 	return func(ex *Exe) { ex.ec = ec }
 }
+
+// WithLax sets a flag indicating the execution may fail. When the flag is
+// set, a non-zero exit code does not mark the test as failed.
+func WithLax(ex *Exe) { ex.lax = true }
 
 // WithDetCov is a special option detecting if the current test binary was
 // compiled with coverage, and if it was, it adds to the [Exe] environment the
@@ -107,6 +111,9 @@ type Exe struct {
 	// Trim output.
 	trim bool
 
+	// Execution may fail.
+	lax bool
+
 	// Test manager.
 	t tester.T
 }
@@ -147,7 +154,7 @@ func (ex *Exe) Exe(cmd string, args ...string) (string, string) {
 	c.Stdin = ex.sin
 	c.Dir = ex.wd
 
-	if err := c.Run(); err != nil {
+	if err := c.Run(); err != nil && !ex.lax {
 		so, eo := sout.String(), eout.String()
 		if ex.ec != 0 {
 			ee, ok := errors.AsType[*exec.ExitError](err)

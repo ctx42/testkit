@@ -72,6 +72,17 @@ func Test_WithExitCode(t *testing.T) {
 	assert.Equal(t, 123, ex.ec)
 }
 
+func Test_WithLax(t *testing.T) {
+	// --- Given ---
+	ex := &Exe{}
+
+	// --- When ---
+	WithLax(ex)
+
+	// --- Then ---
+	assert.True(t, ex.lax)
+}
+
 func Test_WithDetCov(t *testing.T) {
 	t.Run("coverage in args dir not set", func(t *testing.T) {
 		// --- Given ---
@@ -205,6 +216,21 @@ func Test_Exe_Exe(t *testing.T) {
 
 		// --- When ---
 		sout, eout := exe.Exe(os.Args[0], "--exitCode", "2")
+
+		// --- Then ---
+		assert.Equal(t, "", sout)
+		assert.Equal(t, "", eout)
+	})
+
+	t.Run("lax does not fail on non-zero exit code", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.Close()
+
+		exe := New(tspy, WithLax, WithDevOsCov)
+
+		// --- When ---
+		sout, eout := exe.Exe(os.Args[0], "--exitCode", "1")
 
 		// --- Then ---
 		assert.Equal(t, "", sout)

@@ -1,7 +1,7 @@
 <!-- TOC -->
 * [The `exekit` package](#the-exekit-package)
   * [Running commands](#running-commands)
-    * [New](#new)
+    * [NewT](#new)
     * [Exe](#exe)
     * [ExeStdout](#exestdout)
     * [ExeStderr](#exestderr)
@@ -21,13 +21,13 @@ expectation, and working directory.
 
 ## Running commands
 
-### New
+### NewT
 
-`New` constructs an `Exe` configured with the given options. By default, it
+`NewT` constructs an `Exe` configured with the given options. By default, it
 uses `os.Environ()` and a five-second timeout:
 
 ```go
-exe := exekit.New(t,
+exe := exekit.NewT(t,
     exekit.WithTimeout(10*time.Second),
     exekit.WithEnv(append(os.Environ(), "APP_ENV=test")),
 )
@@ -79,7 +79,7 @@ assert.Contain(t, "unknown flag", msg)
 To assert a non-zero exit code:
 
 ```go
-exe := exekit.New(t, exekit.WithExitCode(1))
+exe := exekit.NewT(t, exekit.WithExitCode(1))
 exe.Exe("false")
 ```
 
@@ -137,6 +137,6 @@ convenience wrapper that reads `os.Args` automatically — apply it last so it
 sees the final environment:
 
 ```go
-exe := exekit.New(t, exekit.WithDevOsCov)
+exe := exekit.NewT(t, exekit.WithDevOsCov)
 sout, _ := exe.Exe(os.Args[0], "-test.run=^$")
 ```
