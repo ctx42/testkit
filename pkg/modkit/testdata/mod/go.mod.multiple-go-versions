@@ -1,4 +1,4 @@
-module bitbucket.org/vrinf/raven
+module example.com/ctx42/raven
 
 go 1.17
 go 1.17

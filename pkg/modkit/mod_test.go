@@ -127,7 +127,6 @@ func Test_ModVer_tabular(t *testing.T) {
 	}
 
 	for _, tc := range tt {
-		tc := tc
 		t.Run(tc.testN, func(t *testing.T) {
 			// --- When ---
 			ver, err := ModVer("testdata/mod/go.mod.example", tc.pkg)
@@ -145,7 +144,7 @@ func Test_Ver(t *testing.T) {
 		have := Ver("github.com/ctx42/testing")
 
 		// --- Then ---
-		assert.Equal(t, "v0.51.0", have)
+		assert.Equal(t, "v0.54.0", have)
 	})
 
 	t.Run("failure", func(t *testing.T) {
