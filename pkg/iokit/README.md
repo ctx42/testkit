@@ -109,7 +109,7 @@ fmt.Printf(" data: %s\n", string(data))
 
 <!-- gmdoceg:ExampleErrReader_custom_error -->
 ```go
-mye := errors.New("my error")
+mye := errors.NewT("my error")
 rdr := strings.NewReader("some text")
 rcs := iokit.ErrReader(rdr, 4, iokit.WithReadErr(mye))
 
@@ -127,7 +127,7 @@ fmt.Printf(" data: %s\n", string(data))
 <!-- gmdoceg:ExampleErrWriter -->
 ```go
 dst := &bytes.Buffer{}
-ce := errors.New("my error")
+ce := errors.NewT("my error")
 ew := iokit.ErrWriter(dst, 3, iokit.WithWriteErr(ce))
 
 n, err := ew.Write([]byte{0, 1, 2, 3})
