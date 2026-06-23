@@ -1404,6 +1404,8 @@ func Test_Project_GitHash(t *testing.T) {
 		exe := exekit.New(t, exekit.WithWd(prj.root), exekit.WithTrim)
 		oskit.CopyFile(t, prj.root, "testdata/file0.txt")
 		exe.Exe("git", "init")
+		exe.Exe("git", "config", "user.email", "test@example.com")
+		exe.Exe("git", "config", "user.name", "Test User")
 		exe.Exe("git", "add", "-A")
 		exe.Exe("git", "commit", "-m", "Initial commit.")
 		want := exe.ExeStdout("git", "rev-parse", "--short", "HEAD")
@@ -1459,6 +1461,8 @@ func Test_Project_GitLog(t *testing.T) {
 
 		exe := exekit.New(t, exekit.WithWd(prj.root), exekit.WithTrim)
 		exe.Exe("git", "init")
+		exe.Exe("git", "config", "user.email", "test@example.com")
+		exe.Exe("git", "config", "user.name", "Test User")
 
 		oskit.WriteStr(t, "0", prj.root, "file0.txt")
 		exe.Exe("git", "add", "-A")
@@ -1502,6 +1506,8 @@ func Test_Project_GitLog(t *testing.T) {
 
 		exe := exekit.New(t, exekit.WithWd(prj.root), exekit.WithTrim)
 		exe.Exe("git", "init")
+		exe.Exe("git", "config", "user.email", "test@example.com")
+		exe.Exe("git", "config", "user.name", "Test User")
 
 		oskit.WriteStr(t, "0", prj.root, "file0.txt")
 		exe.Exe("git", "add", "-A")
@@ -1546,6 +1552,8 @@ func Test_Project_GitLog(t *testing.T) {
 
 		exe := exekit.New(t, exekit.WithWd(prj.root), exekit.WithTrim)
 		exe.Exe("git", "init")
+		exe.Exe("git", "config", "user.email", "test@example.com")
+		exe.Exe("git", "config", "user.name", "Test User")
 
 		oskit.WriteStr(t, "0", prj.root, "file0.txt")
 		exe.Exe("git", "add", "-A")
