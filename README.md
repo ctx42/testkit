@@ -2,17 +2,14 @@
 * [testkit](#testkit)
   * [Installation](#installation)
   * [Packages at a glance](#packages-at-a-glance)
-  * [dkrkit — Docker test helpers](#dkrkit--docker-test-helpers)
   * [exekit — running external commands](#exekit--running-external-commands)
   * [iokit — buffers and error injection](#iokit--buffers-and-error-injection)
     * [Thread-safe test buffers](#thread-safe-test-buffers)
     * [Error-injecting readers and writers](#error-injecting-readers-and-writers)
     * [Seek and offset helpers](#seek-and-offset-helpers)
-  * [modkit — Go module helpers](#modkit--go-module-helpers)
   * [netkit — networking helpers](#netkit--networking-helpers)
   * [oskit — OS and filesystem helpers](#oskit--os-and-filesystem-helpers)
   * [pathkit — path resolution helpers](#pathkit--path-resolution-helpers)
-  * [prjkit — temporary Go test projects](#prjkit--temporary-go-test-projects)
   * [randkit — random test data](#randkit--random-test-data)
   * [reflectkit — struct field inspection](#reflectkit--struct-field-inspection)
   * [selfkit — subprocess testing](#selfkit--subprocess-testing)
@@ -51,55 +48,19 @@ go get github.com/ctx42/testkit
 
 ## Packages at a glance
 
-| Package                                   | What it does                                                            |
-|-------------------------------------------|-------------------------------------------------------------------------|
-| `github.com/ctx42/testkit/pkg/dkrkit`     | Build, run, and inspect Docker images and containers in tests           |
-| `github.com/ctx42/testkit/pkg/exekit`     | Run external commands and assert their output and exit code             |
-| `github.com/ctx42/testkit/pkg/iokit`      | Thread-safe test buffers; error-injecting readers and writers           |
-| `github.com/ctx42/testkit/pkg/modkit`     | Find the module root and read versions from go.mod files                |
-| `github.com/ctx42/testkit/pkg/netkit`     | Free TCP ports and local addresses; connectivity checks                 |
-| `github.com/ctx42/testkit/pkg/oskit`      | File, directory, working-directory, and environment test helpers        |
-| `github.com/ctx42/testkit/pkg/pathkit`    | Resolve absolute paths and symbolic links; fail test on error           |
-| `github.com/ctx42/testkit/pkg/prjkit`     | Create and manage temporary Go test projects: files, module, and git    |
-| `github.com/ctx42/testkit/pkg/randkit`    | Random strings, integers, passwords, and file names for test fixtures   |
-| `github.com/ctx42/testkit/pkg/reflectkit` | Struct field and value inspection via reflection                        |
-| `github.com/ctx42/testkit/pkg/selfkit`    | Use the test binary as an exec target; assert stdout, stderr, exit code |
-| `github.com/ctx42/testkit/pkg/subkit`     | Run tests in a child go test process; same test detects parent vs child |
-| `github.com/ctx42/testkit/pkg/testkit`    | SHA-1 hashing helpers and global post-test cleanup                      |
-| `github.com/ctx42/testkit/pkg/timekit`    | Deterministic and fixed clocks for time-dependent tests                 |
-
----
-
-## dkrkit — Docker test helpers
-
-`dkrkit` wraps the Docker CLI in Go helper functions for integration
-tests. It covers the full lifecycle of test images and containers:
-building, running, inspecting, and removing them.
-
-Two APIs are provided. `Docker` returns errors and suits shared
-fixtures or `TestMain`. `DockerT` calls `t.Error` on failure and
-registers automatic cleanup, so it reads cleanly inside test
-functions:
-
-```go
-import "github.com/ctx42/testkit/pkg/dkrkit"
-
-// --- Inside a test function ---
-dkr := dkrkit.NewT(t)
-
-ref, iid := dkr.Build(
-    dkrkit.WithBuildDkfPth("testdata/Dockerfile"),
-    dkrkit.WithBuildArg("BASE", dkrkit.TestImageBaseRef),
-)
-// iid is removed by t.Cleanup automatically
-
-out := dkr.CtrRun(ref, dkrkit.WithCtrRunArgs("echo", "hello"))
-
-dkrkit.HasLabel(t, iid, "com.example.version", "v1.2.3")
-dkrkit.HasEnv(t, ref, "APP_ENV", "test")
-```
-
-See the [dkrkit README](pkg/dkrkit/README.md) for the full reference.
+| Package                                  | What it does                                                            |
+|------------------------------------------|-------------------------------------------------------------------------|
+| [`exekit`](pkg/exekit/README.md)         | Run external commands and assert their output and exit code             |
+| [`iokit`](pkg/iokit/README.md)           | Thread-safe test buffers; error-injecting readers and writers           |
+| [`netkit`](pkg/netkit/README.md)         | Free TCP ports and local addresses; connectivity checks                 |
+| [`oskit`](pkg/oskit/README.md)           | File, directory, working-directory, and environment test helpers        |
+| [`pathkit`](pkg/pathkit/README.md)       | Resolve absolute paths and symbolic links; fail test on error           |
+| [`randkit`](pkg/randkit/README.md)       | Random strings, integers, passwords, and file names for test fixtures   |
+| [`reflectkit`](pkg/reflectkit/README.md) | Struct field and value inspection via reflection                        |
+| [`selfkit`](pkg/selfkit/README.md)       | Use the test binary as an exec target; assert stdout, stderr, exit code |
+| [`subkit`](pkg/subkit/README.md)         | Run tests in a child go test process; same test detects parent vs child |
+| [`testkit`](pkg/testkit/README.md)       | SHA-1 hashing helpers and global post-test cleanup                      |
+| [`timekit`](pkg/timekit/README.md)       | Deterministic and fixed clocks for time-dependent tests                 |
 
 ---
 
@@ -230,31 +191,6 @@ data := iokit.ReadAllFromStart(rs)
 
 ---
 
-## modkit — Go module helpers
-
-`modkit` locates the Go module under test and reads values out of its
-`go.mod`. `Root`, `Path`, and `Ver` resolve against the module root and
-panic on failure; `ModVer` and `GoVer` read an explicit `go.mod` path
-and return an error; `Tmp` reports through `tester.T`.
-
-```go
-import "github.com/ctx42/testkit/pkg/modkit"
-
-// Absolute path to a file relative to the module root.
-golden := modkit.Path("testdata", "golden.json")
-
-// Scratch directory under <module-root>/tmp, removed on cleanup.
-dir := modkit.Tmp(t, "cache")
-
-// Version a go.mod pins for a module, and its Go version.
-ver, _ := modkit.ModVer("go.mod", "github.com/ctx42/testing")
-goVer, _ := modkit.GoVer("go.mod")
-```
-
-See the [modkit README](pkg/modkit/README.md) for the full reference.
-
----
-
 ## netkit — networking helpers
 
 `netkit` hands tests free TCP ports and local addresses, checks whether
@@ -348,39 +284,6 @@ resolved := pathkit.EvalSymlinks(t, "testdata", "dir_sym_link")
 ```
 
 See the [pathkit README](pkg/pathkit/README.md) for the full reference.
-
----
-
-## prjkit — temporary Go test projects
-
-`prjkit` provides a `Project` helper for writing integration tests that
-need a real, disposable Go project on disk. A project can have source
-files, a Go module, a git history, and an optional Docker configuration.
-
-Instances follow an **open/close lifecycle**: configuration methods
-(`CreateFile`, `GoModInit`, `GitInitAddAll`, …) require the project to
-be open; query and execution methods (`Compile`, `GitHash`, …) require
-it to be closed. A cleanup registered by `New` fails the test if
-`Close` is never called.
-
-```go
-import "github.com/ctx42/testkit/pkg/prjkit"
-
-func TestMyIntegration(t *testing.T) {
-    prj := prjkit.New(t, t.TempDir())
-    prj.CreateFileWith("package main\nfunc main() {}", "main.go")
-    prj.GoModInit()
-    prj.GitInitAddAll("v1.0.0")
-    prj.Close()
-
-    bin  := prj.Compile()
-    hash := prj.GitHash()
-    _ = bin
-    _ = hash
-}
-```
-
-See the [prjkit README](pkg/prjkit/README.md) for the full reference.
 
 ---
 
