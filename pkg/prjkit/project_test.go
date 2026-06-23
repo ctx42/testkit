@@ -1263,6 +1263,35 @@ func Test_Project_GitCommit(t *testing.T) {
 		assert.Nil(t, cm)
 	})
 
+	t.Run("sets git identity", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.ExpectCleanups(1)
+		tspy.Close()
+
+		prj := New(tspy, t.TempDir())
+		oskit.CopyFile(t, prj.root, "testdata/file0.txt")
+
+		exe := exekit.New(t, exekit.WithWd(prj.root), exekit.WithTrim)
+		exe.Exe("git", "init")
+
+		// --- When ---
+		prj.GitCommit("")
+		oskit.CopyFile(t, prj.root, "testdata/file1.txt")
+		prj.GitCommit("") // second commit must not reset the flag
+
+		// --- Then ---
+		assert.True(t, prj.gitID)
+
+		have := exe.ExeStdout("git", "config", "user.email")
+		assert.Equal(t, "test@example.com", have)
+
+		have = exe.ExeStdout("git", "config", "user.name")
+		assert.Equal(t, "Test User", have)
+
+		prj.Close() // Must close to prevent error.
+	})
+
 	t.Run("on closed", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)

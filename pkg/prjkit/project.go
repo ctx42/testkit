@@ -139,6 +139,7 @@ type Project struct {
 	// Environment when executing commands (default: os.Environ).
 	env []string
 
+	gitID  bool     // True after git user identity has been configured.
 	closed bool     // Instance closed for edits.
 	misuse bool     // True when t.Error* or t.Fatal were called.
 	t      tester.T // Test manager.
@@ -420,6 +421,11 @@ func (prj *Project) GitCommit(tag string, mss ...string) *GitCommit {
 	prj.t.Helper()
 	prj.CheckOpen()
 
+	if !prj.gitID {
+		prj.Exe("git", "config", "user.email", "test@example.com")
+		prj.Exe("git", "config", "user.name", "Test User")
+		prj.gitID = true
+	}
 	prj.Exe("git", "add", "-A")
 	msg := fmt.Sprintf("commit %d", prj.commits)
 	if len(mss) == 1 {
