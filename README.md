@@ -4,14 +4,15 @@
   * [Packages at a glance](#packages-at-a-glance)
   * [dkrkit — Docker test helpers](#dkrkit--docker-test-helpers)
   * [exekit — running external commands](#exekit--running-external-commands)
-  * [oskit — OS and filesystem helpers](#oskit--os-and-filesystem-helpers)
-  * [pathkit — path resolution helpers](#pathkit--path-resolution-helpers)
-  * [modkit — Go module helpers](#modkit--go-module-helpers)
-  * [netkit — networking helpers](#netkit--networking-helpers)
   * [iokit — buffers and error injection](#iokit--buffers-and-error-injection)
     * [Thread-safe test buffers](#thread-safe-test-buffers)
     * [Error-injecting readers and writers](#error-injecting-readers-and-writers)
     * [Seek and offset helpers](#seek-and-offset-helpers)
+  * [modkit — Go module helpers](#modkit--go-module-helpers)
+  * [netkit — networking helpers](#netkit--networking-helpers)
+  * [oskit — OS and filesystem helpers](#oskit--os-and-filesystem-helpers)
+  * [pathkit — path resolution helpers](#pathkit--path-resolution-helpers)
+  * [prjkit — temporary Go test projects](#prjkit--temporary-go-test-projects)
   * [randkit — random test data](#randkit--random-test-data)
   * [reflectkit — struct field inspection](#reflectkit--struct-field-inspection)
   * [selfkit — subprocess testing](#selfkit--subprocess-testing)
@@ -59,6 +60,7 @@ go get github.com/ctx42/testkit
 | `github.com/ctx42/testkit/pkg/netkit`     | Free TCP ports and local addresses; connectivity checks                 |
 | `github.com/ctx42/testkit/pkg/oskit`      | File, directory, working-directory, and environment test helpers        |
 | `github.com/ctx42/testkit/pkg/pathkit`    | Resolve absolute paths and symbolic links; fail test on error           |
+| `github.com/ctx42/testkit/pkg/prjkit`     | Create and manage temporary Go test projects: files, module, and git    |
 | `github.com/ctx42/testkit/pkg/randkit`    | Random strings, integers, passwords, and file names for test fixtures   |
 | `github.com/ctx42/testkit/pkg/reflectkit` | Struct field and value inspection via reflection                        |
 | `github.com/ctx42/testkit/pkg/selfkit`    | Use the test binary as an exec target; assert stdout, stderr, exit code |
@@ -129,127 +131,6 @@ sout, eout := exe.Exe("git", "status", "--short")
 exe = exekit.NewT(t, exekit.WithExitCode(1))
 exe.Exe("false")
 ```
-
----
-
-## oskit — OS and filesystem helpers
-
-`oskit` provides test helpers for common [os] operations. Every
-function integrates with `tester.T`: on error it marks the test as
-failed, writes a diagnostic to the test log, and returns a safe zero
-value so the test can continue executing.
-
-```go
-import "github.com/ctx42/testkit/pkg/oskit"
-
-// Read a file — fails the test if it does not exist.
-data := oskit.ReadFile(t, "testdata/golden.json")
-
-// Write or append to a file.
-oskit.WriteStr(t, "hello\n", t.TempDir(), "out.txt")
-
-// Create (or overwrite) a file; truncates existing content.
-oskit.CreateStr(t, "fixture data", t.TempDir(), "fixture.txt")
-
-// Create nested directories with 0755 permissions.
-oskit.MkdirAll(t, t.TempDir(), "a", "b", "c")
-
-// Check existence (file, dir, or symlink).
-exists := oskit.PathExists(t, "testdata/file.txt")
-
-// List a directory; directories are prefixed with "d|".
-entries := oskit.List(t, "testdata/fixtures")
-// e.g. ["d|subdir", "file.txt"]
-
-// Copy a file into a destination directory.
-oskit.CopyFile(t, t.TempDir(), "testdata/file.txt")
-
-// Copy a directory tree recursively.
-oskit.CopyDir(t, t.TempDir(), "testdata/dir")
-
-// Change working directory; restored by t.Cleanup.
-oskit.Chdir(t, "testdata", "dir")
-
-// Parse os.Environ() slices.
-m := oskit.EnvSplit(os.Environ())
-m["EXTRA"] = "1"
-cmd.Env = oskit.EnvJoin(m)
-```
-
-See the [oskit README](pkg/oskit/README.md) for the full reference.
-
----
-
-## pathkit — path resolution helpers
-
-`pathkit` wraps the `path/filepath` functions that tests reach for when
-they need a real, resolved path. Like `oskit`, each helper joins its
-segments with `filepath.Join`, reports failures through `t.Error`, and
-returns an empty string so the test can continue.
-
-```go
-import "github.com/ctx42/testkit/pkg/pathkit"
-
-// Resolve a path to its absolute form (segments are joined first).
-abs := pathkit.AbsPath(t, "testdata", "golden.json")
-
-// Resolve symbolic links to their real target.
-resolved := pathkit.EvalSymlinks(t, "testdata", "dir_sym_link")
-```
-
-See the [pathkit README](pkg/pathkit/README.md) for the full reference.
-
----
-
-## modkit — Go module helpers
-
-`modkit` locates the Go module under test and reads values out of its
-`go.mod`. `Root`, `Path`, and `Ver` resolve against the module root and
-panic on failure; `ModVer` and `GoVer` read an explicit `go.mod` path
-and return an error; `Tmp` reports through `tester.T`.
-
-```go
-import "github.com/ctx42/testkit/pkg/modkit"
-
-// Absolute path to a file relative to the module root.
-golden := modkit.Path("testdata", "golden.json")
-
-// Scratch directory under <module-root>/tmp, removed on cleanup.
-dir := modkit.Tmp(t, "cache")
-
-// Version a go.mod pins for a module, and its Go version.
-ver, _ := modkit.ModVer("go.mod", "github.com/ctx42/testing")
-goVer, _ := modkit.GoVer("go.mod")
-```
-
-See the [modkit README](pkg/modkit/README.md) for the full reference.
-
----
-
-## netkit — networking helpers
-
-`netkit` hands tests free TCP ports and local addresses, checks whether
-an address accepts connections, and skips tests when the network or
-Internet is unavailable. Port and address helpers return an error;
-`CanConnect`, `CanNotConnect`, and `SkipOnNoNetConn` report through
-`tester.T`.
-
-```go
-import "github.com/ctx42/testkit/pkg/netkit"
-
-// A free port, or a ready-to-use localhost address.
-port, _ := netkit.GetFreePort()
-addr, _ := netkit.GetLocalAddress("http://") // e.g. http://localhost:54321
-
-// Assert reachability (conn is closed on cleanup).
-conn := netkit.CanConnect(t, "1s", addr)
-netkit.CanNotConnect(t, "localhost:9")
-
-// Gate a test on Internet access.
-netkit.SkipOnNoNetConn(t)
-```
-
-See the [netkit README](pkg/netkit/README.md) for the full reference.
 
 ---
 
@@ -346,6 +227,160 @@ iokit.Seek(rs, 0, io.SeekStart)
 // position afterwards.
 data := iokit.ReadAllFromStart(rs)
 ```
+
+---
+
+## modkit — Go module helpers
+
+`modkit` locates the Go module under test and reads values out of its
+`go.mod`. `Root`, `Path`, and `Ver` resolve against the module root and
+panic on failure; `ModVer` and `GoVer` read an explicit `go.mod` path
+and return an error; `Tmp` reports through `tester.T`.
+
+```go
+import "github.com/ctx42/testkit/pkg/modkit"
+
+// Absolute path to a file relative to the module root.
+golden := modkit.Path("testdata", "golden.json")
+
+// Scratch directory under <module-root>/tmp, removed on cleanup.
+dir := modkit.Tmp(t, "cache")
+
+// Version a go.mod pins for a module, and its Go version.
+ver, _ := modkit.ModVer("go.mod", "github.com/ctx42/testing")
+goVer, _ := modkit.GoVer("go.mod")
+```
+
+See the [modkit README](pkg/modkit/README.md) for the full reference.
+
+---
+
+## netkit — networking helpers
+
+`netkit` hands tests free TCP ports and local addresses, checks whether
+an address accepts connections, and skips tests when the network or
+Internet is unavailable. Port and address helpers return an error;
+`CanConnect`, `CanNotConnect`, and `SkipOnNoNetConn` report through
+`tester.T`.
+
+```go
+import "github.com/ctx42/testkit/pkg/netkit"
+
+// A free port, or a ready-to-use localhost address.
+port, _ := netkit.GetFreePort()
+addr, _ := netkit.GetLocalAddress("http://") // e.g. http://localhost:54321
+
+// Assert reachability (conn is closed on cleanup).
+conn := netkit.CanConnect(t, "1s", addr)
+netkit.CanNotConnect(t, "localhost:9")
+
+// Gate a test on Internet access.
+netkit.SkipOnNoNetConn(t)
+```
+
+See the [netkit README](pkg/netkit/README.md) for the full reference.
+
+---
+
+## oskit — OS and filesystem helpers
+
+`oskit` provides test helpers for common [os] operations. Every
+function integrates with `tester.T`: on error it marks the test as
+failed, writes a diagnostic to the test log, and returns a safe zero
+value so the test can continue executing.
+
+```go
+import "github.com/ctx42/testkit/pkg/oskit"
+
+// Read a file — fails the test if it does not exist.
+data := oskit.ReadFile(t, "testdata/golden.json")
+
+// Write or append to a file.
+oskit.WriteStr(t, "hello\n", t.TempDir(), "out.txt")
+
+// Create (or overwrite) a file; truncates existing content.
+oskit.CreateStr(t, "fixture data", t.TempDir(), "fixture.txt")
+
+// Create nested directories with 0755 permissions.
+oskit.MkdirAll(t, t.TempDir(), "a", "b", "c")
+
+// Check existence (file, dir, or symlink).
+exists := oskit.PathExists(t, "testdata/file.txt")
+
+// List a directory; directories are prefixed with "d|".
+entries := oskit.List(t, "testdata/fixtures")
+// e.g. ["d|subdir", "file.txt"]
+
+// Copy a file into a destination directory.
+oskit.CopyFile(t, t.TempDir(), "testdata/file.txt")
+
+// Copy a directory tree recursively.
+oskit.CopyDir(t, t.TempDir(), "testdata/dir")
+
+// Change working directory; restored by t.Cleanup.
+oskit.Chdir(t, "testdata", "dir")
+
+// Parse os.Environ() slices.
+m := oskit.EnvSplit(os.Environ())
+m["EXTRA"] = "1"
+cmd.Env = oskit.EnvJoin(m)
+```
+
+See the [oskit README](pkg/oskit/README.md) for the full reference.
+
+---
+
+## pathkit — path resolution helpers
+
+`pathkit` wraps the `path/filepath` functions that tests reach for when
+they need a real, resolved path. Like `oskit`, each helper joins its
+segments with `filepath.Join`, reports failures through `t.Error`, and
+returns an empty string so the test can continue.
+
+```go
+import "github.com/ctx42/testkit/pkg/pathkit"
+
+// Resolve a path to its absolute form (segments are joined first).
+abs := pathkit.AbsPath(t, "testdata", "golden.json")
+
+// Resolve symbolic links to their real target.
+resolved := pathkit.EvalSymlinks(t, "testdata", "dir_sym_link")
+```
+
+See the [pathkit README](pkg/pathkit/README.md) for the full reference.
+
+---
+
+## prjkit — temporary Go test projects
+
+`prjkit` provides a `Project` helper for writing integration tests that
+need a real, disposable Go project on disk. A project can have source
+files, a Go module, a git history, and an optional Docker configuration.
+
+Instances follow an **open/close lifecycle**: configuration methods
+(`CreateFile`, `GoModInit`, `GitInitAddAll`, …) require the project to
+be open; query and execution methods (`Compile`, `GitHash`, …) require
+it to be closed. A cleanup registered by `New` fails the test if
+`Close` is never called.
+
+```go
+import "github.com/ctx42/testkit/pkg/prjkit"
+
+func TestMyIntegration(t *testing.T) {
+    prj := prjkit.New(t, t.TempDir())
+    prj.CreateFileWith("package main\nfunc main() {}", "main.go")
+    prj.GoModInit()
+    prj.GitInitAddAll("v1.0.0")
+    prj.Close()
+
+    bin  := prj.Compile()
+    hash := prj.GitHash()
+    _ = bin
+    _ = hash
+}
+```
+
+See the [prjkit README](pkg/prjkit/README.md) for the full reference.
 
 ---
 
@@ -609,6 +644,7 @@ sched := NewScheduler(timekit.TikTak(base))
 - `netkit` [README](pkg/netkit/README.md)
 - `oskit` [README](pkg/oskit/README.md)
 - `pathkit` [README](pkg/pathkit/README.md)
+- `prjkit` [README](pkg/prjkit/README.md)
 - `randkit` [README](pkg/randkit/README.md)
 - `reflectkit` [README](pkg/reflectkit/README.md)
 - `selfkit` [README](pkg/selfkit/README.md)
