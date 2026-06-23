@@ -1,3 +1,9 @@
+## v0.5.0 (Tue, 23 Jun 2026 21:47:00 UTC)
+- feat(prjkit): add Project helper for temporary Go test projects.
+- docs(README): simplify main README, trim niche packages.
+- fix(prjkit): set local git identity before every git commit.
+- test(prjkit): set git identity in tests that call git commit directly.
+
 ## v0.4.0 (Tue, 16 Jun 2026 20:09:15 UTC)
 - feat: improve documentation, add subkit, WithSeed for randkit, and runnable examples.
 - feat(oskit): add filesystem and environment test helpers.
