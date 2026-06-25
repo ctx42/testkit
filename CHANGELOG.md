@@ -1,3 +1,6 @@
+## v0.6.0 (Thu, 25 Jun 2026 07:58:29 UTC)
+- refactor(oskit)!: merge Create/Write pairs into generic functions.
+
 ## v0.5.0 (Tue, 23 Jun 2026 21:47:00 UTC)
 - feat(prjkit): add Project helper for temporary Go test projects.
 - docs(README): simplify main README, trim niche packages.
