@@ -314,7 +314,7 @@ func (prj *Project) CreateFileWith(
 	}
 
 	full = prj.Path(full)
-	return oskit.CreateStr(prj.t, content, full)
+	return oskit.Create(prj.t, content, full)
 }
 
 // Rename renames oldPath (rooted at the project) to newPath.
@@ -523,7 +523,7 @@ func (prj *Project) WithConfig() string {
 	prj.t.Helper()
 	prj.CheckOpen()
 
-	return oskit.WriteStr(prj.t, "", prj.CreateDir("configs"), "project.conf")
+	return oskit.Write(prj.t, "", prj.CreateDir("configs"), "project.conf")
 }
 
 // CfgAdd adds key-value to the project configuration file. It does not change
@@ -534,7 +534,7 @@ func (prj *Project) CfgAdd(key, value string) string {
 	prj.CheckOpen()
 
 	pth := prj.WithConfig()
-	oskit.WriteStr(prj.t, key+"="+value+"\n", pth)
+	oskit.Write(prj.t, key+"="+value+"\n", pth)
 	return pth
 }
 

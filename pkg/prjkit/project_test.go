@@ -352,7 +352,7 @@ func Test_Project_ReadFileStr(t *testing.T) {
 		root := t.TempDir() // Project root.
 		// Project root subdirectory.
 		pth := oskit.MkdirAll(t, root, "a")
-		fil := oskit.WriteStr(t, "abc", pth, "file*.txt") // File in subdirectory.
+		fil := oskit.Write(t, "abc", pth, "file*.txt") // File in subdirectory.
 		fil = filepath.Base(fil)                          // Filename.
 
 		prj := New(tspy, root)
@@ -1464,13 +1464,13 @@ func Test_Project_GitLog(t *testing.T) {
 		exe.Exe("git", "config", "user.email", "test@example.com")
 		exe.Exe("git", "config", "user.name", "Test User")
 
-		oskit.WriteStr(t, "0", prj.root, "file0.txt")
+		oskit.Write(t, "0", prj.root, "file0.txt")
 		exe.Exe("git", "add", "-A")
 		exe.Exe("git", "commit", "-m", "commit 0.")
 		hash0 := exe.ExeStdout("git", "rev-parse", "--short", "HEAD")
 
 		time.Sleep(1100 * time.Millisecond)
-		oskit.WriteStr(t, "1", prj.root, "file1.txt")
+		oskit.Write(t, "1", prj.root, "file1.txt")
 		exe.Exe("git", "add", "-A")
 		exe.Exe("git", "commit", "-m", "commit 1.")
 		hash1 := exe.ExeStdout("git", "rev-parse", "--short", "HEAD")
@@ -1509,13 +1509,13 @@ func Test_Project_GitLog(t *testing.T) {
 		exe.Exe("git", "config", "user.email", "test@example.com")
 		exe.Exe("git", "config", "user.name", "Test User")
 
-		oskit.WriteStr(t, "0", prj.root, "file0.txt")
+		oskit.Write(t, "0", prj.root, "file0.txt")
 		exe.Exe("git", "add", "-A")
 		exe.Exe("git", "commit", "-m", "commit 0.")
 		hash0 := exe.ExeStdout("git", "rev-parse", "--short", "HEAD")
 
 		time.Sleep(1100 * time.Millisecond)
-		oskit.WriteStr(t, "1", prj.root, "file1.txt")
+		oskit.Write(t, "1", prj.root, "file1.txt")
 		exe.Exe("git", "add", "-A")
 		exe.Exe("git", "commit", "-m", "commit 1.")
 		hash1 := exe.ExeStdout("git", "rev-parse", "--short", "HEAD")
@@ -1555,13 +1555,13 @@ func Test_Project_GitLog(t *testing.T) {
 		exe.Exe("git", "config", "user.email", "test@example.com")
 		exe.Exe("git", "config", "user.name", "Test User")
 
-		oskit.WriteStr(t, "0", prj.root, "file0.txt")
+		oskit.Write(t, "0", prj.root, "file0.txt")
 		exe.Exe("git", "add", "-A")
 		exe.Exe("git", "commit", "-m", "commit 0.")
 		hash0 := exe.ExeStdout("git", "rev-parse", "--short", "HEAD")
 
 		time.Sleep(1100 * time.Millisecond)
-		oskit.WriteStr(t, "1", prj.root, "file1.txt")
+		oskit.Write(t, "1", prj.root, "file1.txt")
 		exe.Exe("git", "add", "-A")
 		exe.Exe("git", "commit", "-m", "commit 1.")
 		exe.Exe("git", "tag", "-a", "-m", "test tag v1.2.3", "v1.2.3")

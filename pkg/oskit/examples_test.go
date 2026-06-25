@@ -27,26 +27,26 @@ func ExampleReadFileStr() {
 	// content
 }
 
-func ExampleWriteStr() {
+func ExampleWrite_string() {
 	t := &testing.T{}
 	dir, _ := os.MkdirTemp("", "oskit-*")
 	defer func() { _ = os.RemoveAll(dir) }()
 
-	pth := oskit.WriteStr(t, "hello\n", dir, "out.txt")
+	pth := oskit.Write(t, "hello\n", dir, "out.txt")
 	data, _ := os.ReadFile(pth)
 	fmt.Print(string(data))
 	// Output:
 	// hello
 }
 
-func ExampleCreateStr() {
+func ExampleCreate_string() {
 	t := &testing.T{}
 	dir, _ := os.MkdirTemp("", "oskit-*")
 	defer func() { _ = os.RemoveAll(dir) }()
 
-	// CreateStr truncates: a shorter second write shortens the file.
-	oskit.CreateStr(t, "abcdef", dir, "f.txt")
-	oskit.CreateStr(t, "xy", dir, "f.txt")
+	// Create truncates: a shorter second write shortens the file.
+	oskit.Create(t, "abcdef", dir, "f.txt")
+	oskit.Create(t, "xy", dir, "f.txt")
 
 	fmt.Println(oskit.ReadFileStr(t, dir, "f.txt"))
 	// Output:

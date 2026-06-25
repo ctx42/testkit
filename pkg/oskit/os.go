@@ -259,50 +259,48 @@ func FileSize(t tester.T, pth string, elems ...string) int64 {
 	return fi.Size()
 }
 
+// stringOrBytes constrains content arguments to string or []byte.
+type stringOrBytes interface{ ~string | ~[]byte }
+
 // Create writes content to a file at the path. The path is constructed from
-// pth and elems like in [filepath.Join] function. If the file exists, it will
-// be truncated, and the content will be written at the beginning, otherwise a
-// new file will be created with given content. On error, it marks the test as
-// failed. Always returns the same path it constructed from pth and elems
-// arguments.
-func Create(t tester.T, content []byte, pth string, elems ...string) string {
+// pth and elems like in [filepath.Join] function. Content may be a string or
+// []byte. If the file exists, it will be truncated, and the content will be
+// written at the beginning, otherwise a new file will be created with given
+// content. On error, it marks the test as failed. Always returns the same path
+// it constructed from pth and elems arguments.
+func Create[T stringOrBytes](
+	t tester.T,
+	content T,
+	pth string,
+	elems ...string,
+) string {
+
 	t.Helper()
+	b := []byte(content)
 	pth = filepath.Join(append([]string{pth}, elems...)...)
-	write(t, content, pth, os.O_CREATE|os.O_WRONLY)
-	if err := os.Truncate(pth, int64(len(content))); err != nil {
+	write(t, b, pth, os.O_CREATE|os.O_WRONLY)
+	if err := os.Truncate(pth, int64(len(b))); err != nil {
 		t.Error(err)
 	}
 	return pth
 }
 
-// CreateStr convenience function using Create to write string content. The
-// path is constructed from pth and elems like in [filepath.Join] function. On
-// error, it marks the test as failed. Always returns the same path it
-// constructed from pth and elems arguments.
-func CreateStr(t tester.T, content, pth string, elems ...string) string {
-	t.Helper()
-	pth = filepath.Join(append([]string{pth}, elems...)...)
-	return Create(t, []byte(content), pth)
-}
-
 // Write writes content to a file at the path. The path is constructed from pth
-// and elems like in [filepath.Join] function. If the file exists, the content
-// will be appended, otherwise the new file will be created with the given
-// content. On error, it marks the test as failed. Always returns the same path
-// it constructed from pth and elems arguments.
-func Write(t tester.T, content []byte, pth string, elems ...string) string {
+// and elems like in [filepath.Join] function. Content may be a string or
+// []byte. If the file exists, the content will be appended, otherwise the new
+// file will be created with the given content. On error, it marks the test as
+// failed. Always returns the same path it constructed from pth and elems
+// arguments.
+func Write[T stringOrBytes](
+	t tester.T,
+	content T,
+	pth string,
+	elems ...string,
+) string {
+
 	t.Helper()
 	pth = filepath.Join(append([]string{pth}, elems...)...)
-	return write(t, content, pth, os.O_CREATE|os.O_APPEND|os.O_WRONLY)
-}
-
-// WriteStr convenience function using Write to write string content. The path
-// is constructed from pth and elems like in [filepath.Join] function. On error,
-// it marks the test as failed. Always returns the same path it constructed
-// from pth and elems arguments.
-func WriteStr(t tester.T, content, pth string, elems ...string) string {
-	t.Helper()
-	return Write(t, []byte(content), pth, elems...)
+	return write(t, []byte(content), pth, os.O_CREATE|os.O_APPEND|os.O_WRONLY)
 }
 
 // write uses os.OpenFile with given flags to write content to a file at pth.

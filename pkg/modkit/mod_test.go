@@ -71,7 +71,7 @@ func Test_Tmp(t *testing.T) {
 		// Fake module in a temporary directory.
 		dir := pathkit.EvalSymlinks(t, t.TempDir())
 		oskit.Chdir(t, dir)
-		oskit.CreateStr(t, "", dir, "go.mod")
+		oskit.Create(t, "", dir, "go.mod")
 		sub := randkit.Str()
 
 		// --- When ---

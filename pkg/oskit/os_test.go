@@ -774,10 +774,8 @@ func Test_Create(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "de", string(content))
 	})
-}
 
-func Test_CreateStr(t *testing.T) {
-	t.Run("create new file", func(t *testing.T) {
+	t.Run("string content", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
 		tspy.Close()
@@ -785,7 +783,7 @@ func Test_CreateStr(t *testing.T) {
 		pth := filepath.Join(t.TempDir(), "file.txt")
 
 		// --- When ---
-		got := CreateStr(tspy, "def", pth)
+		got := Create(tspy, "def", pth)
 
 		// --- Then ---
 		assert.Equal(t, pth, got)
@@ -793,65 +791,6 @@ func Test_CreateStr(t *testing.T) {
 		content, err := os.ReadFile(pth)
 		assert.NoError(t, err)
 		assert.Equal(t, "def", string(content))
-	})
-
-	t.Run("join path", func(t *testing.T) {
-		// --- Given ---
-		tspy := tester.New(t)
-		tspy.Close()
-
-		dir := t.TempDir()
-
-		// --- When ---
-		got := CreateStr(tspy, "def", dir, "file.txt")
-
-		// --- Then ---
-		pth := filepath.Join(dir, "file.txt")
-		assert.Equal(t, pth, got)
-
-		content, err := os.ReadFile(pth)
-		assert.NoError(t, err)
-		assert.Equal(t, "def", string(content))
-	})
-
-	t.Run("does not append to existing file", func(t *testing.T) {
-		// --- Given ---
-		tspy := tester.New(t)
-		tspy.Close()
-
-		pth := filepath.Join(t.TempDir(), "file.txt")
-		err := os.WriteFile(pth, []byte("abc"), 0600)
-		assert.NoError(t, err)
-
-		// --- When ---
-		got := CreateStr(tspy, "def", pth)
-
-		// --- Then ---
-		assert.Equal(t, pth, got)
-
-		content, err := os.ReadFile(pth)
-		assert.NoError(t, err)
-		assert.Equal(t, "def", string(content))
-	})
-
-	t.Run("truncates before override", func(t *testing.T) {
-		// --- Given ---
-		tspy := tester.New(t)
-		tspy.Close()
-
-		pth := filepath.Join(t.TempDir(), "file.txt")
-		err := os.WriteFile(pth, []byte("abc"), 0600)
-		assert.NoError(t, err)
-
-		// --- When ---
-		got := CreateStr(tspy, "de", pth)
-
-		// --- Then ---
-		assert.Equal(t, pth, got)
-
-		content, err := os.ReadFile(pth)
-		assert.NoError(t, err)
-		assert.Equal(t, "de", string(content))
 	})
 }
 
@@ -913,10 +852,8 @@ func Test_Write(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "abc\ndef", string(content))
 	})
-}
 
-func Test_WriteStr(t *testing.T) {
-	t.Run("create new file", func(t *testing.T) {
+	t.Run("string content", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
 		tspy.Close()
@@ -924,7 +861,7 @@ func Test_WriteStr(t *testing.T) {
 		pth := filepath.Join(t.TempDir(), "file.txt")
 
 		// --- When ---
-		got := WriteStr(tspy, "def", pth)
+		got := Write(tspy, "def", pth)
 
 		// --- Then ---
 		assert.Equal(t, pth, got)
@@ -933,46 +870,8 @@ func Test_WriteStr(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "def", string(content))
 	})
-
-	t.Run("join path", func(t *testing.T) {
-		// --- Given ---
-		tspy := tester.New(t)
-		tspy.Close()
-
-		dir := t.TempDir()
-		pth := filepath.Join(dir, "file.txt")
-
-		// --- When ---
-		got := WriteStr(tspy, "def", dir, "file.txt")
-
-		// --- Then ---
-		assert.Equal(t, pth, got)
-
-		content, err := os.ReadFile(pth)
-		assert.NoError(t, err)
-		assert.Equal(t, "def", string(content))
-	})
-
-	t.Run("append to existing file", func(t *testing.T) {
-		// --- Given ---
-		tspy := tester.New(t)
-		tspy.Close()
-
-		pth := filepath.Join(t.TempDir(), "file.txt")
-		err := os.WriteFile(pth, []byte("abc"), 0600)
-		assert.NoError(t, err)
-
-		// --- When ---
-		got := WriteStr(tspy, "def", pth)
-
-		// --- Then ---
-		assert.Equal(t, pth, got)
-
-		content, err := os.ReadFile(pth)
-		assert.NoError(t, err)
-		assert.Equal(t, "abcdef", string(content))
-	})
 }
+
 func Test_MkdirAll(t *testing.T) {
 	t.Run("create not existing", func(t *testing.T) {
 		// --- Given ---
