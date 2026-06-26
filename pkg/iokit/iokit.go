@@ -20,7 +20,35 @@ package iokit
 import (
 	"bytes"
 	"io"
+
+	"github.com/ctx42/testing/pkg/tester"
 )
+
+// ReadAll is a wrapper around [io.ReadAll]. Unlike [io.ReadAll], if r also
+// implements [io.Closer], ReadAll closes it after reading. On error, it marks
+// the test as failed and returns whatever was read before the error. See
+// [io.ReadAll] for details.
+func ReadAll(t tester.T, r io.Reader) []byte {
+	t.Helper()
+	bs, err := io.ReadAll(r)
+	if err != nil {
+		t.Error(err)
+		return bs
+	}
+	if c, ok := r.(io.Closer); ok {
+		if err = c.Close(); err != nil {
+			t.Error(err)
+			return bs
+		}
+	}
+	return bs
+}
+
+// ReadAllStr is [ReadAll] returning the result as a string.
+func ReadAllStr(t tester.T, r io.Reader) string {
+	t.Helper()
+	return string(ReadAll(t, r))
+}
 
 // ReadAllFromStart seeks to the beginning of "rs", reads until [io.EOF] (or
 // another error), then seeks back to the original position. It panics on any

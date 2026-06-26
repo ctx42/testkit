@@ -7,11 +7,111 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/ctx42/testing/pkg/assert"
 	"github.com/ctx42/testing/pkg/must"
+	"github.com/ctx42/testing/pkg/tester"
 )
+
+func Test_ReadAll(t *testing.T) {
+	t.Run("ok", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.Close()
+
+		rdr := strings.NewReader("content")
+
+		// --- When ---
+		got := ReadAll(tspy, rdr)
+
+		// --- Then ---
+		assert.Equal(t, "content", string(got))
+	})
+
+	t.Run("error from reader", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.ExpectFail()
+		tspy.ExpectLogEqual(ErrRead.Error())
+		tspy.Close()
+
+		rdr := ErrReader(strings.NewReader("content"), 1)
+
+		// --- When ---
+		got := ReadAll(tspy, rdr)
+
+		// --- Then ---
+		assert.Equal(t, []byte{byte('c')}, got)
+	})
+
+	t.Run("close is called", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.Close()
+
+		fil := must.Value(os.Open("testdata/file.txt"))
+
+		// --- When ---
+		got := ReadAll(tspy, fil)
+
+		// --- Then ---
+		tspy.Finish().AssertExpectations()
+		assert.Equal(t, []byte("content"), got)
+		wMsg := "close testdata/file.txt: file already closed"
+		assert.ErrorEqual(t, wMsg, fil.Close())
+	})
+}
+
+func Test_ReadAllStr(t *testing.T) {
+	t.Run("ok", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.Close()
+
+		rdr := strings.NewReader("content")
+
+		// --- When ---
+		got := ReadAllStr(tspy, rdr)
+
+		// --- Then ---
+		assert.Equal(t, "content", got)
+	})
+
+	t.Run("error from reader", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.ExpectFail()
+		tspy.ExpectLogEqual(ErrRead.Error())
+		tspy.Close()
+
+		rdr := ErrReader(strings.NewReader("content"), 1)
+
+		// --- When ---
+		got := ReadAllStr(tspy, rdr)
+
+		// --- Then ---
+		assert.Equal(t, "c", got)
+	})
+
+	t.Run("close is called", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.Close()
+
+		fil := must.Value(os.Open("testdata/file.txt"))
+
+		// --- When ---
+		got := ReadAllStr(tspy, fil)
+
+		// --- Then ---
+		tspy.Finish().AssertExpectations()
+		assert.Equal(t, "content", got)
+		wMsg := "close testdata/file.txt: file already closed"
+		assert.ErrorEqual(t, wMsg, fil.Close())
+	})
+}
 
 func Test_ReadAllFromStart(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
