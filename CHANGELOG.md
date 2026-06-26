@@ -1,3 +1,8 @@
+## v0.7.0 (Fri, 26 Jun 2026 11:12:56 UTC)
+- feat(iokit): add ReadAll and ReadAllStr helpers.
+- docs(httpkit): add README and usage examples to package documentation.
+- style: fix golangci-lint findings across packages.
+
 ## v0.6.0 (Thu, 25 Jun 2026 07:58:29 UTC)
 - refactor(oskit)!: merge Create/Write pairs into generic functions.
 
