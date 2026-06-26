@@ -186,7 +186,7 @@ func GetLocalIP() net.IP {
 		return net.IPv4(127, 0, 0, 1)
 	}
 	defer func() { _ = conn.Close() }()
-	addr := conn.LocalAddr().(*net.UDPAddr) // nolint: forcetypeassert
+	addr := conn.LocalAddr().(*net.UDPAddr) // nolint:forcetypeassert
 	return addr.IP
 }
 

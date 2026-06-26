@@ -12,7 +12,8 @@ import (
 func ExampleNew() {
 	sub := subkit.New("Test_MyFunc/success")
 	if sub.InMainProcess() {
-		// sout, eout, err := sub.Run()
+		// User code running in the main process goes here, e.g.:
+		// sout, eout, err := sub.Run() // nolint:gocritic
 		return
 	}
 	// --- IN SUBPROCESS ---
@@ -23,7 +24,8 @@ func ExampleNew() {
 
 func ExampleNewPkg() {
 	sub := subkit.NewPkg("github.com/ctx42/testkit/pkg/myservice")
-	// sout, eout, err := sub.Run()
+	// User code running in the main process goes here, e.g.:
+	// sout, eout, err := sub.Run() // nolint:gocritic
 	_ = sub
 	// Output:
 }

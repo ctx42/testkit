@@ -31,7 +31,7 @@ func Wait4File(timeout, pth string, opts ...any) (string, error) {
 	}
 	var reads int
 	for {
-		data, err := os.ReadFile(pth)
+		data, err := os.ReadFile(pth) // nolint:gosec
 		if err != nil {
 			return "", err
 		}

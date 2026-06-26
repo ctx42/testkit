@@ -37,7 +37,7 @@ func Root() string {
 		if pth == "/" {
 			panic(fmt.Sprintf("could not find go.mod starting at %s", root))
 		}
-		_, err = os.Open(filepath.Join(pth, "go.mod"))
+		_, err = os.Open(filepath.Join(pth, "go.mod")) // nolint:gosec
 		if err == nil {
 			return pth
 		}
@@ -74,7 +74,7 @@ func Tmp(t tester.T, sub string, subs ...string) string {
 	}
 
 	pth := filepath.Join(sbs...)
-	if err := os.MkdirAll(pth, 0744); err != nil {
+	if err := os.MkdirAll(pth, 0750); err != nil {
 		t.Error(err)
 		return ""
 	}
@@ -96,7 +96,7 @@ func Ver(mod string) string {
 // ModVer returns the version of a module used in the "go.mod" file pointed by
 // the path.
 func ModVer(pth, mod string) (string, error) {
-	fil, err := os.Open(pth)
+	fil, err := os.Open(pth) // nolint:gosec
 	if err != nil {
 		return "", err
 	}
@@ -132,7 +132,7 @@ func ModVer(pth, mod string) (string, error) {
 // GoVer takes "go.mod" path and returns go version defined in it. The
 // [filepath.Join] is used on pth slice to get the path.
 func GoVer(pth ...string) (string, error) {
-	fil, err := os.Open(filepath.Join(pth...))
+	fil, err := os.Open(filepath.Join(pth...)) // nolint:gosec
 	if err != nil {
 		return "", err
 	}

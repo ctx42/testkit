@@ -165,7 +165,7 @@ func MkdirTemp(t tester.T, dir, prefix string) string {
 func Open(t tester.T, pth string, elems ...string) *os.File {
 	t.Helper()
 	pth = filepath.Join(append([]string{pth}, elems...)...)
-	fil, err := os.Open(pth)
+	fil, err := os.Open(pth) // nolint:gosec
 	if err != nil {
 		t.Error(err)
 		return nil
@@ -180,7 +180,7 @@ func Open(t tester.T, pth string, elems ...string) *os.File {
 func ReadFile(t tester.T, pth string, elems ...string) []byte {
 	t.Helper()
 	pth = filepath.Join(append([]string{pth}, elems...)...)
-	buf, err := os.ReadFile(pth)
+	buf, err := os.ReadFile(pth) // nolint:gosec
 	if err != nil {
 		t.Error(err)
 		return nil
@@ -308,7 +308,7 @@ func Write[T stringOrBytes](
 // received in the pth argument.
 func write(t tester.T, content []byte, pth string, flag int) string {
 	t.Helper()
-	f, err := os.OpenFile(pth, flag, 0644)
+	f, err := os.OpenFile(pth, flag, 0644) // nolint:gosec
 	if err != nil {
 		t.Error(err.Error())
 		return pth
@@ -332,7 +332,7 @@ func MkdirAll(t tester.T, dir string, elems ...string) string {
 	if PathExists(t, pth) {
 		return pth
 	}
-	if err := os.MkdirAll(pth, 0755); err != nil {
+	if err := os.MkdirAll(pth, 0750); err != nil {
 		err = fmt.Errorf("failed to create directory: %s, error: %w", pth, err)
 		t.Error(err)
 	}
@@ -364,7 +364,7 @@ func PathExists(t tester.T, pth string, elems ...string) bool {
 func List(t tester.T, dir string, elems ...string) []string {
 	t.Helper()
 	dir = filepath.Join(append([]string{dir}, elems...)...)
-	fh, err := os.Open(dir)
+	fh, err := os.Open(dir) // nolint:gosec
 	if err != nil {
 		t.Error(err)
 		return nil
@@ -399,7 +399,7 @@ func ListAbs(t tester.T, dir string, elems ...string) []string {
 		t.Error(err)
 		return nil
 	}
-	fh, err := os.Open(dir)
+	fh, err := os.Open(dir) // nolint:gosec
 	if err != nil {
 		t.Error(err)
 		return nil
@@ -434,7 +434,7 @@ func CopyFile(t tester.T, dst, src string) string {
 	}
 	dst = filepath.Join(dst, filepath.Base(src))
 
-	srcF, err := os.Open(src)
+	srcF, err := os.Open(src) // nolint:gosec
 	if err != nil {
 		t.Error(err)
 		return ""
@@ -452,7 +452,7 @@ func CopyFile(t tester.T, dst, src string) string {
 		return ""
 	}
 
-	dstF, err := os.Create(dst)
+	dstF, err := os.Create(dst) // nolint:gosec
 	if err != nil {
 		t.Error(err)
 		return ""
@@ -494,7 +494,7 @@ func CopyDir(t tester.T, dst, src string) string {
 		switch mode {
 		case os.ModeDir:
 			dstPth := filepath.Join(dst, ent.Name())
-			if err := os.Mkdir(dstPth, 0755); err != nil {
+			if err := os.Mkdir(dstPth, 0750); err != nil {
 				t.Error(err)
 				return ""
 			}

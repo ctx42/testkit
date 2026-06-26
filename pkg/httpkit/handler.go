@@ -76,7 +76,7 @@ func Handle(t tester.T, hun http.Handler) *Handler {
 func (han *Handler) Start(ctx context.Context) *Handler {
 	han.t.Helper()
 	if ctx != nil {
-		han.Server.Config.BaseContext = func(_ net.Listener) context.Context {
+		han.Config.BaseContext = func(_ net.Listener) context.Context {
 			return ctx
 		}
 	}
@@ -89,7 +89,7 @@ func (han *Handler) Start(ctx context.Context) *Handler {
 func (han *Handler) StartTLS(ctx context.Context) *Handler {
 	han.t.Helper()
 	if ctx != nil {
-		han.Server.Config.BaseContext = func(_ net.Listener) context.Context {
+		han.Config.BaseContext = func(_ net.Listener) context.Context {
 			return ctx
 		}
 	}

@@ -56,15 +56,15 @@ func (ctr *Container) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &t1); err != nil {
 		return err
 	}
-	t1.T1.Image = t1.Config.Image
-	t1.T1.Env = oskit.EnvSplit(t1.Config.Env)
-	t1.T1.Labels = t1.Config.Labels
+	t1.Image = t1.Config.Image
+	t1.Env = oskit.EnvSplit(t1.Config.Env)
+	t1.Labels = t1.Config.Labels
 
 	nets := make(map[string]string)
 	for name, network := range t1.NetworkSettings.Networks {
 		nets[name] = network.NetworkID
 	}
-	t1.T1.Networks = nets
+	t1.Networks = nets
 	return nil
 }
 

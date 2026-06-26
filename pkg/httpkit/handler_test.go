@@ -224,7 +224,7 @@ func Test_HandleFunc(t *testing.T) {
 		tspy.Finish()
 
 		// --- Then ---
-		_, err := han.Client().Get(han.URL) // nolint: bodyclose
+		_, err := han.Client().Get(han.URL)
 		assert.ErrorContain(t, "connection refused", err)
 	})
 }
@@ -340,7 +340,7 @@ func Test_Handle(t *testing.T) {
 		tspy.Finish()
 
 		// --- Then ---
-		_, err := han.Client().Get(han.URL) // nolint: bodyclose
+		_, err := han.Client().Get(han.URL)
 		assert.ErrorContain(t, "connection refused", err)
 	})
 }

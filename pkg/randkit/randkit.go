@@ -156,10 +156,10 @@ func seededRand(seed int64) func(n int) int {
 func seedToBytes(seed int64) [32]byte {
 	var b [32]byte
 	for i := range 8 {
-		b[i] = byte(seed >> (i * 8))
+		b[i] = byte(seed >> (i * 8)) // nolint:gosec
 	}
 	for i := 8; i < 32; i++ {
-		b[i] = byte(seed>>((i%8)*8)) ^ byte(i)
+		b[i] = byte(seed>>((i%8)*8)) ^ byte(i) // nolint:gosec
 	}
 	return b
 }

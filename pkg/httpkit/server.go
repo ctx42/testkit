@@ -74,7 +74,7 @@ func NewServer(t tester.T) *Server {
 		}
 		w.WriteHeader(rsp.status)
 
-		c := cloneHTTPRequest(t, req) // nolint:noctx,contextcheck
+		c := cloneHTTPRequest(t, req)
 		c.URL.Scheme = srv.scheme
 
 		srv.requests = append(srv.requests, c)

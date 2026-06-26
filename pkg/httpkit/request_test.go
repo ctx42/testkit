@@ -282,7 +282,7 @@ func Test_Request_get(t *testing.T) {
 		req := NewRequest(tspy, WithRequestTimeout(50*time.Millisecond))
 
 		// --- When ---
-		have := req.get(srv.URL) // nolint: bodyclose
+		have := req.get(srv.URL)
 
 		// --- Then ---
 		assert.Nil(t, have)
@@ -301,7 +301,7 @@ func Test_Request_get(t *testing.T) {
 		req := NewRequest(tspy)
 
 		// --- When ---
-		have := req.get(url) // nolint: bodyclose
+		have := req.get(url)
 
 		// --- Then ---
 		assert.Nil(t, have)
@@ -314,7 +314,7 @@ func Test_Request_get(t *testing.T) {
 		tspy.Close()
 
 		// --- When ---
-		have := NewRequest(tspy).get("https:\\") // nolint: bodyclose
+		have := NewRequest(tspy).get("https:\\")
 
 		// --- Then ---
 		assert.Nil(t, have)

@@ -20,7 +20,7 @@ func ExampleHandleFunc() {
 	}
 	han := httpkit.HandleFunc(t, "/", fn).Start(nil)
 
-	rsp, _ := http.Get(han.URL + "/") // nolint:noctx
+	rsp, _ := http.Get(han.URL + "/")
 	defer func() { _ = rsp.Body.Close() }()
 	body, _ := io.ReadAll(rsp.Body)
 	fmt.Print(string(body))
@@ -32,7 +32,7 @@ func ExampleNewServer() {
 	t := &testing.T{}
 	srv := httpkit.NewServer(t).Rsp(http.StatusOK, []byte("pong"))
 
-	rsp, _ := http.Get(srv.URL()) // nolint:noctx
+	rsp, _ := http.Get(srv.URL())
 	defer func() { _ = rsp.Body.Close() }()
 	body, _ := io.ReadAll(rsp.Body)
 	fmt.Println(rsp.StatusCode)
@@ -46,7 +46,7 @@ func ExampleServer_BodyString() {
 	t := &testing.T{}
 	srv := httpkit.NewServer(t).Rsp(http.StatusOK, nil)
 
-	r, _ := http.Post(srv.URL(), "", strings.NewReader("ping")) // nolint:noctx
+	r, _ := http.Post(srv.URL(), "", strings.NewReader("ping"))
 	defer func() { _ = r.Body.Close() }()
 	fmt.Println(srv.BodyString(0))
 	// Output:

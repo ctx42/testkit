@@ -27,7 +27,7 @@ func Test_Server_smokeTest(t *testing.T) {
 
 		// --- When ---
 		body := bytes.NewReader([]byte("req body"))
-		rsp, err := http.Post(srv.URL()+"/?k0=v0", "", body) // nolint:noctx
+		rsp, err := http.Post(srv.URL()+"/?k0=v0", "", body)
 
 		// --- Then ---
 		assert.NoError(t, err)
@@ -62,7 +62,7 @@ func Test_Server_smokeTest(t *testing.T) {
 		// --- When ---
 		start := time.Now()
 		body := bytes.NewReader([]byte("req body"))
-		rsp, err := http.Post(srv.URL(), "", body) // nolint:noctx
+		rsp, err := http.Post(srv.URL(), "", body)
 		took := time.Since(start)
 
 		// --- Then ---
@@ -84,7 +84,7 @@ func Test_Server_smokeTest(t *testing.T) {
 
 		// --- When ---
 		body := bytes.NewReader([]byte("req body"))
-		rsp, err := http.Post(srv.URL(), "", body) // nolint:noctx
+		rsp, err := http.Post(srv.URL(), "", body)
 
 		// --- Then ---
 		if assert.NoError(t, err) {
@@ -103,7 +103,7 @@ func Test_Server_smokeTest(t *testing.T) {
 
 		// --- When ---
 		body := bytes.NewReader([]byte("req body"))
-		rsp, err := http.Post(srv.URL()+"/?k0=v0", "", body) // nolint:noctx
+		rsp, err := http.Post(srv.URL()+"/?k0=v0", "", body)
 
 		// --- Then ---
 		assert.NoError(t, err)
@@ -131,7 +131,7 @@ func Test_Server_smokeTest(t *testing.T) {
 		srv.Rsp(http.StatusOK, nil)
 
 		// --- When ---
-		rsp, err := http.Get(srv.URL()) // nolint:noctx
+		rsp, err := http.Get(srv.URL())
 
 		// --- Then ---
 		if assert.NoError(t, err) {

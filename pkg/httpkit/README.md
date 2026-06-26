@@ -39,7 +39,7 @@ fn := func(w http.ResponseWriter, _ *http.Request) {
 }
 han := httpkit.HandleFunc(t, "/", fn).Start(nil)
 
-rsp, _ := http.Get(han.URL + "/") // nolint:noctx
+rsp, _ := http.Get(han.URL + "/")
 defer func() { _ = rsp.Body.Close() }()
 body, _ := io.ReadAll(rsp.Body)
 fmt.Print(string(body))
@@ -76,7 +76,7 @@ queued responses does not match the number of received requests.
 t := &testing.T{}
 srv := httpkit.NewServer(t).Rsp(http.StatusOK, []byte("pong"))
 
-rsp, _ := http.Get(srv.URL()) // nolint:noctx
+rsp, _ := http.Get(srv.URL())
 defer func() { _ = rsp.Body.Close() }()
 body, _ := io.ReadAll(rsp.Body)
 fmt.Println(rsp.StatusCode)
@@ -106,7 +106,7 @@ Each received request is stored as a clone. Use `Request(n)`, `Body(n)`
 t := &testing.T{}
 srv := httpkit.NewServer(t).Rsp(http.StatusOK, nil)
 
-r, _ := http.Post(srv.URL(), "", strings.NewReader("ping")) // nolint:noctx
+r, _ := http.Post(srv.URL(), "", strings.NewReader("ping"))
 defer func() { _ = r.Body.Close() }()
 fmt.Println(srv.BodyString(0))
 // Output:
