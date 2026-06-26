@@ -3,6 +3,7 @@
   * [Installation](#installation)
   * [Packages at a glance](#packages-at-a-glance)
   * [exekit — running external commands](#exekit--running-external-commands)
+  * [httpkit — HTTP handler and server testing](#httpkit--http-handler-and-server-testing)
   * [iokit — buffers and error injection](#iokit--buffers-and-error-injection)
     * [Thread-safe test buffers](#thread-safe-test-buffers)
     * [Error-injecting readers and writers](#error-injecting-readers-and-writers)
@@ -51,6 +52,7 @@ go get github.com/ctx42/testkit
 | Package                                  | What it does                                                            |
 |------------------------------------------|-------------------------------------------------------------------------|
 | [`exekit`](pkg/exekit/README.md)         | Run external commands and assert their output and exit code             |
+| [`httpkit`](pkg/httpkit/README.md)       | HTTP handler mocking, request recording, and outbound HTTP client       |
 | [`iokit`](pkg/iokit/README.md)           | Thread-safe test buffers; error-injecting readers and writers           |
 | [`netkit`](pkg/netkit/README.md)         | Free TCP ports and local addresses; connectivity checks                 |
 | [`oskit`](pkg/oskit/README.md)           | File, directory, working-directory, and environment test helpers        |
@@ -92,6 +94,35 @@ sout, eout := exe.Exe("git", "status", "--short")
 exe = exekit.NewT(t, exekit.WithExitCode(1))
 exe.Exe("false")
 ```
+
+---
+
+## httpkit — HTTP handler and server testing
+
+`httpkit` provides three composable helpers for HTTP testing:
+
+- **HandleFunc / Handle** — wrap a handler in an `httptest.Server`
+  with optional middleware, auto-closed at test end.
+- **Server** — a request-recording mock server with a response queue;
+  fails the test if expected and actual request counts diverge.
+- **Request** — a thin outbound HTTP client with retry-on-refused and
+  configurable expected status code.
+
+```go
+import "github.com/ctx42/testkit/pkg/httpkit"
+
+// Test a handler function directly.
+han := httpkit.HandleFunc(t, "/api/ping", myHandler).Start(nil)
+body := httpkit.NewRequest(t).Get(han.URL + "/api/ping")
+
+// Mock a remote service with pre-queued responses.
+srv := httpkit.NewServer(t).
+    Rsp(http.StatusOK, []byte(`{"ok":true}`)).
+    Rsp(http.StatusTooManyRequests, nil)
+// The code under test makes two calls to srv.URL().
+```
+
+See the [httpkit README](pkg/httpkit/README.md) for the full reference.
 
 ---
 
@@ -232,10 +263,10 @@ import "github.com/ctx42/testkit/pkg/oskit"
 data := oskit.ReadFile(t, "testdata/golden.json")
 
 // Write or append to a file.
-oskit.WriteStr(t, "hello\n", t.TempDir(), "out.txt")
+oskit.Write(t, "hello\n", t.TempDir(), "out.txt")
 
 // Create (or overwrite) a file; truncates existing content.
-oskit.CreateStr(t, "fixture data", t.TempDir(), "fixture.txt")
+oskit.Create(t, "fixture data", t.TempDir(), "fixture.txt")
 
 // Create nested directories with 0755 permissions.
 oskit.MkdirAll(t, t.TempDir(), "a", "b", "c")
@@ -542,6 +573,7 @@ sched := NewScheduler(timekit.TikTak(base))
 
 - `dkrkit` [README](pkg/dkrkit/README.md)
 - `exekit` [README](pkg/exekit/README.md)
+- `httpkit` [README](pkg/httpkit/README.md)
 - `iokit` [README](pkg/iokit/README.md)
 - `modkit` [README](pkg/modkit/README.md)
 - `netkit` [README](pkg/netkit/README.md)
