@@ -1,3 +1,6 @@
+## v0.8.0 (Fri, 10 Jul 2026 08:13:16 UTC)
+- feat(jsonkit): add JSON marshalling test helpers.
+
 ## v0.7.0 (Fri, 26 Jun 2026 11:12:56 UTC)
 - feat(iokit): add ReadAll and ReadAllStr helpers.
 - docs(httpkit): add README and usage examples to package documentation.
