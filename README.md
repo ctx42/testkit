@@ -8,6 +8,7 @@
     * [Thread-safe test buffers](#thread-safe-test-buffers)
     * [Error-injecting readers and writers](#error-injecting-readers-and-writers)
     * [Seek and offset helpers](#seek-and-offset-helpers)
+  * [jsonkit — JSON test helpers](#jsonkit--json-test-helpers)
   * [netkit — networking helpers](#netkit--networking-helpers)
   * [oskit — OS and filesystem helpers](#oskit--os-and-filesystem-helpers)
   * [pathkit — path resolution helpers](#pathkit--path-resolution-helpers)
@@ -54,6 +55,7 @@ go get github.com/ctx42/testkit
 | [`exekit`](pkg/exekit/README.md)         | Run external commands and assert their output and exit code             |
 | [`httpkit`](pkg/httpkit/README.md)       | HTTP handler mocking, request recording, and outbound HTTP client       |
 | [`iokit`](pkg/iokit/README.md)           | Thread-safe test buffers; error-injecting readers and writers           |
+| [`jsonkit`](pkg/jsonkit/README.md)       | Marshal and unmarshal JSON through a tester.T; fail the test on error   |
 | [`netkit`](pkg/netkit/README.md)         | Free TCP ports and local addresses; connectivity checks                 |
 | [`oskit`](pkg/oskit/README.md)           | File, directory, working-directory, and environment test helpers        |
 | [`pathkit`](pkg/pathkit/README.md)       | Resolve absolute paths and symbolic links; fail test on error           |
@@ -219,6 +221,33 @@ iokit.Seek(rs, 0, io.SeekStart)
 // position afterwards.
 data := iokit.ReadAllFromStart(rs)
 ```
+
+---
+
+## jsonkit — JSON test helpers
+
+`jsonkit` marshals and unmarshals JSON in tests without the `if err != nil`
+boilerplate. Each helper takes a `tester.T` and marks the test as failed when
+the underlying `encoding/json` operation fails, returning a safe zero value so
+the test can continue.
+
+```go
+import "github.com/ctx42/testkit/pkg/jsonkit"
+
+// Marshal a value to bytes or an io.Reader.
+data := jsonkit.To(t, map[string]any{"name": "abc"})
+body := jsonkit.ToReader(t, payload)
+
+// Unmarshal into a map or a typed value.
+m := jsonkit.ToMap(t, data)
+jsonkit.From(t, data, &out)
+jsonkit.FromReader(t, resp.Body, &out)
+
+// Remove a key from a JSON object; returns the trimmed JSON and the value.
+trimmed, val := jsonkit.DeleteKey(t, data, "name")
+```
+
+See the [jsonkit README](pkg/jsonkit/README.md) for the full reference.
 
 ---
 
@@ -575,6 +604,7 @@ sched := NewScheduler(timekit.TikTak(base))
 - `exekit` [README](pkg/exekit/README.md)
 - `httpkit` [README](pkg/httpkit/README.md)
 - `iokit` [README](pkg/iokit/README.md)
+- `jsonkit` [README](pkg/jsonkit/README.md)
 - `modkit` [README](pkg/modkit/README.md)
 - `netkit` [README](pkg/netkit/README.md)
 - `oskit` [README](pkg/oskit/README.md)
