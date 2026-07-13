@@ -1,3 +1,6 @@
+## v0.8.1 (Mon, 13 Jul 2026 19:52:08 UTC)
+- build(deps): bump ctx42/xdef to v0.5.0.
+
 ## v0.8.0 (Fri, 10 Jul 2026 08:13:16 UTC)
 - feat(jsonkit): add JSON marshalling test helpers.
 
