@@ -1,3 +1,6 @@
+## v0.9.0 (Mon, 13 Jul 2026 20:15:53 UTC)
+- refactor(prjkit)!: adopt xdef env constants and OCI image labels.
+
 ## v0.8.1 (Mon, 13 Jul 2026 19:52:08 UTC)
 - build(deps): bump ctx42/xdef to v0.5.0.
 
