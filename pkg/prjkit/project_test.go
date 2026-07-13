@@ -1764,8 +1764,8 @@ func Test_Project_CfgDkrRepoDef(t *testing.T) {
 		// --- Then ---
 		pth := filepath.Join(prj.Root(), "configs", "project.conf")
 		want := "" +
-			"VRIT_DKR_REG_HOST=my.nexus.dev\n" +
-			"VRIT_DKR_REPO=my.nexus.dev/repo\n"
+			"C42_DKR_REG_HOST=my.nexus.dev\n" +
+			"C42_DKR_REPO=my.nexus.dev/repo\n"
 		assert.Equal(t, want, oskit.ReadFileStr(t, pth))
 
 		prj.Close() // Must close to prevent error.
@@ -1804,8 +1804,8 @@ func Test_Project_CfgDkrRepo(t *testing.T) {
 		// --- Then ---
 		pth := filepath.Join(prj.Root(), "configs", "project.conf")
 		want := "" +
-			"VRIT_DKR_REG_HOST=host\n" +
-			"VRIT_DKR_REPO=host/repo\n"
+			"C42_DKR_REG_HOST=host\n" +
+			"C42_DKR_REPO=host/repo\n"
 		assert.Equal(t, want, oskit.ReadFileStr(t, pth))
 
 		prj.Close() // Must close to prevent error.
@@ -1843,10 +1843,10 @@ func Test_Project_CfgDkrRepo(t *testing.T) {
 		// --- Then ---
 		pth := filepath.Join(prj.Root(), "configs", "project.conf")
 		want := "" +
-			"VRIT_DKR_REG_HOST=host0\n" +
-			"VRIT_DKR_REPO=host0/repo0\n" +
-			"VRIT_DKR_REG_HOST=host1\n" +
-			"VRIT_DKR_REPO=host1/repo1\n"
+			"C42_DKR_REG_HOST=host0\n" +
+			"C42_DKR_REPO=host0/repo0\n" +
+			"C42_DKR_REG_HOST=host1\n" +
+			"C42_DKR_REPO=host1/repo1\n"
 		assert.Equal(t, want, oskit.ReadFileStr(t, pth))
 
 		prj.Close() // Must close to prevent error.
@@ -1939,7 +1939,7 @@ func Test_Project_CfgDkrTargets(t *testing.T) {
 
 		// --- Then ---
 		pth := filepath.Join(prj.Root(), "configs", "project.conf")
-		want := "VRIT_DKF_TARGETS=first,second\n"
+		want := "C42_DKF_TARGETS=first,second\n"
 		assert.Equal(t, want, oskit.ReadFileStr(t, pth))
 
 		prj.Close() // Must close to prevent error.
@@ -1977,8 +1977,8 @@ func Test_Project_CfgDkrTargets(t *testing.T) {
 		// --- Then ---
 		pth := filepath.Join(prj.Root(), "configs", "project.conf")
 		want := "" +
-			"VRIT_DKF_TARGETS=first,second\n" +
-			"VRIT_DKF_TARGETS=second,third\n"
+			"C42_DKF_TARGETS=first,second\n" +
+			"C42_DKF_TARGETS=second,third\n"
 		assert.Equal(t, want, oskit.ReadFileStr(t, pth))
 
 		prj.Close() // Must close to prevent error.

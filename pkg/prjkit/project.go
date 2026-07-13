@@ -27,6 +27,7 @@ import (
 
 	"github.com/ctx42/testing/pkg/assert"
 	"github.com/ctx42/testing/pkg/tester"
+	"github.com/ctx42/xdef/pkg/xdef"
 
 	"github.com/ctx42/testkit/pkg/dkrkit"
 	"github.com/ctx42/testkit/pkg/exekit"
@@ -555,8 +556,8 @@ func (prj *Project) CfgDkrRepo(host, repo string) {
 	prj.CheckOpen()
 
 	repo = path.Join(host, repo)
-	prj.CfgAdd("VRIT_DKR_REG_HOST", host)
-	prj.CfgAdd("VRIT_DKR_REPO", repo)
+	prj.CfgAdd(xdef.EnvDkrRegHost, host)
+	prj.CfgAdd(xdef.EnvDkrRepo, repo)
 	prj.dkrRepo = repo
 }
 
@@ -574,7 +575,7 @@ func (prj *Project) CfgDkrTargets(targets string) {
 	prj.t.Helper()
 	prj.CheckOpen()
 
-	prj.CfgAdd("VRIT_DKF_TARGETS", targets)
+	prj.CfgAdd(xdef.EnvDkfTargets, targets)
 }
 
 // WithDockerfile adds an example Dockerfile to the project. The Dockerfile
