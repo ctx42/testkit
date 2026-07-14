@@ -1,3 +1,6 @@
+## v0.10.0 (Tue, 14 Jul 2026 14:03:51 UTC)
+- refactor!: adopt xdef v0.7.0 names and align container metadata.
+
 ## v0.9.0 (Mon, 13 Jul 2026 20:15:53 UTC)
 - refactor(prjkit)!: adopt xdef env constants and OCI image labels.
 
