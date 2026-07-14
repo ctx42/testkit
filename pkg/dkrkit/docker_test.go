@@ -106,11 +106,11 @@ func Test_Docker_Build(t *testing.T) {
 	t.Run("ref and iid format", func(t *testing.T) {
 		// --- Given ---
 		dkr := New()
-		dkfOpt := WithBuildDkfPth("testdata/simple/Dockerfile")
+		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
 		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
 
 		// --- When ---
-		ref, iid, err := dkr.Build(dkfOpt, argOpt)
+		ref, iid, err := dkr.Build(bldOpt, argOpt)
 
 		// --- Then ---
 		assert.NoError(t, err)
@@ -144,11 +144,11 @@ func Test_Docker_Build(t *testing.T) {
 	t.Run("labels and env values - default build args", func(t *testing.T) {
 		// --- Given ---
 		dkr := New()
-		dkfOpt := WithBuildDkfPth("testdata/simple/Dockerfile")
+		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
 		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
 
 		// --- When ---
-		ref, iid, err := dkr.Build(dkfOpt, argOpt)
+		ref, iid, err := dkr.Build(bldOpt, argOpt)
 
 		// --- Then ---
 		assert.NoError(t, err)
@@ -188,7 +188,7 @@ func Test_Docker_Build(t *testing.T) {
 	t.Run("labels and env values - custom build args", func(t *testing.T) {
 		// --- Given ---
 		dkr := New()
-		dkfOpt := WithBuildDkfPth("testdata/simple/Dockerfile")
+		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
 		argOpt := WithBuildArgs(map[string]string{
 			xdef.EnvImgBaseName: TestImageBaseRef,
 			xdef.EnvImgCreated:  "2000-01-02T03:04:05Z",
@@ -200,7 +200,7 @@ func Test_Docker_Build(t *testing.T) {
 		})
 
 		// --- When ---
-		ref, iid, err := dkr.Build(dkfOpt, argOpt)
+		ref, iid, err := dkr.Build(bldOpt, argOpt)
 
 		// --- Then ---
 		assert.NoError(t, err)
@@ -241,11 +241,11 @@ func Test_Docker_Build(t *testing.T) {
 		// --- Given ---
 		dkr := New()
 		rdr := must.Value(os.Open("testdata/simple/Dockerfile"))
-		dkfOpt := WithBuildDkfRdr(rdr)
+		bldOpt := WithBuildRdr(rdr)
 		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
 
 		// --- When ---
-		ref, iid, err := dkr.Build(dkfOpt, argOpt)
+		ref, iid, err := dkr.Build(bldOpt, argOpt)
 
 		// --- Then ---
 		assert.NoError(t, err)
@@ -259,10 +259,10 @@ func Test_Docker_Build(t *testing.T) {
 	t.Run("error - empty Dockerfile", func(t *testing.T) {
 		// --- Given ---
 		dkr := New()
-		dkfOpt := WithBuildDkfPth("testdata/invalid/Dockerfile")
+		bldOpt := WithBuildPth("testdata/invalid/Dockerfile")
 
 		// --- When ---
-		ref, iid, err := dkr.Build(dkfOpt)
+		ref, iid, err := dkr.Build(bldOpt)
 
 		// --- Then ---
 		assert.ErrorContain(t, "[building image] docker command error", err)
@@ -271,17 +271,17 @@ func Test_Docker_Build(t *testing.T) {
 		assert.Empty(t, iid)
 	})
 
-	t.Run("error - WithBuildDkfPth with WithBuildDkfRdr", func(t *testing.T) {
+	t.Run("error - WithBuildPth with WithBuildRdr", func(t *testing.T) {
 		// --- Given ---
 		dkr := New()
-		dkfPthOpt := WithBuildDkfPth("testdata/invalid/Dockerfile")
-		dkfRdrOpt := WithBuildDkfRdr(strings.NewReader("abc"))
+		bldPthOpt := WithBuildPth("testdata/invalid/Dockerfile")
+		bldRdrOpt := WithBuildRdr(strings.NewReader("abc"))
 
 		// --- When ---
-		ref, iid, err := dkr.Build(dkfPthOpt, dkfRdrOpt)
+		ref, iid, err := dkr.Build(bldPthOpt, bldRdrOpt)
 
 		// --- Then ---
-		wMsg := "WithBuildDkfPth and WithBuildDkfRdr are mutually exclusive"
+		wMsg := "WithBuildPth and WithBuildRdr are mutually exclusive"
 		assert.ErrorContain(t, wMsg, err)
 		assert.Empty(t, ref)
 		assert.Empty(t, iid)
@@ -290,13 +290,13 @@ func Test_Docker_Build(t *testing.T) {
 	t.Run("WithBuildName", func(t *testing.T) {
 		// --- Given ---
 		dkr := New()
-		dkfOpt := WithBuildDkfPth("testdata/simple/Dockerfile")
+		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
 		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
 		name := RandName() + "-my-name"
 		nameOpt := WithBuildName(name)
 
 		// --- When ---
-		ref, _, err := dkr.Build(dkfOpt, argOpt, nameOpt)
+		ref, _, err := dkr.Build(bldOpt, argOpt, nameOpt)
 
 		// --- Then ---
 		assert.NoError(t, err)
@@ -308,13 +308,13 @@ func Test_Docker_Build(t *testing.T) {
 	t.Run("WithBuildTag", func(t *testing.T) {
 		// --- Given ---
 		dkr := New()
-		dkfOpt := WithBuildDkfPth("testdata/simple/Dockerfile")
+		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
 		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
 		tag := RandName() + "-my-tag"
 		tagOpt := WithBuildTag(tag)
 
 		// --- When ---
-		ref, _, err := dkr.Build(dkfOpt, argOpt, tagOpt)
+		ref, _, err := dkr.Build(bldOpt, argOpt, tagOpt)
 
 		// --- Then ---
 		assert.NoError(t, err)
@@ -330,12 +330,12 @@ func Test_Docker_Build(t *testing.T) {
 		idfPth := filepath.Join(t.TempDir(), "iid.log")
 		have := &bytes.Buffer{}
 		dryOpt := WithBuildDryRun(have)
-		dkfOpt := WithBuildDkfPth("testdata/simple/Dockerfile")
+		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
 		idfOpt := withBuildIIDFile(idfPth)
 		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
 
 		// --- When ---
-		ref, iid, err := dkr.Build(dryOpt, dkfOpt, argOpt, idfOpt)
+		ref, iid, err := dkr.Build(dryOpt, bldOpt, argOpt, idfOpt)
 
 		// --- Then ---
 		assert.NoError(t, err)
@@ -363,12 +363,12 @@ func Test_Docker_Build(t *testing.T) {
 		idfPth := filepath.Join(t.TempDir(), "iid.log")
 		have := &bytes.Buffer{}
 		dryOpt := WithBuildDryRun(have)
-		dkfOpt := WithBuildDkfPth("testdata/simple/Dockerfile")
+		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
 		idfOpt := withBuildIIDFile(idfPth)
 		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
 
 		// --- When ---
-		ref, iid, err := dkr.Build(dryOpt, dkfOpt, argOpt, idfOpt)
+		ref, iid, err := dkr.Build(dryOpt, bldOpt, argOpt, idfOpt)
 
 		// --- Then ---
 		assert.NoError(t, err)
@@ -392,12 +392,12 @@ func Test_Docker_Build(t *testing.T) {
 		have := &bytes.Buffer{}
 		rdr := must.Value(os.Open("testdata/simple/Dockerfile"))
 		dryOpt := WithBuildDryRun(have)
-		dkfOpt := WithBuildDkfRdr(rdr)
+		bldOpt := WithBuildRdr(rdr)
 		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
 		idfOpt := withBuildIIDFile(idfPth)
 
 		// --- When ---
-		ref, iid, err := dkr.Build(dryOpt, dkfOpt, argOpt, idfOpt)
+		ref, iid, err := dkr.Build(dryOpt, bldOpt, argOpt, idfOpt)
 
 		// --- Then ---
 		assert.NoError(t, err)
@@ -418,12 +418,12 @@ func Test_Docker_Build(t *testing.T) {
 		// --- Given ---
 		dkr := New()
 		idfPth := filepath.Join(t.TempDir(), "iid.log")
-		dkfOpt := WithBuildDkfPth("testdata/simple/Dockerfile")
+		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
 		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
 		idfOpt := withBuildIIDFile(idfPth)
 
 		// --- When ---
-		ref, iid, err := dkr.Build(dkfOpt, argOpt, idfOpt)
+		ref, iid, err := dkr.Build(bldOpt, argOpt, idfOpt)
 
 		// --- Then ---
 		assert.NoError(t, err)
@@ -438,13 +438,13 @@ func Test_Docker_Build(t *testing.T) {
 		dkr := New()
 		dryBuf := &bytes.Buffer{}
 		dryOpt := WithBuildDryRun(dryBuf)
-		dkfOpt := WithBuildDkfPth("testdata/simple/Dockerfile")
+		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
 		idfPth := filepath.Join(t.TempDir(), "iid.log")
 		idfOpt := withBuildIIDFile(idfPth)
 		labOpt := WithBuildLabel("my.label", "val")
 
 		// --- When ---
-		_, _, err := dkr.Build(dryOpt, dkfOpt, idfOpt, labOpt)
+		_, _, err := dkr.Build(dryOpt, bldOpt, idfOpt, labOpt)
 
 		// --- Then ---
 		assert.NoError(t, err)
@@ -453,17 +453,17 @@ func Test_Docker_Build(t *testing.T) {
 
 	t.Run("build with no cache - set by env variable", func(t *testing.T) {
 		// --- Given ---
-		env := append(os.Environ(), envBuildNoCache+"=1")
+		env := append(os.Environ(), envBldNoCache+"=1")
 		dkr := New(WithEnv(env))
 		idPth := filepath.Join(t.TempDir(), "iid.log")
 		have := &bytes.Buffer{}
 		dryOpt := WithBuildDryRun(have)
-		dkfOpt := WithBuildDkfPth("testdata/simple/Dockerfile")
+		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
 		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
 		idfOpt := withBuildIIDFile(idPth)
 
 		// --- When ---
-		_, _, err := dkr.Build(dryOpt, dkfOpt, argOpt, idfOpt)
+		_, _, err := dkr.Build(dryOpt, bldOpt, argOpt, idfOpt)
 
 		// --- Then ---
 		assert.NoError(t, err)
@@ -477,13 +477,13 @@ func Test_Docker_Build(t *testing.T) {
 		idfPth := filepath.Join(t.TempDir(), "iid.log")
 		buf := &bytes.Buffer{}
 		dryOpt := WithBuildDryRun(buf)
-		dkfOpt := WithBuildDkfPth("testdata/simple/Dockerfile")
+		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
 		idfOpt := withBuildIIDFile(idfPth)
 		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
 		nocOpt := WithBuildNoCache()
 
 		// --- When ---
-		ref, iid, err := dkr.Build(dryOpt, dkfOpt, argOpt, idfOpt, nocOpt)
+		ref, iid, err := dkr.Build(dryOpt, bldOpt, argOpt, idfOpt, nocOpt)
 
 		// --- Then ---
 		assert.NoError(t, err)
@@ -570,8 +570,8 @@ func Test_Docker_testImageBuildOptions(t *testing.T) {
 		for _, opt := range have {
 			opt(opts)
 		}
-		assert.NotNil(t, opts.dkfRdr)
-		assert.Equal(t, "", opts.dkfPth)
+		assert.NotNil(t, opts.bldRdr)
+		assert.Equal(t, "", opts.bldPth)
 		assert.Equal(t, "", opts.imgName)
 		assert.Equal(t, "", opts.imgTag)
 		assert.Nil(t, opts.labels)
@@ -976,7 +976,7 @@ func Test_Docker_Env(t *testing.T) {
 			"   ref: %s\n" +
 			"  want: \"NOT_EXISTING\"\n" +
 			"   env:\n" +
-			"        \"CTX42_TEST_EMPTY\"\n" +
+			"        \"C42_TEST_EMPTY\"\n" +
 			"        \"OCI_IMAGE_BASE_NAME\"\n" +
 			"        \"OCI_IMAGE_CREATED\"\n" +
 			"        \"OCI_IMAGE_TITLE\"\n" +
@@ -992,7 +992,7 @@ func Test_Docker_Env(t *testing.T) {
 		ref := RandRef()
 
 		// --- When ---
-		have, err := dkr.Env(ref, "CTX42_TEST_VALUE0")
+		have, err := dkr.Env(ref, "C42_TEST_VALUE0")
 
 		// --- Then ---
 		wMsg := "[getting environment variable] docker command error"

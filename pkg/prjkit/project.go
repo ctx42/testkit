@@ -64,11 +64,11 @@ const (
 	// GitSSHOrigin represents git origin with the "ssh://" prefix.
 	GitSSHOrigin = "ssh://" + GitOrigin
 
-	// DkrHost represents the default Docker private repository host.
-	DkrHost = "my.nexus.dev"
+	// RegHost represents the default Docker private repository host.
+	RegHost = "my.nexus.dev"
 
-	// DkrRepo represents default repository name in private Docker repository.
-	DkrRepo = "repo"
+	// RegRepo represents default repository name in private Docker repository.
+	RegRepo = "repo"
 )
 
 // Sentinel errors.
@@ -112,7 +112,7 @@ type Project struct {
 	modName string
 
 	// Docker private repository.
-	dkrRepo string
+	regRepo string
 
 	// Random Docker image name.
 	imgName string
@@ -539,50 +539,50 @@ func (prj *Project) CfgAdd(key, value string) string {
 	return pth
 }
 
-// CfgDkrRepoDef adds a default (DkrRepo) private Docker repository to the
+// CfgRegRepoDef adds a default (RegRepo) private Docker repository to the
 // project config. Every time it's called, it will add a new key-value to the
 // end of the file.
-func (prj *Project) CfgDkrRepoDef() {
+func (prj *Project) CfgRegRepoDef() {
 	prj.t.Helper()
 	prj.CheckOpen()
 
-	prj.CfgDkrRepo(DkrHost, DkrRepo)
+	prj.CfgRegRepo(RegHost, RegRepo)
 }
 
-// CfgDkrRepo adds a given private Docker repository to the project config.
+// CfgRegRepo adds a given private Docker repository to the project config.
 // Every time it's called, it will add a new key-value to the end of the file.
-func (prj *Project) CfgDkrRepo(host, repo string) {
+func (prj *Project) CfgRegRepo(host, repo string) {
 	prj.t.Helper()
 	prj.CheckOpen()
 
 	repo = path.Join(host, repo)
-	prj.CfgAdd(xdef.EnvDkrRegHost, host)
-	prj.CfgAdd(xdef.EnvDkrRepo, repo)
-	prj.dkrRepo = repo
+	prj.CfgAdd(xdef.EnvRegHost, host)
+	prj.CfgAdd(xdef.EnvRegRepo, repo)
+	prj.regRepo = repo
 }
 
-// DkrRepo returns private Docker repository.
-func (prj *Project) DkrRepo() string {
+// RegRepo returns private Docker repository.
+func (prj *Project) RegRepo() string {
 	prj.t.Helper()
 	prj.CheckClosed()
 
-	return prj.dkrRepo
+	return prj.regRepo
 }
 
-// CfgDkrTargets adds Docker targets to the project config. Every time it's
+// CfgBldTargets adds Docker targets to the project config. Every time it's
 // called, it will add a new key-value to the end of the file.
-func (prj *Project) CfgDkrTargets(targets string) {
+func (prj *Project) CfgBldTargets(targets string) {
 	prj.t.Helper()
 	prj.CheckOpen()
 
-	prj.CfgAdd(xdef.EnvDkfTargets, targets)
+	prj.CfgAdd(xdef.EnvBldTargets, targets)
 }
 
 // WithDockerfile adds an example Dockerfile to the project. The Dockerfile
 // defines three targets with entrypoint to simplify testing. It also generates
 // random Docker image and tag values and adds removal of the images with those
 // references (and "latest" tag) to test cleanup. If the private repo value is
-// required, [Project.CfgDkrRepo] or [Project.CfgDkrRepoDef] method must be
+// required, [Project.CfgRegRepo] or [Project.CfgRegRepoDef] method must be
 // called before this one. Returns the absolute path to the Dockerfile.
 func (prj *Project) WithDockerfile() string {
 	prj.t.Helper()
@@ -590,7 +590,7 @@ func (prj *Project) WithDockerfile() string {
 
 	pth := filepath.Join(prj.Root(), "Dockerfile")
 	oskit.Write(prj.t, dockerfile, pth)
-	prj.DkrImgNameTagSet(dkrkit.RandName(), dkrkit.RandTag())
+	prj.ImgNameTagSet(dkrkit.RandName(), dkrkit.RandTag())
 	return pth
 }
 
@@ -598,7 +598,7 @@ func (prj *Project) WithDockerfile() string {
 // entrypoint). The Dockerfile defines three targets without an ENTRYPOINT.
 // It also generates random Docker image and tag values and adds removal of
 // those images (and "latest" tag) to test cleanup. If the private repo value
-// is required, [Project.CfgDkrRepo] or [Project.CfgDkrRepoDef] must be
+// is required, [Project.CfgRegRepo] or [Project.CfgRegRepoDef] must be
 // called before this one. Returns the absolute path to the Dockerfile.
 func (prj *Project) WithDockerfileNEP() string {
 	prj.t.Helper()
@@ -606,90 +606,90 @@ func (prj *Project) WithDockerfileNEP() string {
 
 	pth := filepath.Join(prj.Root(), "Dockerfile")
 	oskit.Write(prj.t, dockerfileNEP, pth)
-	prj.DkrImgNameTagSet(dkrkit.RandName(), dkrkit.RandTag())
+	prj.ImgNameTagSet(dkrkit.RandName(), dkrkit.RandTag())
 	return pth
 }
 
-// DkrImgNameTagSet sets the Docker image name and tag. It overrides the
+// ImgNameTagSet sets the Docker image name and tag. It overrides the
 // random values assigned to them by default.
-func (prj *Project) DkrImgNameTagSet(name, tag string) {
+func (prj *Project) ImgNameTagSet(name, tag string) {
 	prj.t.Helper()
 	prj.CheckOpen()
 	prj.imgName = name
 	prj.imgTag = tag
 	prj.t.Cleanup(func() {
-		prj.imgRem(prj.dkrImgRef())
-		prj.imgRem(prj.dkrImgRefLatest())
+		prj.imgRem(prj.imgRef())
+		prj.imgRem(prj.imgRefLatest())
 	})
 }
 
-// DkrImgName returns a random Docker image name. Multiple calls to this method
+// ImgName returns a random Docker image name. Multiple calls to this method
 // return the same value.
-func (prj *Project) DkrImgName() string {
+func (prj *Project) ImgName() string {
 	prj.t.Helper()
 	prj.CheckClosed()
 
 	return prj.imgName
 }
 
-// DkrImgTag returns a random Docker tag name. Multiple calls to this method
+// ImgTag returns a random Docker tag name. Multiple calls to this method
 // return the same value.
-func (prj *Project) DkrImgTag() string {
+func (prj *Project) ImgTag() string {
 	prj.t.Helper()
 	prj.CheckClosed()
 
 	return prj.imgTag
 }
 
-// DkrImgRef returns Docker image reference. Multiple calls to this method
+// ImgRef returns Docker image reference. Multiple calls to this method
 // return the same value.
-func (prj *Project) DkrImgRef() string {
+func (prj *Project) ImgRef() string {
 	prj.t.Helper()
 	prj.CheckClosed()
 
-	return prj.dkrImgRef()
+	return prj.imgRef()
 }
 
-// dkrImgRef works the same as [Project.DkrImgRef] but doesn't check
+// imgRef works the same as [Project.ImgRef] but doesn't check
 // the [Project] is closed.
-func (prj *Project) dkrImgRef() string {
-	ref := dkrkit.Ref(prj.dkrRepo, prj.imgName, prj.imgTag)
+func (prj *Project) imgRef() string {
+	ref := dkrkit.Ref(prj.regRepo, prj.imgName, prj.imgTag)
 	return ref
 }
 
-// DkrImgRefLatest returns Docker image reference with the "latest" tag.
+// ImgRefLatest returns Docker image reference with the "latest" tag.
 // Multiple calls to this method return the same value.
-func (prj *Project) DkrImgRefLatest() string {
+func (prj *Project) ImgRefLatest() string {
 	prj.t.Helper()
 	prj.CheckClosed()
 
-	return prj.dkrImgRefLatest()
+	return prj.imgRefLatest()
 }
 
-// dkrImgRefLatest works the same as [Project.DkrImgRefLatest] but doesn't
+// imgRefLatest works the same as [Project.ImgRefLatest] but doesn't
 // check the [Project] is closed.
-func (prj *Project) dkrImgRefLatest() string {
-	ref := dkrkit.Ref(prj.dkrRepo, prj.imgName, "latest")
+func (prj *Project) imgRefLatest() string {
+	ref := dkrkit.Ref(prj.regRepo, prj.imgName, "latest")
 	return ref
 }
 
-// DkrTgtName returns Docker image name for a Dockerfile target.
-func (prj *Project) DkrTgtName(target string) string {
+// TgtName returns Docker image name for a Dockerfile target.
+func (prj *Project) TgtName(target string) string {
 	prj.t.Helper()
 	prj.CheckClosed()
 
 	name := prj.imgName + "-" + target
-	return dkrkit.Ref(prj.dkrRepo, name, "")
+	return dkrkit.Ref(prj.regRepo, name, "")
 }
 
-// DkrTgtRef returns Docker image reference for a Dockerfile target.
-func (prj *Project) DkrTgtRef(target string) string {
+// TgtRef returns Docker image reference for a Dockerfile target.
+func (prj *Project) TgtRef(target string) string {
 	prj.t.Helper()
 	prj.CheckClosed()
 
 	name := prj.imgName + "-" + target
-	ref := dkrkit.Ref(prj.dkrRepo, name, prj.imgTag)
-	refLatest := dkrkit.Ref(prj.dkrRepo, name, "latest")
+	ref := dkrkit.Ref(prj.regRepo, name, prj.imgTag)
+	refLatest := dkrkit.Ref(prj.regRepo, name, "latest")
 	prj.t.Cleanup(func() {
 		prj.imgRem(ref)
 		prj.imgRem(refLatest)
@@ -697,16 +697,16 @@ func (prj *Project) DkrTgtRef(target string) string {
 	return ref
 }
 
-// DkrTgtRefLatest returns Docker image reference with the "latest" tag for a
+// TgtRefLatest returns Docker image reference with the "latest" tag for a
 // Dockerfile target.
-func (prj *Project) DkrTgtRefLatest(target string) string {
+func (prj *Project) TgtRefLatest(target string) string {
 	prj.t.Helper()
 	prj.CheckClosed()
 
-	name := prj.DkrImgName() + "-" + target
-	tag := prj.DkrImgTag()
-	ref := dkrkit.Ref(prj.dkrRepo, name, tag)
-	refLatest := dkrkit.Ref(prj.dkrRepo, name, "latest")
+	name := prj.ImgName() + "-" + target
+	tag := prj.ImgTag()
+	ref := dkrkit.Ref(prj.regRepo, name, tag)
+	refLatest := dkrkit.Ref(prj.regRepo, name, "latest")
 	prj.t.Cleanup(func() {
 		prj.imgRem(ref)
 		prj.imgRem(refLatest)

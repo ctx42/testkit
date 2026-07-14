@@ -79,7 +79,7 @@ func (dkr *Docker) Build(opts ...BuildOption) (string, string, error) {
 	if def.imgTag == "" {
 		def.imgTag = RandTag()
 	}
-	if !def.noCache && envGet(dkr.env, envBuildNoCache) != "" {
+	if !def.noCache && envGet(dkr.env, envBldNoCache) != "" {
 		def.noCache = true
 	}
 
@@ -110,15 +110,15 @@ func (dkr *Docker) Build(opts ...BuildOption) (string, string, error) {
 
 	var dir string
 	var sin io.Reader
-	if def.dkfRdr != nil {
-		sin = def.dkfRdr
+	if def.bldRdr != nil {
+		sin = def.bldRdr
 		args = append(args, "-")
-		if rw, ok := def.dkfRdr.(io.ReadCloser); ok {
+		if rw, ok := def.bldRdr.(io.ReadCloser); ok {
 			defer func() { _ = rw.Close() }()
 		}
 	} else {
-		dir = filepath.Dir(def.dkfPth)
-		dockerfile := filepath.Base(def.dkfPth)
+		dir = filepath.Dir(def.bldPth)
+		dockerfile := filepath.Base(def.bldPth)
 		if dockerfile == "." {
 			dockerfile = "Dockerfile"
 		}
@@ -180,9 +180,9 @@ func (dkr *Docker) testImageBuildOptions() []BuildOption {
 		xdef.EnvImgBaseName: TestImageBaseRef,
 	}
 
-	dkfOpt := WithBuildDkfRdr(bytes.NewReader(exDkf))
+	bldOpt := WithBuildRdr(bytes.NewReader(exBld))
 	argOpt := WithBuildArgs(args)
-	return []BuildOption{dkfOpt, argOpt}
+	return []BuildOption{bldOpt, argOpt}
 }
 
 // BuildTestImg builds a test image based on an embedded Dockerfile. Returns

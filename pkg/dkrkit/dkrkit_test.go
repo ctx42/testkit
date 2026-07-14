@@ -384,7 +384,7 @@ func Test_HasEnv(t *testing.T) {
 			"   ref: %s\n" +
 			"  want: \"NOT_EXISTING\"\n" +
 			"   env:\n" +
-			"        \"CTX42_TEST_EMPTY\"\n" +
+			"        \"C42_TEST_EMPTY\"\n" +
 			"        \"OCI_IMAGE_BASE_NAME\"\n" +
 			"        \"OCI_IMAGE_CREATED\"\n" +
 			"        \"OCI_IMAGE_TITLE\"\n" +
@@ -463,7 +463,7 @@ func Test_HasNoEnv(t *testing.T) {
 		wMsg := "" +
 			"[getting environment variable] expected variable not to exist:\n" +
 			"        ref: %s\n" +
-			"       name: \"CTX42_TEST_EMPTY\"\n" +
+			"       name: \"C42_TEST_EMPTY\"\n" +
 			"  has value: \"\""
 		tspy.ExpectLogEqual(wMsg, TestImg0.iid)
 		tspy.Close()
@@ -490,7 +490,7 @@ func Test_HasNoEnv(t *testing.T) {
 		tspy.Close()
 
 		// --- When ---
-		have := HasNoEnv(tspy, ref, "CTX42_TEST_VALUE0")
+		have := HasNoEnv(tspy, ref, "C42_TEST_VALUE0")
 
 		// --- Then ---
 		assert.Empty(t, have)
@@ -523,15 +523,15 @@ func Test_HasEnvs(t *testing.T) {
 		wMsg := "" +
 			"[getting environment variables] expected the map to have keys:\n" +
 			"   ref: %s\n" +
-			"  keys: \"CTX42_TEST_MISSING0\", \"CTX42_TEST_VALUE\""
+			"  keys: \"C42_TEST_MISSING0\", \"C42_TEST_VALUE\""
 		tspy.ExpectLogEqual(wMsg, TestImg0.ref)
 		tspy.Close()
 
 		// --- When ---
 		want := map[string]string{
-			envTestEmpty:          "",
-			envTestValue:          "value",
-			"CTX42_TEST_MISSING0": "missing0",
+			envTestEmpty:        "",
+			envTestValue:        "value",
+			"C42_TEST_MISSING0": "missing0",
 		}
 		have := HasEnvs(tspy, TestImg0.ref, want)
 
@@ -546,7 +546,7 @@ func Test_HasEnvs(t *testing.T) {
 		wMsg := "" +
 			"multiple expectations violated:\n" +
 			"  error: [getting environment variables] expected values to be equal\n" +
-			"  trail: map[\"CTX42_TEST_EMPTY\"]\n" +
+			"  trail: map[\"C42_TEST_EMPTY\"]\n" +
 			"   want: \"wrong\"\n" +
 			"   have: \"\"\n" +
 			"      ---\n" +
@@ -557,16 +557,16 @@ func Test_HasEnvs(t *testing.T) {
 			"      ---\n" +
 			"  error: [getting environment variables] expected the map to have keys\n" +
 			"    ref: %s\n" +
-			"   keys: \"CTX42_TEST_MISSING0\", \"CTX42_TEST_MISSING1\""
+			"   keys: \"C42_TEST_MISSING0\", \"C42_TEST_MISSING1\""
 		tspy.ExpectLogEqual(wMsg, TestImg0.ref)
 		tspy.Close()
 
 		// --- When ---
 		want := map[string]string{
-			xdef.EnvImgTitle:      "wrong",
-			envTestEmpty:          "wrong",
-			"CTX42_TEST_MISSING0": "missing0",
-			"CTX42_TEST_MISSING1": "missing1",
+			xdef.EnvImgTitle:    "wrong",
+			envTestEmpty:        "wrong",
+			"C42_TEST_MISSING0": "missing0",
+			"C42_TEST_MISSING1": "missing1",
 		}
 		have := HasEnvs(tspy, TestImg0.ref, want)
 

@@ -9,7 +9,7 @@ files, a Go module, a git history, and optional Docker configuration.
 A `Project` has two states: **open** for configuration and **closed**
 for use. Setup methods — `CreateFile`, `GoModInit`, `GitInitAddAll`,
 and similar — require the project to be open. Query and execution
-methods — `Compile`, `GitHash`, `DkrImgRef` — require it to be
+methods — `Compile`, `GitHash`, `ImgRef` — require it to be
 closed.
 
 Call `Close` once the project is fully configured. A cleanup
@@ -76,15 +76,15 @@ log  := prj.GitCommitLog()
 ## Docker Configuration
 
 ```go
-prj.CfgDkrRepoDef()          // add default Docker registry to config
-prj.CfgDkrTargets("app,worker")
+prj.CfgRegRepoDef()          // add default Docker registry to config
+prj.CfgBldTargets("app,worker")
 prj.WithDockerfile()          // copy example Dockerfile; assign
                               // random image name and tag
 
 prj.Close()
 
-ref    := prj.DkrImgRef()
-latest := prj.DkrImgRefLatest()
+ref    := prj.ImgRef()
+latest := prj.ImgRefLatest()
 ```
 
 ## Compile

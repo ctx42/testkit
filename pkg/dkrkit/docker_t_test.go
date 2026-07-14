@@ -89,11 +89,11 @@ func Test_DockerT_Build(t *testing.T) {
 		tspy.Close()
 
 		dkr := NewT(tspy)
-		dkfOpt := WithBuildDkfPth("testdata/simple/Dockerfile")
+		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
 		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
 
 		// --- When ---
-		ref, iid := dkr.Build(dkfOpt, argOpt)
+		ref, iid := dkr.Build(bldOpt, argOpt)
 
 		// --- Then ---
 		exekit.New(t).Exe("docker", "history", ref)
@@ -117,16 +117,16 @@ func Test_DockerT_Build(t *testing.T) {
 		tspy.ExpectCleanups(1)
 		tspy.ExpectNames(1)
 		tspy.ExpectError()
-		wMsg := "WithBuildDkfPth and WithBuildDkfRdr are mutually exclusive"
+		wMsg := "WithBuildPth and WithBuildRdr are mutually exclusive"
 		tspy.ExpectLogEqual(wMsg)
 		tspy.Close()
 
 		dkr := NewT(tspy)
-		dkfPthOpt := WithBuildDkfPth("testdata/invalid/Dockerfile")
-		dkfRdrOpt := WithBuildDkfRdr(strings.NewReader("abc"))
+		bldPthOpt := WithBuildPth("testdata/invalid/Dockerfile")
+		bldRdrOpt := WithBuildRdr(strings.NewReader("abc"))
 
 		// --- When ---
-		ref, iid := dkr.Build(dkfPthOpt, dkfRdrOpt)
+		ref, iid := dkr.Build(bldPthOpt, bldRdrOpt)
 
 		// --- Then ---
 		assert.Empty(t, ref)

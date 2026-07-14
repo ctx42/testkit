@@ -1,12 +1,12 @@
 FROM alpine:latest AS first
 
-# This path matches project path used in skw-dki-golang image.
-RUN mkdir -p /vrinf/project
+# This path matches project path used in ctx42/dkigo image.
+RUN mkdir -p /ctx42/project
 
 ENV OCI_IMAGE_TITLE="first"
 ARG NAME="first"
 RUN echo "first $NAME"
-WORKDIR /vrinf/project
+WORKDIR /ctx42/project
 ENTRYPOINT ["echo", "first"]
 CMD ["image"]
 

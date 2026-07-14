@@ -55,7 +55,7 @@ a `*testing.T` is not yet available:
 dkr := dkrkit.New()
 
 ref, iid, err := dkr.Build(
-    dkrkit.WithBuildDkfPth("testdata/Dockerfile"),
+    dkrkit.WithBuildPth("testdata/Dockerfile"),
     dkrkit.WithBuildArg("BASE", "busybox:1.38-uclibc"),
 )
 if err != nil {
@@ -84,7 +84,7 @@ inside test functions:
 dkr := dkrkit.NewT(t)
 
 ref, iid := dkr.Build(
-    dkrkit.WithBuildDkfPth("testdata/Dockerfile"),
+    dkrkit.WithBuildPth("testdata/Dockerfile"),
     dkrkit.WithBuildArg("BASE", "busybox:1.38-uclibc"),
 )
 // image is removed by t.Cleanup automatically
@@ -108,7 +108,7 @@ has the `sha256:` prefix stripped.
 ```go
 dkr := dkrkit.New()
 ref, iid, err := dkr.Build(
-    dkrkit.WithBuildDkfPth("testdata/Dockerfile"),
+    dkrkit.WithBuildPth("testdata/Dockerfile"),
     dkrkit.WithBuildArg("BASE", dkrkit.TestImageBaseRef),
     dkrkit.WithBuildLabel("com.example.suite", "integration"),
 )
@@ -119,17 +119,17 @@ embedded Dockerfiles):
 
 ```go
 //go:embed testdata/Dockerfile
-var myDkf []byte
+var myBld []byte
 
 ref, iid, err := dkr.Build(
-    dkrkit.WithBuildDkfRdr(bytes.NewReader(myDkf)),
+    dkrkit.WithBuildRdr(bytes.NewReader(myBld)),
 )
 ```
 
 ### BuildTestImg
 
 `BuildTestImg` builds the package's own embedded test image. It reads
-`CTX42_IMG_CREATED` and `CTX42_IMG_REF_NAME` from the environment and
+`C42_IMG_CREATED` and `C42_IMG_REF_NAME` from the environment and
 sets the remaining OCI labels to fixed test values:
 
 ```go
@@ -155,12 +155,12 @@ err := dkr.ImgPull("busybox:1.38-uclibc")
 | `WithBuildLabels`  | Add multiple labels from a `map[string]string`.         |
 | `WithBuildArg`     | Add a single `--build-arg`.                             |
 | `WithBuildArgs`    | Add multiple build args from a `map[string]string`.     |
-| `WithBuildDkfPth`  | Path to the Dockerfile (mutually exclusive with Rdr).   |
-| `WithBuildDkfRdr`  | `io.Reader` supplying the Dockerfile contents.          |
+| `WithBuildPth`     | Path to the Dockerfile (mutually exclusive with Rdr).   |
+| `WithBuildRdr`     | `io.Reader` supplying the Dockerfile contents.          |
 | `WithBuildNoCache` | Pass `--no-cache` to docker build.                      |
 | `WithBuildDryRun`  | Print the docker command instead of running it.         |
 
-Setting `CTX42_BUILD_NO_CACHE=1` in the environment has the same
+Setting `C42_BLD_NO_CACHE=1` in the environment has the same
 effect as `WithBuildNoCache()` for all builds.
 
 ## Listing and removing images

@@ -18,8 +18,8 @@ type BuildOptions struct {
 	imgTag  string            // Image tag (random when not set).
 	labels  map[string]string // Container labels.
 	args    map[string]string // Build arguments.
-	dkfRdr  io.Reader         // Reader for Dockerfile.
-	dkfPth  string            // Path to Dockerfile.
+	bldRdr  io.Reader         // Reader for Dockerfile.
+	bldPth  string            // Path to Dockerfile.
 	iidPth  string            // Path to an image ID file written by --iidfile.
 	noCache bool              // Do not use cache.
 	dryRun  io.Writer         // Dry run a command and print it to the writer.
@@ -31,8 +31,8 @@ func DefaultBuildOptions(ops ...BuildOption) (*BuildOptions, error) {
 	for _, op := range ops {
 		op(opts)
 	}
-	if opts.dkfPth != "" && opts.dkfRdr != nil {
-		msg := "WithBuildDkfPth and WithBuildDkfRdr are mutually exclusive"
+	if opts.bldPth != "" && opts.bldRdr != nil {
+		msg := "WithBuildPth and WithBuildRdr are mutually exclusive"
 		return nil, errors.New(msg)
 	}
 	return opts, nil
@@ -88,17 +88,17 @@ func WithBuildArgs(args map[string]string) BuildOption {
 	}
 }
 
-// WithBuildDkfRdr is an option for setting reader to Dockerfile. If
+// WithBuildRdr is an option for setting reader to Dockerfile. If
 // the reader can be cast to [io.ReadCloser] the close method will be called
 //
 //	automatically, but the error will be ignored.
-func WithBuildDkfRdr(r io.Reader) BuildOption {
-	return func(opts *BuildOptions) { opts.dkfRdr = r }
+func WithBuildRdr(r io.Reader) BuildOption {
+	return func(opts *BuildOptions) { opts.bldRdr = r }
 }
 
-// WithBuildDkfPth is an option for setting the path to Dockerfile.
-func WithBuildDkfPth(pth string) BuildOption {
-	return func(opts *BuildOptions) { opts.dkfPth = pth }
+// WithBuildPth is an option for setting the path to Dockerfile.
+func WithBuildPth(pth string) BuildOption {
+	return func(opts *BuildOptions) { opts.bldPth = pth }
 }
 
 // withBuildIIDFile is an internal option for setting the path to

@@ -22,8 +22,8 @@ func Test_DefaultBuildOptions(t *testing.T) {
 		assert.Equal(t, "", have.imgTag)
 		assert.Nil(t, have.labels)
 		assert.Nil(t, have.args)
-		assert.Nil(t, have.dkfRdr)
-		assert.Equal(t, "", have.dkfPth)
+		assert.Nil(t, have.bldRdr)
+		assert.Equal(t, "", have.bldPth)
 		assert.Equal(t, "", have.iidPth)
 		assert.False(t, have.noCache)
 		assert.Nil(t, have.dryRun)
@@ -42,23 +42,23 @@ func Test_DefaultBuildOptions(t *testing.T) {
 		assert.Equal(t, "", have.imgTag)
 		assert.Nil(t, have.labels)
 		assert.Nil(t, have.args)
-		assert.Nil(t, have.dkfRdr)
-		assert.Equal(t, "", have.dkfPth)
+		assert.Nil(t, have.bldRdr)
+		assert.Equal(t, "", have.bldPth)
 		assert.Equal(t, "", have.iidPth)
 		assert.False(t, have.noCache)
 		assert.Nil(t, have.dryRun)
 	})
 
-	t.Run("error - WithBuildDkfPth with WithBuildDkfRdr", func(t *testing.T) {
+	t.Run("error - WithBuildPth with WithBuildRdr", func(t *testing.T) {
 		// --- Given ---
-		pthOpt := WithBuildDkfPth("testdata/simple/Dockerfile")
-		rdrOpt := WithBuildDkfRdr(strings.NewReader("abc"))
+		pthOpt := WithBuildPth("testdata/simple/Dockerfile")
+		rdrOpt := WithBuildRdr(strings.NewReader("abc"))
 
 		// --- When ---
 		have, err := DefaultBuildOptions(pthOpt, rdrOpt)
 
 		// --- Then ---
-		wMsg := "WithBuildDkfPth and WithBuildDkfRdr are mutually exclusive"
+		wMsg := "WithBuildPth and WithBuildRdr are mutually exclusive"
 		assert.ErrorEqual(t, wMsg, err)
 		assert.Nil(t, have)
 	})
@@ -165,27 +165,27 @@ func Test_WithBuildArgs(t *testing.T) {
 	})
 }
 
-func Test_WithBuildDkfRdr(t *testing.T) {
+func Test_WithBuildRdr(t *testing.T) {
 	// --- Given ---
 	opts := &BuildOptions{}
 	rdr := strings.NewReader("abc")
 
 	// --- When ---
-	WithBuildDkfRdr(rdr)(opts)
+	WithBuildRdr(rdr)(opts)
 
 	// --- Then ---
-	assert.Same(t, rdr, opts.dkfRdr)
+	assert.Same(t, rdr, opts.bldRdr)
 }
 
-func Test_WithBuildDkfPth(t *testing.T) {
+func Test_WithBuildPth(t *testing.T) {
 	// --- Given ---
 	opts := &BuildOptions{}
 
 	// --- When ---
-	WithBuildDkfPth("/dir/path")(opts)
+	WithBuildPth("/dir/path")(opts)
 
 	// --- Then ---
-	assert.Equal(t, "/dir/path", opts.dkfPth)
+	assert.Equal(t, "/dir/path", opts.bldPth)
 }
 
 func Test_withBuildIIDFile(t *testing.T) {

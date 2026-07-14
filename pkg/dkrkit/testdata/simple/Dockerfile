@@ -32,8 +32,8 @@ ENV OCI_IMAGE_CREATED="$OCI_IMAGE_CREATED" \
     OCI_IMAGE_VERSION="$OCI_IMAGE_VERSION"
 
 # Test environment variables.
-ENV CTX42_TEST_EMPTY="" \
-    CTX42_TEST_VALUE="value"
+ENV C42_TEST_EMPTY="" \
+    C42_TEST_VALUE="value"
 
 # Test labels.
 LABEL com.ctx42.test.empty="" \

@@ -20,10 +20,10 @@ import (
 	"github.com/ctx42/testing/pkg/tester"
 )
 
-// exDkf represents minimal dockerfile contents.
+// exBld represents minimal dockerfile contents.
 //
 //go:embed testdata/simple/Dockerfile
-var exDkf []byte
+var exBld []byte
 
 // Test image constants used in integration tests.
 const (
@@ -46,19 +46,19 @@ const (
 	labTestValue = "com.ctx42.test.value"
 )
 
-// Test-only and build-control environment variables. CTX42_TEST_* vars
-// are baked into the image; CTX42_BUILD_* vars control build behavior.
+// Test-only and build-control environment variables. C42_TEST_* vars
+// are baked into the image; C42_BLD_* vars control build behavior.
 const (
 	// envTestEmpty is a test-only environment variable with an empty value.
-	envTestEmpty = "CTX42_TEST_EMPTY"
+	envTestEmpty = "C42_TEST_EMPTY"
 
 	// envTestValue is a test-only environment variable with a non-empty value.
-	envTestValue = "CTX42_TEST_VALUE"
+	envTestValue = "C42_TEST_VALUE"
 
-	// envBuildNoCache, when set to any non-empty value in the test
+	// envBldNoCache, when set to any non-empty value in the test
 	// runner environment, forces DockerT builds to skip the build cache.
 	// Equivalent to passing --no-cache to docker build.
-	envBuildNoCache = "CTX42_BUILD_NO_CACHE"
+	envBldNoCache = "C42_BLD_NO_CACHE"
 )
 
 // HasBuildArg asserts a not nil set has the key with the "want" value.

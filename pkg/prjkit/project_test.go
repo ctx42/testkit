@@ -1748,7 +1748,7 @@ func Test_Project_CfgAdd(t *testing.T) {
 	})
 }
 
-func Test_Project_CfgDkrRepoDef(t *testing.T) {
+func Test_Project_CfgRegRepoDef(t *testing.T) {
 	t.Run("on opened", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
@@ -1759,13 +1759,13 @@ func Test_Project_CfgDkrRepoDef(t *testing.T) {
 		prj := New(tspy, root)
 
 		// --- When ---
-		prj.CfgDkrRepoDef()
+		prj.CfgRegRepoDef()
 
 		// --- Then ---
 		pth := filepath.Join(prj.Root(), "configs", "project.conf")
 		want := "" +
-			"C42_DKR_REG_HOST=my.nexus.dev\n" +
-			"C42_DKR_REPO=my.nexus.dev/repo\n"
+			"C42_REG_HOST=my.nexus.dev\n" +
+			"C42_REG_REPO=my.nexus.dev/repo\n"
 		assert.Equal(t, want, oskit.ReadFileStr(t, pth))
 
 		prj.Close() // Must close to prevent error.
@@ -1784,11 +1784,11 @@ func Test_Project_CfgDkrRepoDef(t *testing.T) {
 		prj.Close()
 
 		// --- When ---
-		assert.Panic(t, func() { prj.CfgDkrRepoDef() })
+		assert.Panic(t, func() { prj.CfgRegRepoDef() })
 	})
 }
 
-func Test_Project_CfgDkrRepo(t *testing.T) {
+func Test_Project_CfgRegRepo(t *testing.T) {
 	t.Run("on opened", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
@@ -1799,13 +1799,13 @@ func Test_Project_CfgDkrRepo(t *testing.T) {
 		prj := New(tspy, root)
 
 		// --- When ---
-		prj.CfgDkrRepo("host", "repo")
+		prj.CfgRegRepo("host", "repo")
 
 		// --- Then ---
 		pth := filepath.Join(prj.Root(), "configs", "project.conf")
 		want := "" +
-			"C42_DKR_REG_HOST=host\n" +
-			"C42_DKR_REPO=host/repo\n"
+			"C42_REG_HOST=host\n" +
+			"C42_REG_REPO=host/repo\n"
 		assert.Equal(t, want, oskit.ReadFileStr(t, pth))
 
 		prj.Close() // Must close to prevent error.
@@ -1824,7 +1824,7 @@ func Test_Project_CfgDkrRepo(t *testing.T) {
 		prj.Close()
 
 		// --- When ---
-		assert.Panic(t, func() { prj.CfgDkrRepo("host", "repo") })
+		assert.Panic(t, func() { prj.CfgRegRepo("host", "repo") })
 	})
 
 	t.Run("set multiple times", func(t *testing.T) {
@@ -1837,23 +1837,23 @@ func Test_Project_CfgDkrRepo(t *testing.T) {
 		prj := New(tspy, root)
 
 		// --- When ---
-		prj.CfgDkrRepo("host0", "repo0")
-		prj.CfgDkrRepo("host1", "repo1")
+		prj.CfgRegRepo("host0", "repo0")
+		prj.CfgRegRepo("host1", "repo1")
 
 		// --- Then ---
 		pth := filepath.Join(prj.Root(), "configs", "project.conf")
 		want := "" +
-			"C42_DKR_REG_HOST=host0\n" +
-			"C42_DKR_REPO=host0/repo0\n" +
-			"C42_DKR_REG_HOST=host1\n" +
-			"C42_DKR_REPO=host1/repo1\n"
+			"C42_REG_HOST=host0\n" +
+			"C42_REG_REPO=host0/repo0\n" +
+			"C42_REG_HOST=host1\n" +
+			"C42_REG_REPO=host1/repo1\n"
 		assert.Equal(t, want, oskit.ReadFileStr(t, pth))
 
 		prj.Close() // Must close to prevent error.
 	})
 }
 
-func Test_Project_DkrRepo(t *testing.T) {
+func Test_Project_RegRepo(t *testing.T) {
 	t.Run("on closed", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
@@ -1865,7 +1865,7 @@ func Test_Project_DkrRepo(t *testing.T) {
 		prj.Close()
 
 		// --- When ---
-		have := prj.DkrRepo()
+		have := prj.RegRepo()
 
 		// --- Then ---
 		assert.Equal(t, "", have)
@@ -1883,7 +1883,7 @@ func Test_Project_DkrRepo(t *testing.T) {
 		prj := New(tspy, root)
 
 		// --- When ---
-		assert.Panic(t, func() { prj.DkrRepo() })
+		assert.Panic(t, func() { prj.RegRepo() })
 	})
 
 	t.Run("returns set value", func(t *testing.T) {
@@ -1894,11 +1894,11 @@ func Test_Project_DkrRepo(t *testing.T) {
 
 		root := oskit.MkdirAll(t, t.TempDir(), "project")
 		prj := New(tspy, root)
-		prj.CfgDkrRepo("host", "repo")
+		prj.CfgRegRepo("host", "repo")
 		prj.Close()
 
 		// --- When ---
-		have := prj.DkrRepo()
+		have := prj.RegRepo()
 
 		// --- Then ---
 		assert.Equal(t, "host/repo", have)
@@ -1912,19 +1912,19 @@ func Test_Project_DkrRepo(t *testing.T) {
 
 		root := oskit.MkdirAll(t, t.TempDir(), "project")
 		prj := New(tspy, root)
-		prj.CfgDkrRepo("host0", "repo0")
-		prj.CfgDkrRepo("host1", "repo1")
+		prj.CfgRegRepo("host0", "repo0")
+		prj.CfgRegRepo("host1", "repo1")
 		prj.Close()
 
 		// --- When ---
-		have := prj.DkrRepo()
+		have := prj.RegRepo()
 
 		// --- Then ---
 		assert.Equal(t, "host1/repo1", have)
 	})
 }
 
-func Test_Project_CfgDkrTargets(t *testing.T) {
+func Test_Project_CfgBldTargets(t *testing.T) {
 	t.Run("on opened", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
@@ -1935,11 +1935,11 @@ func Test_Project_CfgDkrTargets(t *testing.T) {
 		prj := New(tspy, root)
 
 		// --- When ---
-		prj.CfgDkrTargets("first,second")
+		prj.CfgBldTargets("first,second")
 
 		// --- Then ---
 		pth := filepath.Join(prj.Root(), "configs", "project.conf")
-		want := "C42_DKF_TARGETS=first,second\n"
+		want := "C42_BLD_TARGETS=first,second\n"
 		assert.Equal(t, want, oskit.ReadFileStr(t, pth))
 
 		prj.Close() // Must close to prevent error.
@@ -1958,7 +1958,7 @@ func Test_Project_CfgDkrTargets(t *testing.T) {
 		prj.Close()
 
 		// --- When ---
-		assert.Panic(t, func() { prj.CfgDkrTargets("first,second") })
+		assert.Panic(t, func() { prj.CfgBldTargets("first,second") })
 	})
 
 	t.Run("set multiple times", func(t *testing.T) {
@@ -1971,14 +1971,14 @@ func Test_Project_CfgDkrTargets(t *testing.T) {
 		prj := New(tspy, root)
 
 		// --- When ---
-		prj.CfgDkrTargets("first,second")
-		prj.CfgDkrTargets("second,third")
+		prj.CfgBldTargets("first,second")
+		prj.CfgBldTargets("second,third")
 
 		// --- Then ---
 		pth := filepath.Join(prj.Root(), "configs", "project.conf")
 		want := "" +
-			"C42_DKF_TARGETS=first,second\n" +
-			"C42_DKF_TARGETS=second,third\n"
+			"C42_BLD_TARGETS=first,second\n" +
+			"C42_BLD_TARGETS=second,third\n"
 		assert.Equal(t, want, oskit.ReadFileStr(t, pth))
 
 		prj.Close() // Must close to prevent error.
@@ -2008,8 +2008,8 @@ func Test_Project_WithDockerfile(t *testing.T) {
 		prj.Close() // Must close to prevent error.
 		tspy.Finish()
 		wantImgRem := []string{
-			prj.dkrImgRef(),
-			prj.dkrImgRefLatest(),
+			prj.imgRef(),
+			prj.imgRefLatest(),
 		}
 		assert.Equal(t, wantImgRem, prj.removed)
 	})
@@ -2054,8 +2054,8 @@ func Test_Project_WithDockerfileNEP(t *testing.T) {
 		prj.Close() // Must close to prevent error.
 		tspy.Finish()
 		wantImgRem := []string{
-			prj.dkrImgRef(),
-			prj.dkrImgRefLatest(),
+			prj.imgRef(),
+			prj.imgRefLatest(),
 		}
 		assert.Equal(t, wantImgRem, prj.removed)
 	})
@@ -2077,7 +2077,7 @@ func Test_Project_WithDockerfileNEP(t *testing.T) {
 	})
 }
 
-func Test_Project_DkrImgNameTagSet(t *testing.T) {
+func Test_Project_ImgNameTagSet(t *testing.T) {
 	t.Run("on opened", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
@@ -2088,7 +2088,7 @@ func Test_Project_DkrImgNameTagSet(t *testing.T) {
 		prj := New(tspy, root)
 
 		// --- When ---
-		prj.DkrImgNameTagSet("name", "tag")
+		prj.ImgNameTagSet("name", "tag")
 
 		// --- Then ---
 		assert.Equal(t, "name", prj.imgName)
@@ -2113,11 +2113,11 @@ func Test_Project_DkrImgNameTagSet(t *testing.T) {
 		prj.Close()
 
 		// --- When ---
-		assert.Panic(t, func() { prj.DkrImgNameTagSet("name", "tag") })
+		assert.Panic(t, func() { prj.ImgNameTagSet("name", "tag") })
 	})
 }
 
-func Test_Project_DkrImgName(t *testing.T) {
+func Test_Project_ImgName(t *testing.T) {
 	t.Run("on closed", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
@@ -2130,7 +2130,7 @@ func Test_Project_DkrImgName(t *testing.T) {
 		prj.Close()
 
 		// --- When ---
-		have := prj.DkrImgName()
+		have := prj.ImgName()
 
 		// --- Then ---
 		assert.Equal(t, "name", have)
@@ -2148,11 +2148,11 @@ func Test_Project_DkrImgName(t *testing.T) {
 		prj := New(tspy, root)
 
 		// --- When ---
-		assert.Panic(t, func() { prj.DkrImgName() })
+		assert.Panic(t, func() { prj.ImgName() })
 	})
 }
 
-func Test_Project_DkrImgTag(t *testing.T) {
+func Test_Project_ImgTag(t *testing.T) {
 	t.Run("on closed", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
@@ -2165,7 +2165,7 @@ func Test_Project_DkrImgTag(t *testing.T) {
 		prj.Close()
 
 		// --- When ---
-		have := prj.DkrImgTag()
+		have := prj.ImgTag()
 
 		// --- Then ---
 		assert.Equal(t, "tag", have)
@@ -2183,11 +2183,11 @@ func Test_Project_DkrImgTag(t *testing.T) {
 		prj := New(tspy, root)
 
 		// --- When ---
-		assert.Panic(t, func() { prj.DkrImgTag() })
+		assert.Panic(t, func() { prj.ImgTag() })
 	})
 }
 
-func Test_Project_DkrImgRef(t *testing.T) {
+func Test_Project_ImgRef(t *testing.T) {
 	t.Run("on closed", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
@@ -2201,7 +2201,7 @@ func Test_Project_DkrImgRef(t *testing.T) {
 		prj.Close()
 
 		// --- When ---
-		have := prj.DkrImgRef()
+		have := prj.ImgRef()
 
 		// --- Then ---
 		assert.Equal(t, "name:tag", have)
@@ -2215,13 +2215,13 @@ func Test_Project_DkrImgRef(t *testing.T) {
 
 		root := oskit.MkdirAll(t, t.TempDir(), "project")
 		prj := New(tspy, root)
-		prj.dkrRepo = "repo"
+		prj.regRepo = "repo"
 		prj.imgName = "name"
 		prj.imgTag = "tag"
 		prj.Close()
 
 		// --- When ---
-		have := prj.DkrImgRef()
+		have := prj.ImgRef()
 
 		// --- Then ---
 		assert.Equal(t, "repo/name:tag", have)
@@ -2239,11 +2239,11 @@ func Test_Project_DkrImgRef(t *testing.T) {
 		prj := New(tspy, root)
 
 		// --- When ---
-		assert.Panic(t, func() { prj.DkrImgRef() })
+		assert.Panic(t, func() { prj.ImgRef() })
 	})
 }
 
-func Test_Project_DkrImgRefLatest(t *testing.T) {
+func Test_Project_ImgRefLatest(t *testing.T) {
 	t.Run("on closed", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
@@ -2257,7 +2257,7 @@ func Test_Project_DkrImgRefLatest(t *testing.T) {
 		prj.Close()
 
 		// --- When ---
-		have := prj.DkrImgRefLatest()
+		have := prj.ImgRefLatest()
 
 		// --- Then ---
 		assert.Equal(t, "name:latest", have)
@@ -2271,13 +2271,13 @@ func Test_Project_DkrImgRefLatest(t *testing.T) {
 
 		root := oskit.MkdirAll(t, t.TempDir(), "project")
 		prj := New(tspy, root)
-		prj.dkrRepo = "repo"
+		prj.regRepo = "repo"
 		prj.imgName = "name"
 		prj.imgTag = "tag"
 		prj.Close()
 
 		// --- When ---
-		have := prj.DkrImgRefLatest()
+		have := prj.ImgRefLatest()
 
 		// --- Then ---
 		assert.Equal(t, "repo/name:latest", have)
@@ -2295,11 +2295,11 @@ func Test_Project_DkrImgRefLatest(t *testing.T) {
 		prj := New(tspy, root)
 
 		// --- When ---
-		assert.Panic(t, func() { prj.DkrImgRefLatest() })
+		assert.Panic(t, func() { prj.ImgRefLatest() })
 	})
 }
 
-func Test_Project_DkrTgtName(t *testing.T) {
+func Test_Project_TgtName(t *testing.T) {
 	t.Run("on closed", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
@@ -2313,7 +2313,7 @@ func Test_Project_DkrTgtName(t *testing.T) {
 		prj.Close()
 
 		// --- When ---
-		have := prj.DkrTgtName("target")
+		have := prj.TgtName("target")
 
 		// --- Then ---
 		assert.Equal(t, "name-target", have)
@@ -2330,13 +2330,13 @@ func Test_Project_DkrTgtName(t *testing.T) {
 
 		root := oskit.MkdirAll(t, t.TempDir(), "project")
 		prj := New(tspy, root)
-		prj.dkrRepo = "repo"
+		prj.regRepo = "repo"
 		prj.imgName = "name"
 		prj.imgTag = "tag"
 		prj.Close()
 
 		// --- When ---
-		have := prj.DkrTgtName("target")
+		have := prj.TgtName("target")
 
 		// --- Then ---
 		assert.Equal(t, "repo/name-target", have)
@@ -2354,11 +2354,11 @@ func Test_Project_DkrTgtName(t *testing.T) {
 		prj := New(tspy, root)
 
 		// --- When ---
-		assert.Panic(t, func() { prj.DkrTgtName("target") })
+		assert.Panic(t, func() { prj.TgtName("target") })
 	})
 }
 
-func Test_Project_DkrTgtRef(t *testing.T) {
+func Test_Project_TgtRef(t *testing.T) {
 	t.Run("on closed", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
@@ -2372,7 +2372,7 @@ func Test_Project_DkrTgtRef(t *testing.T) {
 		prj.Close()
 
 		// --- When ---
-		have := prj.DkrTgtRef("target")
+		have := prj.TgtRef("target")
 
 		// --- Then ---
 		assert.Equal(t, "name-target:tag", have)
@@ -2390,13 +2390,13 @@ func Test_Project_DkrTgtRef(t *testing.T) {
 
 		root := oskit.MkdirAll(t, t.TempDir(), "project")
 		prj := New(tspy, root)
-		prj.dkrRepo = "repo"
+		prj.regRepo = "repo"
 		prj.imgName = "name"
 		prj.imgTag = "tag"
 		prj.Close()
 
 		// --- When ---
-		have := prj.DkrTgtRef("target")
+		have := prj.TgtRef("target")
 
 		// --- Then ---
 		assert.Equal(t, "repo/name-target:tag", have)
@@ -2414,11 +2414,11 @@ func Test_Project_DkrTgtRef(t *testing.T) {
 		prj := New(tspy, root)
 
 		// --- When ---
-		assert.Panic(t, func() { prj.DkrTgtRef("target") })
+		assert.Panic(t, func() { prj.TgtRef("target") })
 	})
 }
 
-func Test_Project_DkrTgtRefLatest(t *testing.T) {
+func Test_Project_TgtRefLatest(t *testing.T) {
 	t.Run("on closed", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
@@ -2432,7 +2432,7 @@ func Test_Project_DkrTgtRefLatest(t *testing.T) {
 		prj.Close()
 
 		// --- When ---
-		have := prj.DkrTgtRefLatest("target")
+		have := prj.TgtRefLatest("target")
 
 		// --- Then ---
 		tspy.Finish()
@@ -2449,13 +2449,13 @@ func Test_Project_DkrTgtRefLatest(t *testing.T) {
 
 		root := oskit.MkdirAll(t, t.TempDir(), "project")
 		prj := New(tspy, root)
-		prj.dkrRepo = "repo"
+		prj.regRepo = "repo"
 		prj.imgName = "name"
 		prj.imgTag = "tag"
 		prj.Close()
 
 		// --- When ---
-		have := prj.DkrTgtRefLatest("target")
+		have := prj.TgtRefLatest("target")
 
 		// --- Then ---
 		assert.Equal(t, "repo/name-target:latest", have)
@@ -2473,7 +2473,7 @@ func Test_Project_DkrTgtRefLatest(t *testing.T) {
 		prj := New(tspy, root)
 
 		// --- When ---
-		assert.Panic(t, func() { prj.DkrTgtRefLatest("target") })
+		assert.Panic(t, func() { prj.TgtRefLatest("target") })
 	})
 }
 
