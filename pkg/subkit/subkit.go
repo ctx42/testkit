@@ -60,6 +60,8 @@ func NewPkg(pkg string) *SubProcess {
 
 // InSubProcess returns true if we are in a subprocess.
 func (sp *SubProcess) InSubProcess() bool {
+	// Reads the raw OS env: the sentinel is set by Run across the exec
+	// boundary and must be observed in the spawned test child.
 	return os.Getenv(sp.envName()) == "1"
 }
 
