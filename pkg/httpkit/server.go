@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"sync"
 	"time"
 
 	"github.com/ctx42/testing/pkg/tester"
@@ -32,6 +33,7 @@ type Server struct {
 	host        string           // Test server host:port.
 	port        string           // Test server port.
 	scheme      string           // Test server scheme.
+	mx          sync.Mutex       // Guards requestCnt, responseIdx and requests.
 	requestCnt  int              // Number of received requests.
 	responseIdx int              // Index of last-returned response from responses.
 	responses   []response       // Responses to return.
@@ -52,11 +54,14 @@ func NewServer(t tester.T) *Server {
 	// Cleanup after the test is done.
 	t.Cleanup(func() {
 		t.Helper()
-		if srv.requestCnt != len(srv.responses) {
+		srv.mx.Lock()
+		cnt := srv.requestCnt
+		srv.mx.Unlock()
+		if cnt != len(srv.responses) {
 			t.Errorf(
 				"expected %d requests got %d",
 				len(srv.responses),
-				srv.requestCnt,
+				cnt,
 			)
 		}
 		_ = srv.Close()
@@ -64,8 +69,11 @@ func NewServer(t tester.T) *Server {
 
 	// Handler for all incoming requests.
 	handler := func(w http.ResponseWriter, req *http.Request) {
+		srv.mx.Lock()
 		srv.requestCnt++
 		rsp := srv.next()
+		srv.mx.Unlock()
+
 		if rsp.delay != 0 {
 			time.Sleep(rsp.delay)
 		}
@@ -75,12 +83,20 @@ func NewServer(t tester.T) *Server {
 				w.Header().Add(key, v)
 			}
 		}
-		w.WriteHeader(rsp.status)
+		if rsp.status != 0 {
+			w.WriteHeader(rsp.status)
+		}
 
 		c := cloneHTTPRequest(t, req)
+		if c == nil {
+			return
+		}
 		c.URL.Scheme = srv.scheme
 
+		srv.mx.Lock()
 		srv.requests = append(srv.requests, c)
+		srv.mx.Unlock()
+
 		if rsp.body != nil {
 			if _, err := w.Write(rsp.body); err != nil {
 				t.Error(err)
@@ -114,22 +130,22 @@ func (srv *Server) Rsp(status int, rsp []byte) *Server {
 }
 
 // Delay configures delay for the last defined response. On error, it marks the
-// test as failed and returns nil.
+// test as failed and returns the receiver unchanged.
 func (srv *Server) Delay(delay time.Duration) *Server {
 	if len(srv.responses) == 0 {
 		srv.t.Error("you need to define response first")
-		return nil
+		return srv
 	}
 	srv.responses[len(srv.responses)-1].delay = delay
 	return srv
 }
 
 // Header adds header for the last defined response. On error, it marks the
-// test as failed and returns nil.
+// test as failed and returns the receiver unchanged.
 func (srv *Server) Header(key, value string) *Server {
 	if len(srv.responses) == 0 {
 		srv.t.Error("you need to define a response first")
-		return nil
+		return srv
 	}
 	rsp := srv.responses[len(srv.responses)-1]
 	if rsp.headers == nil {
@@ -152,6 +168,8 @@ func (srv *Server) Host() string { return srv.host }
 // the number of received requests, it marks the test as failed and returns nil.
 func (srv *Server) Request(n int) *http.Request {
 	srv.t.Helper()
+	srv.mx.Lock()
+	defer srv.mx.Unlock()
 	if n >= 0 && n < len(srv.requests) {
 		return cloneHTTPRequest(srv.t, srv.requests[n])
 	}
@@ -160,12 +178,18 @@ func (srv *Server) Request(n int) *http.Request {
 }
 
 // ReqCount returns the number of requests recorded by the test server.
-func (srv *Server) ReqCount() int { return len(srv.requests) }
+func (srv *Server) ReqCount() int {
+	srv.mx.Lock()
+	defer srv.mx.Unlock()
+	return len(srv.requests)
+}
 
 // Values returns URL query values of the nth received request. On error, it
 // marks the test as failed and returns nil.
 func (srv *Server) Values(n int) url.Values {
 	srv.t.Helper()
+	srv.mx.Lock()
+	defer srv.mx.Unlock()
 	if n >= 0 && n < len(srv.requests) {
 		return srv.requests[n].URL.Query()
 	}
@@ -177,6 +201,8 @@ func (srv *Server) Values(n int) url.Values {
 // as failed and returns nil.
 func (srv *Server) Body(n int) []byte {
 	srv.t.Helper()
+	srv.mx.Lock()
+	defer srv.mx.Unlock()
 	if n >= 0 && n < len(srv.requests) {
 		req := srv.requests[n]
 		var buf bytes.Buffer
@@ -207,6 +233,8 @@ func (srv *Server) BodyString(n int) string {
 // as failed and returns nil.
 func (srv *Server) Headers(n int) http.Header {
 	srv.t.Helper()
+	srv.mx.Lock()
+	defer srv.mx.Unlock()
 	if n >= 0 && n < len(srv.requests) {
 		return srv.requests[n].Header
 	}
