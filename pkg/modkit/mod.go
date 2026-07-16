@@ -29,7 +29,7 @@ import (
 func Root() string {
 	root, err := os.Getwd()
 	if err != nil {
-		panic("could not determine the working directory")
+		panic(fmt.Sprintf("could not determine the working directory: %s", err))
 	}
 
 	pth := root
@@ -37,7 +37,7 @@ func Root() string {
 		if pth == "/" {
 			panic(fmt.Sprintf("could not find go.mod starting at %s", root))
 		}
-		_, err = os.Open(filepath.Join(pth, "go.mod")) //nolint:gosec
+		_, err = os.Stat(filepath.Join(pth, "go.mod"))
 		if err == nil {
 			return pth
 		}
@@ -100,6 +100,7 @@ func ModVer(pth, mod string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer func() { _ = fil.Close() }()
 
 	var cand []string
 	scn := bufio.NewScanner(fil)
@@ -112,7 +113,7 @@ func ModVer(pth, mod string) (string, error) {
 
 	switch len(cand) {
 	case 0:
-		return "", fmt.Errorf("no package \"%s\" is used", mod)
+		return "", fmt.Errorf("no package %q is used", mod)
 	case 1:
 	default:
 		return "", fmt.Errorf("too many package \"%s\" candidates", mod)
@@ -124,7 +125,7 @@ func ModVer(pth, mod string) (string, error) {
 		ver = strings.TrimSpace(fls[0])
 	}
 	if ver == "" {
-		return "", fmt.Errorf("no package %s is used", mod)
+		return "", fmt.Errorf("no package %q is used", mod)
 	}
 	return ver, nil
 }
@@ -136,6 +137,7 @@ func GoVer(pth ...string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	defer func() { _ = fil.Close() }()
 
 	var cand []string
 	scn := bufio.NewScanner(fil)
