@@ -12,7 +12,7 @@ import (
 )
 
 // Wait4File waits with timeout (string representation of [time.Duration]) for
-// the file at pth to be created than reads it and returns its content. Returns
+// the file at pth to be created then reads it and returns its content. Returns
 // empty string and error if the file cannot be read or timeout is triggered.
 // The throttle defaults to 50ms; pass [check.Option] values in opts to
 // override it (e.g. [check.WithWaitThrottle]).
@@ -20,8 +20,8 @@ import (
 // Panics when timeout is an invalid [time.Duration] string.
 func Wait4File(timeout, pth string, opts ...any) (string, error) {
 	fn := func() bool { _, err := os.Stat(pth); return err == nil }
-	throttle := 50 * time.Millisecond
-	opts = append([]any{check.WithWaitThrottle(throttle)}, opts...)
+	opts = append([]any{check.WithWaitThrottle(50 * time.Millisecond)}, opts...)
+	throttle := check.DefaultOptions(opts...).WaitThrottle
 	err := check.Wait(timeout, fn, opts...)
 	if err != nil {
 		err = notice.From(err).
@@ -33,6 +33,9 @@ func Wait4File(timeout, pth string, opts ...any) (string, error) {
 	for {
 		data, err := os.ReadFile(pth) //nolint:gosec
 		if err != nil {
+			err = notice.From(err).
+				SetHeader("reading file").
+				Append("file", "%s", pth)
 			return "", err
 		}
 		reads++

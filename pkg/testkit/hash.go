@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-// SHA1Reader returns SHA1 hash off everything in the reader. Panics on error.
+// SHA1Reader returns SHA1 hash of everything in the reader. Panics on error.
 func SHA1Reader(r io.Reader) string {
 	hash := sha1.New()
 	if _, err := io.Copy(hash, r); err != nil {
