@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: (c) 2026 Rafal Zajac
+// SPDX-License-Identifier: MIT
+
 // Package prjkit provides a Project helper for writing integration tests
 // that operate on a temporary Go project on disk. A Project manages source
 // files, a Go module, a git history, and optional Docker configuration.

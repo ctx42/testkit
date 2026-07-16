@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: (c) 2026 Rafal Zajac
+// SPDX-License-Identifier: MIT
+
 // Package httpkit provides test helpers for HTTP handler and server
 // testing. It offers three main tools:
 //
