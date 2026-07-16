@@ -516,7 +516,7 @@ func (prj *Project) Compile() string {
 	cmd.Stderr = eout
 	cmd.Dir = prj.root
 	if err := cmd.Run(); err != nil {
-		prj.t.Fatal(eout.String())
+		prj.t.Fatalf("%s: %s", err, eout.String())
 	}
 	return out
 }
