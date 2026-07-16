@@ -13,6 +13,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -127,7 +128,7 @@ func (dkr *Docker) Build(opts ...BuildOption) (string, string, error) {
 
 	sinOpt := withCmdStdin(sin)
 	wdOpt := withCmdWD(dir)
-	envOpt := append(dkr.env, "DOCKER_BUILDKIT=1") //nolint:gocritic
+	envOpt := append(slices.Clone(dkr.env), "DOCKER_BUILDKIT=1")
 
 	if def.dryRun != nil {
 		out := "DOCKER_BUILDKIT=1 docker " + strings.Join(args, " ")
@@ -559,7 +560,7 @@ func (dkr *Docker) NetRm(ref string) error {
 	ctx := context.Background()
 	args := []string{"network", "rm", "--force", ref}
 	_, eout, err := dockerCmd(ctx, dkr.env, args)
-	if err != nil || eout != "" {
+	if err != nil {
 		if strings.Contains(eout, "not found") {
 			return nil
 		}

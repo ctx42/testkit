@@ -88,10 +88,9 @@ func WithBuildArgs(args map[string]string) BuildOption {
 	}
 }
 
-// WithBuildRdr is an option for setting reader to Dockerfile. If
-// the reader can be cast to [io.ReadCloser] the close method will be called
-//
-//	automatically, but the error will be ignored.
+// WithBuildRdr is an option for setting the reader to the Dockerfile. If the
+// reader can be cast to [io.ReadCloser], its Close method is called
+// automatically, but the error is ignored.
 func WithBuildRdr(r io.Reader) BuildOption {
 	return func(opts *BuildOptions) { opts.bldRdr = r }
 }
