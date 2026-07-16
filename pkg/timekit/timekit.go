@@ -10,12 +10,12 @@
 //
 // The helpers integrate naturally with [tester.T] and the assertion packages.
 //
-// See the package [README] for usage patterns and motivation. See
-// [examples_test.go] for executable demonstrations.
+// See the package README for usage patterns and motivation. See
+// examples_test.go for executable demonstrations.
 //
 // Key entry points:
-//   - [ClockFixed] — always returns the same instant
 //   - [ClockStartingAt] — returns time advancing from a given offset
+//   - [ClockFixed] — always returns the same instant
 //   - [ClockDeterministic] — advances by a fixed tick on every call
 //   - [TikTak] — convenience for one-second deterministic ticks
 package timekit
@@ -30,10 +30,7 @@ import (
 // time from that base.
 func ClockStartingAt(tim time.Time) func() time.Time {
 	now := time.Now()
-	guard := sync.Mutex{}
 	return func() time.Time {
-		guard.Lock()
-		defer guard.Unlock()
 		return tim.Add(time.Since(now))
 	}
 }
@@ -51,7 +48,7 @@ func ClockFixed(tim time.Time) func() time.Time {
 // time progression in tests.
 func ClockDeterministic(start time.Time, tick time.Duration) func() time.Time {
 	now := start.Add(-tick)
-	guard := sync.Mutex{}
+	var guard sync.Mutex
 	return func() time.Time {
 		guard.Lock()
 		defer guard.Unlock()
