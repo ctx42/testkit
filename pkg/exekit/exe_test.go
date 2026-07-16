@@ -269,6 +269,23 @@ func Test_Exe_Exe(t *testing.T) {
 		assert.Equal(t, "", eout)
 	})
 
+	t.Run("expect exit code differs from actual", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.ExpectFail()
+		tspy.ExpectLogEqual("exit status 1")
+		tspy.Close()
+
+		exe := New(tspy, WithExitCode(2), WithDevOsCov)
+
+		// --- When ---
+		sout, eout := exe.Exe(os.Args[0], "--exitCode", "1")
+
+		// --- Then ---
+		assert.Equal(t, "", sout)
+		assert.Equal(t, "", eout)
+	})
+
 	t.Run("print not existing env var", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
@@ -424,7 +441,7 @@ func Test_Exe_Exe(t *testing.T) {
 	})
 }
 
-func Test_Exe_Stdout(t *testing.T) {
+func Test_Exe_ExeStdout(t *testing.T) {
 	t.Run("stdout intercepted", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
@@ -471,7 +488,7 @@ func Test_Exe_Stdout(t *testing.T) {
 	})
 }
 
-func Test_Exe_Stderr(t *testing.T) {
+func Test_Exe_ExeStderr(t *testing.T) {
 	t.Run("stderr intercepted", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)

@@ -5,9 +5,20 @@ package exekit_test
 
 import (
 	"fmt"
+	"testing"
 
 	"github.com/ctx42/testkit/pkg/exekit"
 )
+
+func ExampleNew() {
+	t := &testing.T{}
+	exe := exekit.New(t, exekit.WithTrim)
+
+	sout := exe.ExeStdout("echo", "hello")
+	fmt.Println(sout)
+	// Output:
+	// hello
+}
 
 func ExampleIsWithCoverage() {
 	args := []string{"-test.v", "-test.coverprofile=/tmp/cover.out"}
