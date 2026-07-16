@@ -93,7 +93,7 @@ func WithProjectCreate(prj *Project) {
 	}
 }
 
-// WithProjectEnv is option for [New] which sets the environment to use.
+// WithProjectEnv is an option for [New] that sets the environment to use.
 func WithProjectEnv(env []string) func(*Project) {
 	return func(prj *Project) { prj.env = env }
 }
@@ -105,12 +105,12 @@ type Project struct {
 
 	// Name of the project directory (default: root directory name).
 	//
-	// If the `root` dir is `/root/project` than `dirName` is `project`.
+	// If the `root` dir is `/root/project` then `dirName` is `project`.
 	dirName string
 
 	// Go module name for the project (default: [GoModName] + dirName).
 	//
-	// If the `root` dir is `/root/project` than `dirName` is `project` and
+	// If the `root` dir is `/root/project` then `dirName` is `project` and
 	// `modName` is `example.com/comp/project`.
 	modName string
 
@@ -130,7 +130,7 @@ type Project struct {
 	removed []string
 
 	// Absolute path to the current working directory of a test. It's set when
-	// the instance is constructed and relays on the fact that nobody changed
+	// the instance is constructed and relies on the fact that nobody changed
 	// the test execution directory before [New] constructor was called.
 	testDir string
 
@@ -205,7 +205,7 @@ func (prj *Project) Path(elems ...string) string {
 }
 
 // Chdir changes directory to the project root. Returns the absolute path to
-// the directory which was the current working directory when [New] constructor
+// the directory that was the current working directory when [New] constructor
 // was called.
 func (prj *Project) Chdir() string {
 	prj.t.Helper()
@@ -278,6 +278,7 @@ func (prj *Project) exe() *exekit.Exe {
 // TempDir creates a temporary directory and returns the absolute path to it.
 // Multiple calls to this method return the same value.
 func (prj *Project) TempDir() string {
+	prj.t.Helper()
 	if prj.tmpDir == "" {
 		prj.tmpDir = prj.t.TempDir()
 	}
