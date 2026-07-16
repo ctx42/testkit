@@ -15,7 +15,7 @@ import (
 )
 
 // AbsPath is a wrapper around [filepath.Abs]. The path is constructed from pth
-// and elems like in [filepath.Join] function. On error, it marks the test as
+// and elems like the [filepath.Join] function. On error, it marks the test as
 // failed and returns an empty string.
 func AbsPath(t tester.T, pth string, elems ...string) string {
 	t.Helper()
@@ -28,7 +28,7 @@ func AbsPath(t tester.T, pth string, elems ...string) string {
 }
 
 // EvalSymlinks is a wrapper around [filepath.EvalSymlinks]. The path is
-// constructed from pth and elems like in [filepath.Join] function. On error,
+// constructed from pth and elems like the [filepath.Join] function. On error,
 // it marks the test as failed and returns an empty string.
 func EvalSymlinks(t tester.T, pth string, elems ...string) string {
 	t.Helper()
