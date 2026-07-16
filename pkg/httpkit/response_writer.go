@@ -19,6 +19,8 @@ type RespWriter struct {
 	t                   tester.T // Test manager.
 }
 
+var _ http.ResponseWriter = (*RespWriter)(nil)
+
 // NewRespWriter returns a new instance of [RespWriter].
 func NewRespWriter(t tester.T, w http.ResponseWriter) *RespWriter {
 	t.Helper()
@@ -29,34 +31,34 @@ func NewRespWriter(t tester.T, w http.ResponseWriter) *RespWriter {
 	}
 }
 
-// Header — triggers a test error if headers were already sent.
-func (crw *RespWriter) Header() http.Header {
-	if crw.written {
-		crw.t.Helper()
+// implements [http.ResponseWriter]. Errors the test if headers already sent.
+func (rsw *RespWriter) Header() http.Header {
+	if rsw.written {
+		rsw.t.Helper()
 		msg := notice.New("headers already written").
-			Append("last status", "%d", crw.status)
-		crw.t.Error(msg)
+			Append("last status", "%d", rsw.status)
+		rsw.t.Error(msg)
 	}
-	return crw.ResponseWriter.Header()
+	return rsw.ResponseWriter.Header()
 }
 
-func (crw *RespWriter) Write(data []byte) (int, error) {
-	crw.written = true
-	return crw.ResponseWriter.Write(data)
+func (rsw *RespWriter) Write(data []byte) (int, error) {
+	rsw.written = true
+	return rsw.ResponseWriter.Write(data)
 }
 
-// WriteHeader — triggers a test error if headers were already sent.
-func (crw *RespWriter) WriteHeader(status int) {
-	if crw.written {
-		crw.t.Helper()
+// implements [http.ResponseWriter]. Errors the test if headers already sent.
+func (rsw *RespWriter) WriteHeader(status int) {
+	if rsw.written {
+		rsw.t.Helper()
 		msg := notice.New("headers already written").
-			Append("last status", "%d", crw.status).
+			Append("last status", "%d", rsw.status).
 			Append("new status", "%d", status)
-		crw.t.Error(msg)
+		rsw.t.Error(msg)
 	}
-	crw.status = status
-	crw.written = true
-	crw.ResponseWriter.WriteHeader(status)
+	rsw.status = status
+	rsw.written = true
+	rsw.ResponseWriter.WriteHeader(status)
 }
 
 // RespWriterMW returns a [Middleware] that wraps the [http.ResponseWriter]
