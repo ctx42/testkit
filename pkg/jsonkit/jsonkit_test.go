@@ -37,8 +37,10 @@ func Test_To(t *testing.T) {
 		tspy := tester.New(t)
 		tspy.Close()
 
+		var v any
+
 		// --- When ---
-		have := To(tspy, nil)
+		have := To(tspy, v)
 
 		// --- Then ---
 		assert.Equal(t, "null", string(have))
@@ -47,7 +49,7 @@ func Test_To(t *testing.T) {
 	t.Run("error - unsupported type", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
-		tspy.ExpectFail()
+		tspy.ExpectError()
 		wMsg := "" +
 			"expected no error marshalling value:\n" +
 			"  error: json: unsupported type: func()"
@@ -91,7 +93,7 @@ func Test_ToReader(t *testing.T) {
 	t.Run("error - unsupported type", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
-		tspy.ExpectFail()
+		tspy.ExpectError()
 		wMsg := "" +
 			"expected no error marshalling value:\n" +
 			"  error: json: unsupported type: func()"
@@ -131,7 +133,7 @@ func Test_ToMap(t *testing.T) {
 	t.Run("error - invalid json", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
-		tspy.ExpectFail()
+		tspy.ExpectError()
 		tspy.ExpectLogContain("invalid character")
 		tspy.Close()
 
@@ -147,7 +149,7 @@ func Test_ToMap(t *testing.T) {
 	t.Run("error - not a json object", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
-		tspy.ExpectFail()
+		tspy.ExpectError()
 		tspy.ExpectLogContain("cannot unmarshal array")
 		tspy.Close()
 
@@ -184,7 +186,7 @@ func Test_From(t *testing.T) {
 	t.Run("error - invalid json", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
-		tspy.ExpectFail()
+		tspy.ExpectError()
 		wMsg := "" +
 			"expected no error unmarshalling data:\n" +
 			"  error: invalid character '!' " +
@@ -230,7 +232,7 @@ func Test_FromReader(t *testing.T) {
 	t.Run("error - invalid json", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
-		tspy.ExpectFail()
+		tspy.ExpectError()
 		wMsg := "" +
 			"expected no error decoding JSON:\n" +
 			"  error: invalid character '!' " +
