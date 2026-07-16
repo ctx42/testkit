@@ -20,14 +20,18 @@ func GetField(t tester.T, s any, name string) reflect.StructField {
 		t.Error("the struct field name must not be empty")
 		return reflect.StructField{}
 	}
+	if s == nil {
+		t.Error("pointer to struct is required, got nil")
+		return reflect.StructField{}
+	}
 	typ := reflect.TypeOf(s)
 	if typ.Kind() != reflect.Pointer {
-		t.Error("pointer to struct is required")
+		t.Errorf("type `%T` is not a pointer to struct", s)
 		return reflect.StructField{}
 	}
 	typ = typ.Elem()
 	if typ.Kind() != reflect.Struct {
-		t.Errorf("type %T is not struct", s)
+		t.Errorf("type `%T` is not struct", s)
 		return reflect.StructField{}
 	}
 	fld, exist := typ.FieldByName(name)
@@ -48,6 +52,10 @@ func GetValue(t tester.T, s any, name string) reflect.Value {
 		t.Error("the struct field name must not be empty")
 		return reflect.Value{}
 	}
+	if s == nil {
+		t.Error("struct or pointer to struct is required, got nil")
+		return reflect.Value{}
+	}
 
 	typ := reflect.TypeOf(s)
 	if typ.Kind() == reflect.Pointer {
@@ -60,7 +68,12 @@ func GetValue(t tester.T, s any, name string) reflect.Value {
 	}
 
 	sv := reflect.ValueOf(s)
-	fld := reflect.Indirect(sv).FieldByName(name)
+	iv := reflect.Indirect(sv)
+	if !iv.IsValid() {
+		t.Errorf("cannot get value for `%T.%s`", s, name)
+		return reflect.Value{}
+	}
+	fld := iv.FieldByName(name)
 	if !fld.IsValid() {
 		t.Errorf("cannot get value for `%T.%s`", s, name)
 		return reflect.Value{}
