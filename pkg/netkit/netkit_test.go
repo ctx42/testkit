@@ -21,12 +21,47 @@ func Test_GetFreePorts(t *testing.T) {
 	// --- Then ---
 	assert.NoError(t, err)
 	check := make(map[int]struct{}, 3)
-	for i := range ports {
-		if _, ok := check[i]; ok {
+	for _, p := range ports {
+		if _, ok := check[p]; ok {
 			t.Error("duplicate ports on the list")
 		}
-		check[i] = struct{}{}
+		check[p] = struct{}{}
 	}
+}
+
+func Test_GetLocalAddress(t *testing.T) {
+	t.Run("without prefix", func(t *testing.T) {
+		// --- When ---
+		have, err := GetLocalAddress()
+
+		// --- Then ---
+		assert.NoError(t, err)
+		host, port := must.Values(net.SplitHostPort(have))
+		assert.Equal(t, "localhost", host)
+		assert.NotEmpty(t, port)
+	})
+
+	t.Run("with prefix", func(t *testing.T) {
+		// --- When ---
+		have, err := GetLocalAddress("http://", "abc")
+
+		// --- Then ---
+		assert.NoError(t, err)
+		port, ok := strings.CutPrefix(have, "http://localhost:")
+		assert.True(t, ok)
+		assert.NotEmpty(t, port)
+	})
+}
+
+func Test_ReservePort(t *testing.T) {
+	// --- Given ---
+	port := must.Value(GetFreePort())
+
+	// --- When ---
+	err := ReservePort(port)
+
+	// --- Then ---
+	assert.NoError(t, err)
 }
 
 func Test_GetFreePortRange(t *testing.T) {
@@ -54,30 +89,6 @@ func Test_RandomPorts(t *testing.T) {
 	assert.True(t, start > 50000)
 	assert.Equal(t, strconv.Itoa(start+1), ports[1])
 	assert.Equal(t, strconv.Itoa(start+2), ports[2])
-}
-
-func Test_GetLocalAddress(t *testing.T) {
-	t.Run("without prefix", func(t *testing.T) {
-		// --- When ---
-		have, err := GetLocalAddress()
-
-		// --- Then ---
-		assert.NoError(t, err)
-		host, port := must.Values(net.SplitHostPort(have))
-		assert.Equal(t, "localhost", host)
-		assert.NotEmpty(t, port)
-	})
-
-	t.Run("with prefix", func(t *testing.T) {
-		// --- When ---
-		have, err := GetLocalAddress("http://", "abc")
-
-		// --- Then ---
-		assert.NoError(t, err)
-		port, ok := strings.CutPrefix(have, "http://localhost:")
-		assert.True(t, ok)
-		assert.NotEmpty(t, port)
-	})
 }
 
 func Test_CanConnect(t *testing.T) {
@@ -118,7 +129,7 @@ func Test_CanConnect(t *testing.T) {
 		assert.ErrorContain(t, "use of closed network connection", err)
 	})
 
-	t.Run("failure to connect", func(t *testing.T) {
+	t.Run("error - failure to connect", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
 		tspy.ExpectFatal()
@@ -134,7 +145,7 @@ func Test_CanConnect(t *testing.T) {
 		assert.Panic(t, func() { CanConnect(tspy, "1ms", addr) })
 	})
 
-	t.Run("invalid timeout", func(t *testing.T) {
+	t.Run("error - invalid timeout", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
 		tspy.ExpectFatal()
@@ -167,8 +178,8 @@ func Test_CanNotConnect(t *testing.T) {
 		assert.True(t, have)
 	})
 
-	t.Run("can connect is failure", func(t *testing.T) {
-		// --- When ---
+	t.Run("error - can connect", func(t *testing.T) {
+		// --- Given ---
 		tspy := tester.New(t)
 		tspy.ExpectError()
 		wMsg := "expected no connection possible:\n  address: 127.0.0.1:"
@@ -178,6 +189,7 @@ func Test_CanNotConnect(t *testing.T) {
 		lnr := must.Value(net.Listen("tcp", "127.0.0.1:0"))
 		t.Cleanup(func() { _ = lnr.Close() })
 
+		// --- When ---
 		have := CanNotConnect(tspy, lnr.Addr().String())
 
 		// --- Then ---
@@ -192,4 +204,31 @@ func Test_GetLocalIP(t *testing.T) {
 	// --- Then ---
 	assert.NotEmpty(t, ip.String())
 	assert.False(t, ip.Equal(net.IPv4(127, 0, 0, 1)))
+}
+
+func Test_HasNetConn(t *testing.T) {
+	// --- Given ---
+	_, err := net.LookupIP("www.google.com")
+	wantConn := err == nil
+
+	// --- When ---
+	have := HasNetConn()
+
+	// --- Then ---
+	assert.Equal(t, wantConn, have)
+}
+
+func Test_SkipOnNoNetConn(t *testing.T) {
+	// --- Given ---
+	tspy := tester.New(t)
+	if !HasNetConn() {
+		tspy.ExpectSkipped()
+	}
+	tspy.Close()
+
+	// --- When ---
+	SkipOnNoNetConn(tspy)
+
+	// --- Then ---
+	assert.True(t, tspy.AssertExpectations())
 }
