@@ -44,7 +44,7 @@ func GetFreePort() (int, error) {
 		return 0, err
 	}
 	defer func() { _ = l.Close() }()
-	return l.Addr().(*net.TCPAddr).Port, nil // nolint:forcetypeassert
+	return l.Addr().(*net.TCPAddr).Port, nil //nolint:forcetypeassert
 }
 
 // GetFreePorts calls [GetFreePort] count times and returns the
@@ -186,7 +186,7 @@ func GetLocalIP() net.IP {
 		return net.IPv4(127, 0, 0, 1)
 	}
 	defer func() { _ = conn.Close() }()
-	addr := conn.LocalAddr().(*net.UDPAddr) // nolint:forcetypeassert
+	addr := conn.LocalAddr().(*net.UDPAddr) //nolint:forcetypeassert
 	return addr.IP
 }
 

@@ -147,7 +147,7 @@ func (ex *Exe) Exe(cmd string, args ...string) (string, string) {
 	}
 
 	sout, eout := &bytes.Buffer{}, &bytes.Buffer{}
-	c := exec.CommandContext(ctx, cmd, args...) // nolint:gosec
+	c := exec.CommandContext(ctx, cmd, args...) //nolint:gosec
 	c.Env = ex.env
 	c.Stdout = sout
 	c.Stderr = eout

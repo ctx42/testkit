@@ -66,7 +66,7 @@ func (dkr *Docker) ImgPull(ref string) error {
 //
 // TODO: refactor to reduce cyclomatic complexity.
 //
-// nolint:cyclop
+//nolint:cyclop
 func (dkr *Docker) Build(opts ...BuildOption) (string, string, error) {
 	def, err := DefaultBuildOptions(opts...)
 	if err != nil {
@@ -127,7 +127,7 @@ func (dkr *Docker) Build(opts ...BuildOption) (string, string, error) {
 
 	sinOpt := withCmdStdin(sin)
 	wdOpt := withCmdWD(dir)
-	envOpt := append(dkr.env, "DOCKER_BUILDKIT=1") // nolint:gocritic
+	envOpt := append(dkr.env, "DOCKER_BUILDKIT=1") //nolint:gocritic
 
 	if def.dryRun != nil {
 		out := "DOCKER_BUILDKIT=1 docker " + strings.Join(args, " ")
@@ -152,7 +152,7 @@ func (dkr *Docker) Build(opts ...BuildOption) (string, string, error) {
 // Returns an error if the file is missing or if its content contains no hex
 // ID (e.g. a bare "sha256:" with no digest).
 func readIIDFile(ref, pth string) (string, error) {
-	content, err := os.ReadFile(pth) // nolint:gosec
+	content, err := os.ReadFile(pth) //nolint:gosec
 	if err != nil {
 		return "", err
 	}
@@ -295,7 +295,7 @@ func (dkr *Docker) Env(ref, name string) (string, error) {
 //
 // TODO: refactor to reduce cognitive complexity.
 //
-// nolint:gocognit,cyclop
+//nolint:gocognit,cyclop
 func (dkr *Docker) ImgRm(ref string, opts ...ImgRmOption) error {
 	if ref == "" {
 		return nil
@@ -511,7 +511,7 @@ func (dkr *Docker) CtrFile(cid, pth string) (string, error) {
 
 		if header.Typeflag == tar.TypeReg && header.Name == name {
 			buf := &bytes.Buffer{}
-			if _, err = io.Copy(buf, rdr); err != nil { // nolint:gosec
+			if _, err = io.Copy(buf, rdr); err != nil { //nolint:gosec
 				msg := notice.New("getting file reader error").
 					Append("file", "%s", pth).
 					Append("tar error", "%s", err.Error())
