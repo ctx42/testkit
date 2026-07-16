@@ -67,7 +67,7 @@ const (
 func HasBuildArg(
 	t tester.T,
 	set map[string]*string,
-	want, key string,
+	key, want string,
 	opts ...any,
 ) bool {
 	t.Helper()

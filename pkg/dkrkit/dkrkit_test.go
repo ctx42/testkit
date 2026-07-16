@@ -23,7 +23,7 @@ func Test_HasBuildArg(t *testing.T) {
 		}
 
 		// --- When ---
-		have := HasBuildArg(tspy, set, "VAL0", "KEY0")
+		have := HasBuildArg(tspy, set, "KEY0", "VAL0")
 
 		// --- Then ---
 		assert.True(t, have)
@@ -47,7 +47,7 @@ func Test_HasBuildArg(t *testing.T) {
 		}
 
 		// --- When ---
-		have := HasBuildArg(tspy, set, "VALX", "KEY0")
+		have := HasBuildArg(tspy, set, "KEY0", "VALX")
 
 		// --- Then ---
 		assert.False(t, have)
@@ -71,7 +71,7 @@ func Test_HasBuildArg(t *testing.T) {
 		}
 
 		// --- When ---
-		have := HasBuildArg(tspy, set, "VAL1", "KEY1")
+		have := HasBuildArg(tspy, set, "KEY1", "VAL1")
 
 		// --- Then ---
 		assert.False(t, have)
@@ -98,7 +98,7 @@ func Test_HasBuildArg(t *testing.T) {
 		}
 
 		// --- When ---
-		have := HasBuildArg(tspy, set, "VALX", "KEYX")
+		have := HasBuildArg(tspy, set, "KEYX", "VALX")
 
 		// --- Then ---
 		assert.False(t, have)

@@ -351,7 +351,7 @@ them programmatically:
 
 ```go
 args := dkrkit.ToBuildArgs(map[string]string{"VERSION": "v1.2.3"})
-dkrkit.HasBuildArg(t, args, "v1.2.3", "VERSION")
+dkrkit.HasBuildArg(t, args, "VERSION", "v1.2.3")
 ```
 
 ## Reference utilities
