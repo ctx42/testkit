@@ -79,13 +79,10 @@ func FromReader(t tester.T, r io.Reader, v any) bool {
 	return true
 }
 
-// DeleteKey expects data to be a valid JSON object with the given key, the
-// JSON is unmarshaled to `map[string]any` type then the key is deleted from
-// the map, and it is marshaled again and returned with the value of the
-// deleted key as the second argument. If data is not valid JSON, it cannot be
-// unmarshalled to the map, or the key does not exist, it marks the test as
-// failed with the appropriate error message. On error the passed data slice is
-// returned unchanged; otherwise the re-marshaled JSON without the key.
+// DeleteKey removes key from the JSON object in data and returns the resulting
+// JSON together with the deleted key's value as the second return value. If
+// data is not a valid JSON object or the key does not exist, it marks the test
+// as failed and returns data unchanged with a nil value.
 func DeleteKey(t tester.T, data []byte, key string) ([]byte, any) {
 	t.Helper()
 	var m map[string]any
