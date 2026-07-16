@@ -194,8 +194,7 @@ func ReadFile(t tester.T, pth string, elems ...string) []byte {
 // an empty string.
 func ReadFileStr(t tester.T, pth string, elems ...string) string {
 	t.Helper()
-	pth = filepath.Join(append([]string{pth}, elems...)...)
-	return string(ReadFile(t, pth))
+	return string(ReadFile(t, pth, elems...))
 }
 
 // Readdirnames returns a slice of files in the directory dir. The path is
@@ -204,10 +203,12 @@ func ReadFileStr(t tester.T, pth string, elems ...string) string {
 func Readdirnames(t tester.T, dir string, elems ...string) []string {
 	t.Helper()
 	dir = filepath.Join(append([]string{dir}, elems...)...)
-	fh := Open(t, dir)
-	if fh == nil {
+	fh, err := os.Open(dir) //nolint:gosec
+	if err != nil {
+		t.Error(err)
 		return nil
 	}
+	defer func() { _ = fh.Close() }()
 	names, err := fh.Readdirnames(0)
 	if err != nil {
 		t.Error(err)
@@ -278,7 +279,9 @@ func Create[T stringOrBytes](
 	t.Helper()
 	b := []byte(content)
 	pth = filepath.Join(append([]string{pth}, elems...)...)
-	write(t, b, pth, os.O_CREATE|os.O_WRONLY)
+	if _, ok := write(t, b, pth, os.O_CREATE|os.O_WRONLY); !ok {
+		return pth
+	}
 	if err := os.Truncate(pth, int64(len(b))); err != nil {
 		t.Error(err)
 	}
@@ -300,30 +303,32 @@ func Write[T stringOrBytes](
 
 	t.Helper()
 	pth = filepath.Join(append([]string{pth}, elems...)...)
-	return write(t, []byte(content), pth, os.O_CREATE|os.O_APPEND|os.O_WRONLY)
+	_, _ = write(t, []byte(content), pth, os.O_CREATE|os.O_APPEND|os.O_WRONLY)
+	return pth
 }
 
 // write uses os.OpenFile with given flags to write content to a file at pth.
-// On error, it marks the test as failed. Always returns the same path it
-// received in the pth argument.
-func write(t tester.T, content []byte, pth string, flag int) string {
+// On error, it marks the test as failed and returns false. Always returns the
+// same path it received in the pth argument.
+func write(t tester.T, content []byte, pth string, flag int) (string, bool) {
 	t.Helper()
 	f, err := os.OpenFile(pth, flag, 0644) //nolint:gosec
 	if err != nil {
-		t.Error(err.Error())
-		return pth
+		t.Error(err)
+		return pth, false
 	}
 	defer func() { _ = f.Close() }()
 
 	if _, err = f.Write(content); err != nil {
-		t.Error(err.Error())
+		t.Error(err)
+		return pth, false
 	}
-	return pth
+	return pth, true
 }
 
 // MkdirAll creates a directory. The path is constructed from dir and elems
 // like in [filepath.Join] function. If the directory exists, it will do
-// nothing. The directory is created with 0755 permissions. On error, it marks
+// nothing. The directory is created with 0750 permissions. On error, it marks
 // the test as failed but continues execution. Always returns the constructed
 // path.
 func MkdirAll(t tester.T, dir string, elems ...string) string {
@@ -333,8 +338,8 @@ func MkdirAll(t tester.T, dir string, elems ...string) string {
 		return pth
 	}
 	if err := os.MkdirAll(pth, 0750); err != nil {
-		err = fmt.Errorf("failed to create directory: %s, error: %w", pth, err)
-		t.Error(err)
+		format := "creating directory %s: %w"
+		t.Error(fmt.Errorf(format, pth, err))
 	}
 	return pth
 }
@@ -517,7 +522,7 @@ func EnvSplit(env []string) map[string]string {
 	return m
 }
 
-// EnvSplitOrdered parses os.Environ results and returns it as a key value map
+// EnvSplitOrdered parses [os.Environ] results and returns it as a key value map
 // and a slice with the order of keys returned by [os.Environ].
 func EnvSplitOrdered(env []string) (map[string]string, []string) {
 	k := make([]string, 0, 10)

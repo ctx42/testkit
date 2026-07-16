@@ -85,51 +85,6 @@ func Test_Setenv(t *testing.T) {
 	assert.Equal(t, kv, os.Getenv(kv))
 }
 
-func Test_Unsetenv(t *testing.T) {
-	t.Run("unset existing", func(t *testing.T) {
-		// --- Given ---
-		tspy := tester.New(t)
-		tspy.ExpectCleanups(1)
-		tspy.Close()
-
-		kv := randkit.Str()
-		assert.NoError(t, os.Setenv(kv, kv))
-		t.Cleanup(func() { _ = os.Unsetenv(kv) })
-		assert.Equal(t, kv, os.Getenv(kv))
-
-		// --- When ---
-		Unsetenv(tspy, kv)
-
-		// --- Then ---
-		_, exist := os.LookupEnv(kv)
-		assert.False(t, exist)
-
-		tspy.Finish()
-		have, exist := os.LookupEnv(kv)
-		assert.True(t, exist)
-		assert.Equal(t, kv, have)
-	})
-
-	t.Run("unset not existing", func(t *testing.T) {
-		// --- Given ---
-		tspy := tester.New(t)
-		tspy.Close()
-
-		kv := randkit.Str()
-
-		// --- When ---
-		Unsetenv(tspy, kv)
-
-		// --- Then ---
-		_, exist := os.LookupEnv(kv)
-		assert.False(t, exist)
-
-		tspy.Finish()
-		_, exist = os.LookupEnv(kv)
-		assert.False(t, exist)
-	})
-}
-
 func Test_Stat(t *testing.T) {
 	t.Run("file", func(t *testing.T) {
 		// --- Given ---
@@ -268,6 +223,51 @@ func Test_Chdir(t *testing.T) {
 	})
 }
 
+func Test_Unsetenv(t *testing.T) {
+	t.Run("unset existing", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.ExpectCleanups(1)
+		tspy.Close()
+
+		kv := randkit.Str()
+		assert.NoError(t, os.Setenv(kv, kv))
+		t.Cleanup(func() { _ = os.Unsetenv(kv) })
+		assert.Equal(t, kv, os.Getenv(kv))
+
+		// --- When ---
+		Unsetenv(tspy, kv)
+
+		// --- Then ---
+		_, exist := os.LookupEnv(kv)
+		assert.False(t, exist)
+
+		tspy.Finish()
+		have, exist := os.LookupEnv(kv)
+		assert.True(t, exist)
+		assert.Equal(t, kv, have)
+	})
+
+	t.Run("unset not existing", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.Close()
+
+		kv := randkit.Str()
+
+		// --- When ---
+		Unsetenv(tspy, kv)
+
+		// --- Then ---
+		_, exist := os.LookupEnv(kv)
+		assert.False(t, exist)
+
+		tspy.Finish()
+		_, exist = os.LookupEnv(kv)
+		assert.False(t, exist)
+	})
+}
+
 func Test_addToList_tabular(t *testing.T) {
 	tt := []struct {
 		testN string
@@ -285,11 +285,11 @@ func Test_addToList_tabular(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.testN, func(t *testing.T) {
 			// --- When ---
-			got := addToList(tc.curr, tc.path)
+			have := addToList(tc.curr, tc.path)
 
 			// --- Then ---
-			have := strings.Split(got, string(os.PathListSeparator))
-			assert.Equal(t, tc.want, have)
+			parts := strings.Split(have, string(os.PathListSeparator))
+			assert.Equal(t, tc.want, parts)
 		})
 	}
 }
@@ -379,9 +379,9 @@ func Test_Open(t *testing.T) {
 		fil := Open(tspy, "testdata/file.txt")
 
 		// --- Then ---
-		got, err := io.ReadAll(fil)
+		have, err := io.ReadAll(fil)
 		assert.NoError(t, err)
-		assert.Equal(t, "content", string(got))
+		assert.Equal(t, "content", string(have))
 		tspy.Finish().AssertExpectations()
 		assert.ErrorIs(t, os.ErrClosed, fil.Close())
 	})
@@ -394,9 +394,9 @@ func Test_Open(t *testing.T) {
 		fil := Open(tspy, "testdata", "file.txt")
 
 		// --- Then ---
-		got, err := io.ReadAll(fil)
+		have, err := io.ReadAll(fil)
 		assert.NoError(t, err)
-		assert.Equal(t, "content", string(got))
+		assert.Equal(t, "content", string(have))
 		tspy.Finish().AssertExpectations()
 		assert.ErrorIs(t, os.ErrClosed, fil.Close())
 	})
@@ -424,10 +424,10 @@ func Test_ReadFile(t *testing.T) {
 		tspy.Close()
 
 		// --- When ---
-		got := ReadFile(tspy, "testdata/file.txt")
+		have := ReadFile(tspy, "testdata/file.txt")
 
 		// --- Then ---
-		assert.Equal(t, []byte("content"), got)
+		assert.Equal(t, []byte("content"), have)
 	})
 
 	t.Run("join path", func(t *testing.T) {
@@ -436,10 +436,10 @@ func Test_ReadFile(t *testing.T) {
 		tspy.Close()
 
 		// --- When ---
-		got := ReadFile(tspy, "testdata", "file.txt")
+		have := ReadFile(tspy, "testdata", "file.txt")
 
 		// --- Then ---
-		assert.Equal(t, []byte("content"), got)
+		assert.Equal(t, []byte("content"), have)
 	})
 
 	t.Run("not existing file", func(t *testing.T) {
@@ -451,10 +451,10 @@ func Test_ReadFile(t *testing.T) {
 		tspy.Close()
 
 		// --- When ---
-		got := ReadFile(tspy, "testdata/not_existing.txt")
+		have := ReadFile(tspy, "testdata/not_existing.txt")
 
 		// --- Then ---
-		assert.Empty(t, got)
+		assert.Empty(t, have)
 	})
 }
 
@@ -465,10 +465,10 @@ func Test_ReadFileStr(t *testing.T) {
 		tspy.Close()
 
 		// --- When ---
-		got := ReadFileStr(tspy, "testdata/file.txt")
+		have := ReadFileStr(tspy, "testdata/file.txt")
 
 		// --- Then ---
-		assert.Equal(t, "content", got)
+		assert.Equal(t, "content", have)
 	})
 
 	t.Run("join path", func(t *testing.T) {
@@ -477,10 +477,10 @@ func Test_ReadFileStr(t *testing.T) {
 		tspy.Close()
 
 		// --- When ---
-		got := ReadFileStr(tspy, "testdata", "file.txt")
+		have := ReadFileStr(tspy, "testdata", "file.txt")
 
 		// --- Then ---
-		assert.Equal(t, "content", got)
+		assert.Equal(t, "content", have)
 	})
 
 	t.Run("not existing file", func(t *testing.T) {
@@ -492,10 +492,10 @@ func Test_ReadFileStr(t *testing.T) {
 		tspy.Close()
 
 		// --- When ---
-		got := ReadFileStr(tspy, "testdata/not_existing.txt")
+		have := ReadFileStr(tspy, "testdata/not_existing.txt")
 
 		// --- Then ---
-		assert.Empty(t, got)
+		assert.Empty(t, have)
 	})
 }
 
@@ -503,7 +503,6 @@ func Test_Readdirnames(t *testing.T) {
 	t.Run("ok", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
-		tspy.ExpectCleanups(1)
 		tspy.Close()
 
 		// --- When ---
@@ -517,7 +516,6 @@ func Test_Readdirnames(t *testing.T) {
 	t.Run("join path", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
-		tspy.ExpectCleanups(1)
 		tspy.Close()
 
 		// --- When ---
@@ -705,10 +703,10 @@ func Test_Create(t *testing.T) {
 		pth := filepath.Join(dir, "file.txt")
 
 		// --- When ---
-		got := Create(tspy, []byte("def"), pth)
+		have := Create(tspy, []byte("def"), pth)
 
 		// --- Then ---
-		assert.Equal(t, pth, got)
+		assert.Equal(t, pth, have)
 
 		content, err := os.ReadFile(pth)
 		assert.NoError(t, err)
@@ -723,12 +721,12 @@ func Test_Create(t *testing.T) {
 		dir := t.TempDir()
 
 		// --- When ---
-		got := Create(tspy, []byte("def"), dir, "file.txt")
+		have := Create(tspy, []byte("def"), dir, "file.txt")
 
 		// --- Then ---
 
 		pth := filepath.Join(dir, "file.txt")
-		assert.Equal(t, pth, got)
+		assert.Equal(t, pth, have)
 
 		content, err := os.ReadFile(pth)
 		assert.NoError(t, err)
@@ -745,10 +743,10 @@ func Test_Create(t *testing.T) {
 		assert.NoError(t, err)
 
 		// --- When ---
-		got := Create(tspy, []byte("def"), pth)
+		have := Create(tspy, []byte("def"), pth)
 
 		// --- Then ---
-		assert.Equal(t, pth, got)
+		assert.Equal(t, pth, have)
 
 		content, err := os.ReadFile(pth)
 		assert.NoError(t, err)
@@ -765,10 +763,10 @@ func Test_Create(t *testing.T) {
 		assert.NoError(t, err)
 
 		// --- When ---
-		got := Create(tspy, []byte("de"), pth)
+		have := Create(tspy, []byte("de"), pth)
 
 		// --- Then ---
-		assert.Equal(t, pth, got)
+		assert.Equal(t, pth, have)
 
 		content, err := os.ReadFile(pth)
 		assert.NoError(t, err)
@@ -783,14 +781,32 @@ func Test_Create(t *testing.T) {
 		pth := filepath.Join(t.TempDir(), "file.txt")
 
 		// --- When ---
-		got := Create(tspy, "def", pth)
+		have := Create(tspy, "def", pth)
 
 		// --- Then ---
-		assert.Equal(t, pth, got)
+		assert.Equal(t, pth, have)
 
 		content, err := os.ReadFile(pth)
 		assert.NoError(t, err)
 		assert.Equal(t, "def", string(content))
+	})
+
+	t.Run("error - write into not existing directory", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.ExpectError()
+		tspy.ExpectLogContain("no such file or directory")
+		tspy.Close()
+
+		pth := filepath.Join(t.TempDir(), "not_existing", "file.txt")
+
+		// --- When ---
+		have := Create(tspy, "def", pth)
+
+		// --- Then ---
+		assert.Equal(t, pth, have)
+		assert.NoFileExist(t, pth)
+		tspy.Finish().AssertExpectations()
 	})
 }
 
@@ -803,10 +819,10 @@ func Test_Write(t *testing.T) {
 		pth := filepath.Join(t.TempDir(), "file.txt")
 
 		// --- When ---
-		got := Write(tspy, []byte("def"), pth)
+		have := Write(tspy, []byte("def"), pth)
 
 		// --- Then ---
-		assert.Equal(t, pth, got)
+		assert.Equal(t, pth, have)
 
 		content, err := os.ReadFile(pth)
 		assert.NoError(t, err)
@@ -821,11 +837,11 @@ func Test_Write(t *testing.T) {
 		dir := t.TempDir()
 
 		// --- When ---
-		got := Write(tspy, []byte("def"), dir, "file.txt")
+		have := Write(tspy, []byte("def"), dir, "file.txt")
 
 		// --- Then ---
 		exp := filepath.Join(dir, "file.txt")
-		assert.Equal(t, exp, got)
+		assert.Equal(t, exp, have)
 
 		content, err := os.ReadFile(exp)
 		assert.NoError(t, err)
@@ -843,10 +859,10 @@ func Test_Write(t *testing.T) {
 		assert.NoError(t, err)
 
 		// --- When ---
-		got := Write(tspy, []byte("def"), dir, "file.txt")
+		have := Write(tspy, []byte("def"), dir, "file.txt")
 
 		// --- Then ---
-		assert.Equal(t, pth, got)
+		assert.Equal(t, pth, have)
 
 		content, err := os.ReadFile(pth)
 		assert.NoError(t, err)
@@ -861,14 +877,32 @@ func Test_Write(t *testing.T) {
 		pth := filepath.Join(t.TempDir(), "file.txt")
 
 		// --- When ---
-		got := Write(tspy, "def", pth)
+		have := Write(tspy, "def", pth)
 
 		// --- Then ---
-		assert.Equal(t, pth, got)
+		assert.Equal(t, pth, have)
 
 		content, err := os.ReadFile(pth)
 		assert.NoError(t, err)
 		assert.Equal(t, "def", string(content))
+	})
+
+	t.Run("error - write into not existing directory", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.ExpectError()
+		tspy.ExpectLogContain("no such file or directory")
+		tspy.Close()
+
+		pth := filepath.Join(t.TempDir(), "not_existing", "file.txt")
+
+		// --- When ---
+		have := Write(tspy, "def", pth)
+
+		// --- Then ---
+		assert.Equal(t, pth, have)
+		assert.NoFileExist(t, pth)
+		tspy.Finish().AssertExpectations()
 	})
 }
 
@@ -913,11 +947,32 @@ func Test_MkdirAll(t *testing.T) {
 		dir := t.TempDir()
 
 		// --- When ---
-		got := MkdirAll(tspy, dir)
+		have := MkdirAll(tspy, dir)
 
 		// --- Then ---
-		assert.Equal(t, dir, got)
+		assert.Equal(t, dir, have)
 		assert.DirExist(t, dir)
+	})
+
+	t.Run("error - creating directory", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.ExpectError()
+		tspy.ExpectLogContain("permission denied")
+		tspy.Close()
+
+		dir := filepath.Join(t.TempDir(), "read_only")
+		must.Nil(os.Mkdir(dir, 0500))
+		t.Cleanup(func() { _ = os.Chmod(dir, 0700) })
+
+		// --- When ---
+		have := MkdirAll(tspy, dir, "sub")
+
+		// --- Then ---
+		want := filepath.Join(dir, "sub")
+		assert.Equal(t, want, have)
+		assert.NoDirExist(t, want)
+		tspy.Finish().AssertExpectations()
 	})
 }
 
@@ -1040,10 +1095,10 @@ func Test_List(t *testing.T) {
 		tspy.Close()
 
 		// --- When ---
-		got := List(tspy, "testdata/list/file0.txt")
+		have := List(tspy, "testdata/list/file0.txt")
 
 		// --- Then ---
-		assert.Empty(t, got)
+		assert.Empty(t, have)
 	})
 
 	t.Run("not existing directory", func(t *testing.T) {
@@ -1054,10 +1109,10 @@ func Test_List(t *testing.T) {
 		tspy.Close()
 
 		// --- When ---
-		got := List(tspy, "testdata/list/not_existing")
+		have := List(tspy, "testdata/list/not_existing")
 
 		// --- Then ---
-		assert.Empty(t, got)
+		assert.Empty(t, have)
 	})
 }
 
@@ -1114,10 +1169,10 @@ func Test_ListAbs(t *testing.T) {
 		tspy.Close()
 
 		// --- When ---
-		got := ListAbs(tspy, "testdata/list/file0.txt")
+		have := ListAbs(tspy, "testdata/list/file0.txt")
 
 		// --- Then ---
-		assert.Empty(t, got)
+		assert.Empty(t, have)
 	})
 
 	t.Run("not existing directory", func(t *testing.T) {
@@ -1128,10 +1183,10 @@ func Test_ListAbs(t *testing.T) {
 		tspy.Close()
 
 		// --- When ---
-		got := ListAbs(tspy, "testdata/list/not_existing")
+		have := ListAbs(tspy, "testdata/list/not_existing")
 
 		// --- Then ---
-		assert.Empty(t, got)
+		assert.Empty(t, have)
 	})
 }
 
