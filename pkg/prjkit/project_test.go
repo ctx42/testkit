@@ -54,7 +54,7 @@ func Test_WithProjectCreate(t *testing.T) {
 	t.Run("error when the project directory exists", func(t *testing.T) {
 		// --- Given ---
 		root := filepath.Join(t.TempDir(), "project")
-		must.Nil(os.Mkdir(root, 0644))
+		oskit.MkdirAll(t, root)
 
 		tspy := tester.New(t)
 		tspy.ExpectError()
@@ -338,7 +338,7 @@ func Test_Project_ChdirBack(t *testing.T) {
 		// Change to root directory saving the current one (other).
 		prj.Chdir()
 		// Remove other directory, so we cannot get back to it.
-		assert.NoError(t, os.RemoveAll(other))
+		must.Nil(os.RemoveAll(other))
 
 		// --- When ---
 		assert.Panic(t, func() { prj.ChdirBack() })
@@ -356,7 +356,7 @@ func Test_Project_ReadFileStr(t *testing.T) {
 		// Project root subdirectory.
 		pth := oskit.MkdirAll(t, root, "a")
 		fil := oskit.Write(t, "abc", pth, "file*.txt") // File in subdirectory.
-		fil = filepath.Base(fil)                          // Filename.
+		fil = filepath.Base(fil)                       // Filename.
 
 		prj := New(tspy, root)
 		prj.Close()
@@ -824,8 +824,7 @@ func Test_Project_Rename(t *testing.T) {
 
 		dir := t.TempDir()
 		prj := New(tspy, dir)
-		pth := filepath.Join(dir, "file0.txt")
-		must.Nil(os.WriteFile(pth, []byte("abc"), 0644))
+		oskit.Create(t, "abc", dir, "file0.txt")
 
 		// --- When ---
 		have := prj.Rename("file0.txt", "file_abc.txt")
@@ -1453,7 +1452,7 @@ func Test_Project_GitHash(t *testing.T) {
 	})
 }
 
-func Test_Project_GitLog(t *testing.T) {
+func Test_Project_GitCommitLog(t *testing.T) {
 	t.Run("success on open", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
@@ -1652,7 +1651,7 @@ func Test_Project_Compile(t *testing.T) {
 		oskit.CopyDir(t, prj.root, "testdata/compile/error")
 		oldpath := filepath.Join(prj.root, "main")
 		newpath := filepath.Join(prj.root, "main.go")
-		assert.NoError(t, os.Rename(oldpath, newpath))
+		must.Nil(os.Rename(oldpath, newpath))
 		exe.Exe("go", "mod", "init", "project")
 
 		// --- When ---
@@ -2515,59 +2514,6 @@ func Test_Project_Close(t *testing.T) {
 	})
 }
 
-func Test_NewGitCommit(t *testing.T) {
-	tt := []struct {
-		testN string
-
-		lin        string
-		expHash    string
-		expTag     string
-		expDate    time.Time
-		expSummary string
-	}{
-		{
-			"simple",
-			"16c806f () 946782245 commit 1",
-			"16c806f",
-			"",
-			time.Date(2000, 1, 2, 3, 4, 5, 0, time.UTC),
-			"commit 1",
-		},
-		{
-			"with tag",
-			"6907f52 (HEAD -> master, tag: v0.5.11, " +
-				"origin/master) 946782245 Bump version to 0.5.11.",
-			"6907f52",
-			"v0.5.11",
-			time.Date(2000, 1, 2, 3, 4, 5, 0, time.UTC),
-			"Bump version to 0.5.11.",
-		},
-		{
-			"with tag only",
-			"2728491 (HEAD -> master, tag: v1.2.3) 946782245 commit 2.",
-			"2728491",
-			"v1.2.3",
-			time.Date(2000, 1, 2, 3, 4, 5, 0, time.UTC),
-			"commit 2.",
-		},
-	}
-
-	for _, tc := range tt {
-		tc := tc
-		t.Run(tc.testN, func(t *testing.T) {
-			// --- When ---
-			gc, err := NewGitCommit(tc.lin)
-
-			// --- Then ---
-			assert.NoError(t, err)
-			assert.Equal(t, tc.expHash, gc.Hash)
-			assert.Equal(t, tc.expTag, gc.Rev)
-			assert.Equal(t, tc.expDate, gc.Date)
-			assert.Equal(t, tc.expSummary, gc.Summary)
-		})
-	}
-}
-
 func Test_GitCommits_Find(t *testing.T) {
 	t.Run("existing", func(t *testing.T) {
 		// --- Given ---
@@ -2751,4 +2697,59 @@ func Test_GitCommits_N(t *testing.T) {
 		// --- Then ---
 		assert.Nil(t, have)
 	})
+}
+
+func Test_NewGitCommit_tabular(t *testing.T) {
+	tt := []struct {
+		testN string
+
+		lin        string
+		expHash    string
+		expTag     string
+		expDate    time.Time
+		expSummary string
+	}{
+		{
+			"simple",
+			"16c806f () 946782245 commit 1",
+			"16c806f",
+			"",
+			time.Date(2000, 1, 2, 3, 4, 5, 0, time.UTC),
+			"commit 1",
+		},
+		{
+			"with tag",
+			"6907f52 (HEAD -> master, tag: v0.5.11, " +
+				"origin/master) 946782245 Bump version to 0.5.11.",
+			"6907f52",
+			"v0.5.11",
+			time.Date(2000, 1, 2, 3, 4, 5, 0, time.UTC),
+			"Bump version to 0.5.11.",
+		},
+		{
+			"with tag only",
+			"2728491 (HEAD -> master, tag: v1.2.3) 946782245 commit 2.",
+			"2728491",
+			"v1.2.3",
+			time.Date(2000, 1, 2, 3, 4, 5, 0, time.UTC),
+			"commit 2.",
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.testN, func(t *testing.T) {
+			// --- Given ---
+			lin := tc.lin
+
+			// --- When ---
+			gc, err := NewGitCommit(lin)
+
+			// --- Then ---
+			assert.NoError(t, err)
+			assert.Equal(t, tc.expHash, gc.Hash)
+			assert.Equal(t, tc.expTag, gc.Rev)
+			assert.Equal(t, tc.expDate, gc.Date)
+			assert.Equal(t, tc.expSummary, gc.Summary)
+		})
+	}
 }
