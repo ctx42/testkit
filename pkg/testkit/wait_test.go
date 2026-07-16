@@ -5,12 +5,13 @@ package testkit
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"testing"
 	"time"
 
 	"github.com/ctx42/testing/pkg/assert"
+
+	"github.com/ctx42/testkit/pkg/oskit"
 )
 
 func Test_Wait4File(t *testing.T) {
@@ -32,13 +33,13 @@ func Test_Wait4File(t *testing.T) {
 		// --- Then ---
 		<-started
 		time.Sleep(100 * time.Millisecond)
-		assert.NoError(t, os.WriteFile(pth, []byte("content"), 0600))
+		oskit.Write(t, "content", pth)
 		<-done
 		assert.Equal(t, "content", data)
 		assert.NoError(t, err)
 	})
 
-	t.Run("the file isn't created within timeout", func(t *testing.T) {
+	t.Run("error - file not created within timeout", func(t *testing.T) {
 		// --- Given ---
 		var err error
 		var data string
@@ -83,9 +84,9 @@ func Test_Wait4File(t *testing.T) {
 		// --- Then ---
 		<-started
 		time.Sleep(100 * time.Millisecond)
-		assert.NoError(t, os.WriteFile(pth, nil, 0600))
+		oskit.Write(t, "", pth)
 		time.Sleep(10 * time.Millisecond)
-		assert.NoError(t, os.WriteFile(pth, []byte("content"), 0600))
+		oskit.Write(t, "content", pth)
 		<-done
 		assert.Equal(t, "content", data)
 		assert.NoError(t, err)

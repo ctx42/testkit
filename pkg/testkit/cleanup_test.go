@@ -14,7 +14,6 @@ import (
 )
 
 func Test_AddGlobalCleanup(t *testing.T) {
-	t.Setenv("___", "___")
 	origLog := globLog
 	buf := &bytes.Buffer{}
 	globLog = log.New(buf, "", 0)
@@ -30,21 +29,21 @@ func Test_AddGlobalCleanup(t *testing.T) {
 		// --- When ---
 		_, file, line, _ := runtime.Caller(0)
 		AddGlobalCleanup(fn)
-		file = filepath.Base(file)
-		expectedLine := line + 1
 
 		// --- Then ---
+		file = filepath.Base(file)
+		want := line + 1
+
 		assert.Len(t, 1, cleanups)
 		assert.Same(t, fn, cleanups[0].fn)
 		assert.Equal(t, file, cleanups[0].file)
-		assert.Equal(t, expectedLine, cleanups[0].line)
+		assert.Equal(t, want, cleanups[0].line)
 		assert.False(t, called)
 		assert.Equal(t, "", buf.String())
 	})
 }
 
 func Test_RunGlobalCleanups(t *testing.T) {
-	t.Setenv("___", "___")
 	origLog := globLog
 	buf := &bytes.Buffer{}
 	globLog = log.New(buf, "", 0)
