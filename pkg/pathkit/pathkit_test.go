@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/ctx42/testing/pkg/assert"
+	"github.com/ctx42/testing/pkg/must"
 	"github.com/ctx42/testing/pkg/tester"
 )
 
@@ -21,8 +22,7 @@ func Test_AbsPath(t *testing.T) {
 		have := AbsPath(tspy, ".")
 
 		// --- Then ---
-		want, err := filepath.Abs(".")
-		assert.NoError(t, err)
+		want := must.Value(filepath.Abs("."))
 		assert.Equal(t, want, have)
 	})
 
@@ -31,8 +31,7 @@ func Test_AbsPath(t *testing.T) {
 		tspy := tester.New(t)
 		tspy.Close()
 
-		want, err := filepath.Abs(".")
-		assert.NoError(t, err)
+		want := must.Value(filepath.Abs("."))
 
 		// --- When ---
 		have := AbsPath(tspy, ".", "dir", "abc.txt")
@@ -68,7 +67,7 @@ func Test_EvalSymlinks(t *testing.T) {
 		assert.Equal(t, "testdata/dir", have)
 	})
 
-	t.Run("success", func(t *testing.T) {
+	t.Run("error - not existing file", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
 		tspy.ExpectError()
