@@ -23,6 +23,8 @@ type ErrorReader struct {
 	off int
 }
 
+var _ io.Reader = (*ErrorReader)(nil)
+
 // ErrReader wraps "src" and allows up to n bytes to be read before returning
 // an error. If n < 0 it behaves like a normal reader (no error injection).
 //
@@ -42,9 +44,8 @@ func ErrReader(src io.Reader, n int, opts ...Option) *ErrorReader {
 	return r
 }
 
-// Read implements [io.Reader]. It reads from the underlying reader up to the
-// configured limit, then returns the configured error (or the underlying
-// reader's error).
+// implements [io.Reader]. Returns the configured error once the read limit
+// is reached, or the underlying reader's error first.
 func (r *ErrorReader) Read(p []byte) (int, error) {
 	// Read up to the limit - no more.
 	if r.n >= 0 && r.off+len(p) > r.n {

@@ -14,6 +14,8 @@ type ErrorReadSeekCloser struct {
 	cls io.Closer
 }
 
+var _ io.ReadSeekCloser = (*ErrorReadSeekCloser)(nil)
+
 // ErrReadSeekCloser wraps "src" and allows up to n bytes to be read before
 // returning an error. If n < 0 it behaves normally.
 //
@@ -30,9 +32,8 @@ func ErrReadSeekCloser(
 	}
 }
 
-// Close implements [io.Closer]. The underlying Close is always invoked.
-// A custom error (if set via [WithCloseErr]) is returned instead of the
-// underlying result.
+// implements [io.Closer]. The underlying Close is always called; a custom
+// error set via [WithCloseErr] overrides its result.
 func (rc *ErrorReadSeekCloser) Close() error {
 	err := rc.cls.Close() // The underlying Close method is always called.
 	if rc.errClose != nil {

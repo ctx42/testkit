@@ -16,6 +16,8 @@ type ErrorWriteCloser struct {
 	cls io.Closer
 }
 
+var _ io.WriteCloser = (*ErrorWriteCloser)(nil)
+
 // ErrWriteCloser wraps "dst" and allows up to n bytes to be written before
 // returning an error. If n < 0 it behaves normally.
 //
@@ -32,9 +34,8 @@ func ErrWriteCloser(
 	}
 }
 
-// Close implements [io.Closer]. The underlying Close is always invoked.
-// If a custom close error was set via [WithCloseErr], that error is returned
-// instead of the underlying result.
+// implements [io.Closer]. The underlying Close is always called; a custom
+// error set via [WithCloseErr] overrides its result.
 func (wc *ErrorWriteCloser) Close() error {
 	err := wc.cls.Close() // The underlying Close method is always called.
 	if wc.errClose != nil {

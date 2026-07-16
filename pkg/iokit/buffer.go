@@ -5,6 +5,8 @@ package iokit
 
 import (
 	"bytes"
+	"fmt"
+	"io"
 	"sync"
 
 	"github.com/ctx42/testing/pkg/dump"
@@ -38,6 +40,12 @@ type Buffer struct {
 	// calling [Buffer.SkipExamine].
 	examine bool
 }
+
+var (
+	_ io.Writer       = (*Buffer)(nil)
+	_ io.StringWriter = (*Buffer)(nil)
+	_ fmt.Stringer    = (*Buffer)(nil)
+)
 
 // NewBuffer creates a new thread-safe [Buffer] with the [BuffDefault] kind
 // (no automatic cleanup checks). An optional name can be provided.
@@ -74,7 +82,7 @@ func (buf *Buffer) SkipExamine() *Buffer {
 	return buf
 }
 
-// Write implements [io.Writer]. Thread-safe; increments internal write count.
+// implements [io.Writer]. Thread-safe; increments the write count.
 func (buf *Buffer) Write(p []byte) (n int, err error) {
 	buf.mx.Lock()
 	defer buf.mx.Unlock()
@@ -82,7 +90,7 @@ func (buf *Buffer) Write(p []byte) (n int, err error) {
 	return buf.buf.Write(p)
 }
 
-// WriteString implements [io.StringWriter]. Thread-safe; increments write count.
+// implements [io.StringWriter]. Thread-safe; increments the write count.
 func (buf *Buffer) WriteString(s string) (n int, err error) {
 	buf.mx.Lock()
 	defer buf.mx.Unlock()
@@ -97,9 +105,7 @@ func (buf *Buffer) MustWriteString(s string) int {
 	return n
 }
 
-// String returns the current contents as a string (thread-safe) and
-// increments the read counter. Implements [fmt.Stringer]. This is the
-// primary way tests inspect what was written.
+// implements [fmt.Stringer]. Thread-safe; increments the read count.
 func (buf *Buffer) String() string {
 	buf.mx.Lock()
 	defer buf.mx.Unlock()

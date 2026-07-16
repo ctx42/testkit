@@ -14,6 +14,8 @@ type ErrorReadSeeker struct {
 	seek io.Seeker
 }
 
+var _ io.ReadSeeker = (*ErrorReadSeeker)(nil)
+
 // ErrReadSeeker wraps "src" and allows up to n bytes to be read before
 // returning an error. If n < 0 it behaves normally.
 //
@@ -26,8 +28,8 @@ func ErrReadSeeker(src io.ReadSeeker, n int, opts ...Option) *ErrorReadSeeker {
 	}
 }
 
-// Seek implements [io.Seeker]. If a seek error was set via [WithSeekErr],
-// that error is returned after the underlying Seek completes.
+// implements [io.Seeker]. Returns the [WithSeekErr] error, if set, after the
+// underlying Seek completes.
 func (rs *ErrorReadSeeker) Seek(offset int64, whence int) (int64, error) {
 	n, err := rs.seek.Seek(offset, whence)
 	if rs.errSeek != nil {

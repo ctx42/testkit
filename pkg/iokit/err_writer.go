@@ -22,6 +22,8 @@ type ErrorWriter struct {
 	off int
 }
 
+var _ io.Writer = (*ErrorWriter)(nil)
+
 // ErrWriter wraps "dst" and allows up to n bytes to be written before returning
 // an error. If n < 0 it behaves like a normal writer.
 //
