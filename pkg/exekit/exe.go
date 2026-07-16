@@ -1,16 +1,6 @@
 // SPDX-FileCopyrightText: (c) 2026 Rafal Zajac
 // SPDX-License-Identifier: MIT
 
-// Package exekit provides test helpers for running external commands and
-// asserting their exit code, standard output, and standard error.
-//
-// The central type is [Exe], which wraps [os/exec] with a configurable
-// timeout, environment, and exit-code expectation. Construct one with [New]
-// and run commands with [Exe.Exe], [Exe.ExeStdout], or [Exe.ExeStderr].
-//
-// Coverage helpers ([WithDetCov], [WithDevOsCov], [MaybeAddGoCovDir],
-// [IsWithCoverage]) assist with propagating Go coverage instrumentation
-// into sub-processes launched during tests.
 package exekit
 
 import (
@@ -26,12 +16,9 @@ import (
 	"github.com/ctx42/testing/pkg/tester"
 )
 
-// DefaultTimeout is the timeout applied to every new [Exe] instance created
-// by [New]. Prefer [WithTimeout] to override it for a single instance.
-//
-// WARNING: this is a package-level mutable state shared across all goroutines.
-// Mutating it in one test affects all concurrent and subsequent [New] calls.
-var DefaultTimeout = 5 * time.Second
+// defaultTimeout is the timeout applied to every new [Exe] instance created
+// by [New]. Use [WithTimeout] to override it for a single instance.
+const defaultTimeout = 5 * time.Second
 
 // WithWd sets [Exe] working directory for the command.
 func WithWd(wd string) func(*Exe) { return func(ex *Exe) { ex.wd = wd } }
@@ -62,9 +49,8 @@ func WithLax(ex *Exe) { ex.lax = true }
 
 // WithDetCov is a special option detecting if the current test binary was
 // compiled with coverage, and if it was, it adds to the [Exe] environment the
-// GOCOVERDIR variable set to test case generated temporary directory. If
-// the GOCOVERDIR variable already exists in the [Exe] environment, it will not
-// be overridden.
+// GOCOVERDIR variable set to [os.TempDir]. If the GOCOVERDIR variable already
+// exists in the [Exe] environment, it will not be overridden.
 //
 // Make sure this option is the last on the list of options to [Exe].
 func WithDetCov(args []string) func(*Exe) {
@@ -125,7 +111,7 @@ func New(t tester.T, opts ...func(*Exe)) *Exe {
 	ex := &Exe{
 		sin: &bytes.Buffer{},
 		env: os.Environ(),
-		to:  DefaultTimeout,
+		to:  defaultTimeout,
 		t:   t,
 	}
 	for _, opt := range opts {
@@ -154,7 +140,8 @@ func (ex *Exe) Exe(cmd string, args ...string) (string, string) {
 	c.Stdin = ex.sin
 	c.Dir = ex.wd
 
-	if err := c.Run(); err != nil && !ex.lax {
+	err := c.Run()
+	if err != nil && !ex.lax {
 		so, eo := sout.String(), eout.String()
 		if ex.ec != 0 {
 			ee, ok := errors.AsType[*exec.ExitError](err)
@@ -176,7 +163,7 @@ func (ex *Exe) Exe(cmd string, args ...string) (string, string) {
 		}
 	}
 
-	if ex.ec != 0 {
+	if err == nil && ex.ec != 0 {
 		ex.t.Errorf("expected exit code %d got 0", ex.ec)
 	}
 
