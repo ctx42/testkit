@@ -17,7 +17,7 @@ import (
 	"math/rand"
 	"net"
 	"strconv"
-	"sync"
+	"syscall"
 	"time"
 
 	"github.com/ctx42/testing/pkg/notice"
@@ -36,12 +36,12 @@ import (
 func GetFreePort() (int, error) {
 	addr, err := net.ResolveTCPAddr("tcp", "localhost:0")
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("resolving tcp addr: %w", err)
 	}
 
 	l, err := net.ListenTCP("tcp", addr)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("listening tcp: %w", err)
 	}
 	defer func() { _ = l.Close() }()
 	return l.Addr().(*net.TCPAddr).Port, nil //nolint:forcetypeassert
@@ -62,7 +62,8 @@ func GetFreePorts(count int) ([]int, error) {
 }
 
 // GetLocalAddress works like [GetFreePort] but returns port with localhost.
-// You may provide a prefix (the first value).
+// Only the first value of prefix is used and prepended to the address; any
+// further values are ignored.
 func GetLocalAddress(prefix ...string) (string, error) {
 	var pref string
 	if len(prefix) > 0 {
@@ -70,7 +71,7 @@ func GetLocalAddress(prefix ...string) (string, error) {
 	}
 	port, err := GetFreePort()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("getting free port: %w", err)
 	}
 	return fmt.Sprintf("%slocalhost:%d", pref, port), nil
 }
@@ -79,12 +80,12 @@ func GetLocalAddress(prefix ...string) (string, error) {
 func ReservePort(port int) error {
 	addr, err := net.ResolveTCPAddr("tcp", "localhost:"+strconv.Itoa(port))
 	if err != nil {
-		return err
+		return fmt.Errorf("resolving tcp addr: %w", err)
 	}
 
 	l, err := net.ListenTCP("tcp", addr)
 	if err != nil {
-		return err
+		return fmt.Errorf("reserving port: %w", err)
 	}
 	_ = l.Close()
 	return nil
@@ -98,7 +99,7 @@ func GetFreePortRange(n, retry int) ([]int, error) {
 	}
 	port, err := GetFreePort()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("getting free port: %w", err)
 	}
 
 	reserved := make([]int, 0, n)
@@ -155,12 +156,8 @@ func CanNotConnect(t tester.T, address string) bool {
 	t.Helper()
 	conn, err := net.DialTimeout("tcp", address, time.Second)
 	if err != nil {
-		var e *net.OpError
-		if errors.As(err, &e) {
-			have := e.Err.Error()
-			if e.Op == "dial" && have == "connect: connection refused" {
-				return true
-			}
+		if errors.Is(err, syscall.ECONNREFUSED) {
+			return true
 		}
 		msg := notice.New("expected connection refused error").
 			Have("%s", err).
@@ -190,20 +187,10 @@ func GetLocalIP() net.IP {
 	return addr.IP
 }
 
-// Makes sure Internet connection is checked only once.
-var chk sync.Once
-
-// isConnected is true if the Internet connection is available.
-var isConnected bool
-
 // HasNetConn returns true if the Internet connection is present.
 func HasNetConn() bool {
-	chk.Do(func() {
-		if _, err := net.LookupIP("www.google.com"); err == nil {
-			isConnected = true
-		}
-	})
-	return isConnected
+	_, err := net.LookupIP("www.google.com")
+	return err == nil
 }
 
 // SkipOnNoNetConn skips the test if there is no Internet connection.
