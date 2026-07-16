@@ -2561,6 +2561,7 @@ func Test_NewGitCommit(t *testing.T) {
 			// --- Then ---
 			assert.NoError(t, err)
 			assert.Equal(t, tc.expHash, gc.Hash)
+			assert.Equal(t, tc.expTag, gc.Rev)
 			assert.Equal(t, tc.expDate, gc.Date)
 			assert.Equal(t, tc.expSummary, gc.Summary)
 		})

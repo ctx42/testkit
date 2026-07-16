@@ -812,10 +812,10 @@ type GitCommit struct {
 // invalid format.
 var ErrInvGitLogLine = errors.New("invalid git log line")
 
-// Regular expressions to pars git log line.
+// Regular expressions to parse git log line.
 var (
 	gitLogLineRX = regexp.MustCompile(`([0-9a-f]+) \((.*)\) (\d+) (.*)`)
-	gitLogTagRX  = regexp.MustCompile(`tag: (.*),?`)
+	gitLogTagRX  = regexp.MustCompile(`tag: ([^,]+)`)
 )
 
 // NewGitCommit parses git commit line. The expected line formats:
