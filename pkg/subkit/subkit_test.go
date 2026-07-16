@@ -11,17 +11,17 @@ import (
 	"github.com/ctx42/testing/pkg/assert"
 )
 
-// Constants used during subProcess testing.
+// Constants used during SubProcess testing.
 const (
-	// testSubprocessFail represents an environment variable which value is
-	// used during subProcess instance testing. When set to "1" the subprocess
+	// testSubProcFail represents an environment variable which value is
+	// used during SubProcess instance testing. When set to "1" the subprocess
 	// test should fail, if not set or set to "0" subprocess should succeed.
-	TestSubProcFail = "TEST_SUBPROCESS_FAIL"
+	testSubProcFail = "TEST_SUBPROCESS_FAIL"
 
-	// TestSubProcValue represents an environment variable which value is
-	// used during subProcess instance testing. Its value is always printed by
-	//  a test running in a subprocess.
-	TestSubProcValue = "TEST_SUBPROCESS_VALUE"
+	// testSubProcValue represents an environment variable which value is
+	// used during SubProcess instance testing. Its value is always printed by
+	// a test running in a subprocess.
+	testSubProcValue = "TEST_SUBPROCESS_VALUE"
 )
 
 func Test_SubProcess(t *testing.T) {
@@ -29,21 +29,23 @@ func Test_SubProcess(t *testing.T) {
 		// --- Given ---
 		sub := New(t.Name())
 		if sub.InMainProcess() {
-			t.Setenv(TestSubProcFail, "0")
-			t.Setenv(TestSubProcValue, "123")
-			// --- TEST SUBPROCESS OUTPUT AND ERROR ---
+			t.Setenv(testSubProcFail, "0")
+			t.Setenv(testSubProcValue, "123")
+
+			// --- When ---
 			sout, eout, err := sub.Run()
+
+			// --- Then ---
 			assert.NoError(t, err)
-			wMsg := fmt.Sprintf("%s: %s", TestSubProcValue, "123")
+			wMsg := fmt.Sprintf("%s: %s", testSubProcValue, "123")
 			assert.Contain(t, wMsg, sout)
 			assert.Empty(t, eout)
 			return
 		}
-		// --- IN SUBPROCESS ---
 
-		// --- Then ---
-		t.Logf("%s: %s", TestSubProcValue, os.Getenv(TestSubProcValue))
-		if val := os.Getenv(TestSubProcFail); val == "1" {
+		// In the subprocess run the code under test.
+		t.Logf("%s: %s", testSubProcValue, os.Getenv(testSubProcValue))
+		if val := os.Getenv(testSubProcFail); val == "1" {
 			t.Error("subprocess test asked to fail")
 		}
 	})
@@ -52,27 +54,40 @@ func Test_SubProcess(t *testing.T) {
 		// --- Given ---
 		sub := New(t.Name())
 		if sub.InMainProcess() {
-			t.Setenv(TestSubProcFail, "1")
-			t.Setenv(TestSubProcValue, "123")
-			// --- TEST SUBPROCESS OUTPUT AND ERROR ---
+			t.Setenv(testSubProcFail, "1")
+			t.Setenv(testSubProcValue, "123")
+
+			// --- When ---
 			sout, eout, err := sub.Run()
+
+			// --- Then ---
 			assert.ExitCode(t, 1, err)
-			wMsg := fmt.Sprintf("%s: %s", TestSubProcValue, "123")
+			wMsg := fmt.Sprintf("%s: %s", testSubProcValue, "123")
 			assert.Contain(t, wMsg, sout)
 			assert.Empty(t, eout)
 			return
 		}
-		// --- IN SUBPROCESS ---
 
-		// --- Then ---
-		t.Logf("%s: %s", TestSubProcValue, os.Getenv(TestSubProcValue))
-		if val := os.Getenv(TestSubProcFail); val == "1" {
+		// In the subprocess run the code under test.
+		t.Logf("%s: %s", testSubProcValue, os.Getenv(testSubProcValue))
+		if val := os.Getenv(testSubProcFail); val == "1" {
 			t.Error("subprocess test asked to fail")
 		}
 	})
 }
 
-func Test_subProcess_InSubProcess_InMainProcess(t *testing.T) {
+func Test_NewPkg(t *testing.T) {
+	t.Run("ok", func(t *testing.T) {
+		// --- When ---
+		sub := NewPkg("github.com/ctx42/testkit/pkg/subkit")
+
+		// --- Then ---
+		assert.Equal(t, "github.com/ctx42/testkit/pkg/subkit", sub.name)
+		assert.True(t, sub.pkg)
+	})
+}
+
+func Test_SubProcess_InSubProcess_InMainProcess(t *testing.T) {
 	t.Run("in subprocess", func(t *testing.T) {
 		// --- Given ---
 		name := "TEST_NAME_IN"
@@ -103,18 +118,7 @@ func Test_subProcess_InSubProcess_InMainProcess(t *testing.T) {
 	})
 }
 
-func Test_NewPkg(t *testing.T) {
-	t.Run("ok", func(t *testing.T) {
-		// --- When ---
-		sub := NewPkg("github.com/ctx42/testkit/pkg/subkit")
-
-		// --- Then ---
-		assert.Equal(t, "github.com/ctx42/testkit/pkg/subkit", sub.name)
-		assert.True(t, sub.pkg)
-	})
-}
-
-func Test_subProcess_envName(t *testing.T) {
+func Test_SubProcess_envName(t *testing.T) {
 	t.Run("test name", func(t *testing.T) {
 		// --- Given ---
 		name := "TEST_NAME_NOT_IN"
