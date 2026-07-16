@@ -209,7 +209,7 @@ func Test_HandleFunc(t *testing.T) {
 		assert.Equal(t, want, rsp.Header.Values("CALL"))
 	})
 
-	t.Run("server closed at test end", func(t *testing.T) {
+	t.Run("error - server closed at test end", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
 		tspy.ExpectCleanups(1)
@@ -325,7 +325,7 @@ func Test_Handle(t *testing.T) {
 		assert.Equal(t, []string{"fn", "val"}, rsp.Header.Values("CALL"))
 	})
 
-	t.Run("server closed at test end", func(t *testing.T) {
+	t.Run("error - server closed at test end", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
 		tspy.ExpectCleanups(1)

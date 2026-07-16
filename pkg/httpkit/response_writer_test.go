@@ -20,16 +20,16 @@ func Test_RespWriter_Header(t *testing.T) {
 
 		rec := httptest.NewRecorder()
 		rec.Header().Set("A", "1")
-		cr := NewRespWriter(tspy, rec)
+		rsw := NewRespWriter(tspy, rec)
 
 		// --- When ---
-		have := cr.Header()
+		have := rsw.Header()
 
 		// --- Then ---
 		assert.Equal(t, "1", have.Get("A"))
 	})
 
-	t.Run("headers already written", func(t *testing.T) {
+	t.Run("error - headers already written", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
 		tspy.ExpectError()
@@ -40,11 +40,11 @@ func Test_RespWriter_Header(t *testing.T) {
 
 		rec := httptest.NewRecorder()
 		rec.Header().Set("A", "1")
-		cr := NewRespWriter(tspy, rec)
-		_, _ = cr.Write([]byte{1, 2, 3})
+		rsw := NewRespWriter(tspy, rec)
+		_, _ = rsw.Write([]byte{1, 2, 3})
 
 		// --- When ---
-		have := cr.Header()
+		have := rsw.Header()
 
 		// --- Then ---
 		assert.Equal(t, "1", have.Get("A"))
@@ -57,16 +57,16 @@ func Test_RespWriter_Write(t *testing.T) {
 	tspy.Close()
 
 	rec := httptest.NewRecorder()
-	cr := NewRespWriter(tspy, rec)
+	rsw := NewRespWriter(tspy, rec)
 
 	// --- When ---
-	have, err := cr.Write([]byte{1, 2, 3})
+	have, err := rsw.Write([]byte{1, 2, 3})
 
 	// --- Then ---
 	assert.NoError(t, err)
 	assert.Equal(t, 3, have)
 	assert.Equal(t, "\x01\x02\x03", rec.Body.String())
-	assert.True(t, cr.written)
+	assert.True(t, rsw.written)
 }
 
 func Test_RespWriter_WriteHeader(t *testing.T) {
@@ -77,17 +77,17 @@ func Test_RespWriter_WriteHeader(t *testing.T) {
 
 		rec := httptest.NewRecorder()
 		rec.Header().Set("A", "1")
-		cr := NewRespWriter(tspy, rec)
+		rsw := NewRespWriter(tspy, rec)
 
 		// --- When ---
-		cr.WriteHeader(404)
+		rsw.WriteHeader(404)
 
 		// --- Then ---
 		assert.Equal(t, "1", rec.Header().Get("A"))
 		assert.Equal(t, 404, rec.Code)
 	})
 
-	t.Run("headers already written", func(t *testing.T) {
+	t.Run("error - headers already written", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
 		tspy.ExpectError()
@@ -99,11 +99,11 @@ func Test_RespWriter_WriteHeader(t *testing.T) {
 
 		rec := httptest.NewRecorder()
 		rec.Header().Set("A", "1")
-		cr := NewRespWriter(tspy, rec)
-		_, _ = cr.Write([]byte{1, 2, 3})
+		rsw := NewRespWriter(tspy, rec)
+		_, _ = rsw.Write([]byte{1, 2, 3})
 
 		// --- When ---
-		cr.WriteHeader(404)
+		rsw.WriteHeader(404)
 
 		// --- Then ---
 		assert.Equal(t, "1", rec.Header().Get("A"))
@@ -130,7 +130,7 @@ func Test_RespWriterMW(t *testing.T) {
 		assert.Equal(t, "h0 ", rec.Body.String())
 	})
 
-	t.Run("error setting status twice", func(t *testing.T) {
+	t.Run("error - setting status twice", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
 		tspy.ExpectError()

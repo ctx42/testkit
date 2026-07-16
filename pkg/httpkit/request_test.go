@@ -101,7 +101,7 @@ func Test_Request_Get(t *testing.T) {
 		assert.Equal(t, "key0=val0&key1=val1", have)
 	})
 
-	t.Run("failure 400", func(t *testing.T) {
+	t.Run("error - status 400", func(t *testing.T) {
 		// --- Given ---
 		handler := func(w http.ResponseWriter, req *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
@@ -127,7 +127,8 @@ func Test_Request_Get(t *testing.T) {
 		assert.Equal(t, "FAIL", have)
 	})
 
-	t.Run("invalid url", func(t *testing.T) {
+	t.Run("error - invalid url", func(t *testing.T) {
+		// --- Given ---
 		tspy := tester.New(t)
 		tspy.ExpectError()
 		tspy.ExpectLogContain("invalid character \" \" in host name")
@@ -166,7 +167,8 @@ func Test_Request_GetHeaders(t *testing.T) {
 		assert.Equal(t, wHds, have)
 	})
 
-	t.Run("invalid url", func(t *testing.T) {
+	t.Run("error - invalid url", func(t *testing.T) {
+		// --- Given ---
 		tspy := tester.New(t)
 		tspy.ExpectError()
 		tspy.ExpectLogContain("invalid character \" \" in host name")
@@ -267,7 +269,7 @@ func Test_Request_get(t *testing.T) {
 		assert.NoError(t, have.Body.Close())
 	})
 
-	t.Run("timeout", func(t *testing.T) {
+	t.Run("error - timeout", func(t *testing.T) {
 		// --- Given ---
 		handler := func(w http.ResponseWriter, req *http.Request) {
 			w.WriteHeader(http.StatusOK)
@@ -291,7 +293,8 @@ func Test_Request_get(t *testing.T) {
 		assert.Nil(t, have)
 	})
 
-	t.Run("connection refused", func(t *testing.T) {
+	t.Run("error - connection refused", func(t *testing.T) {
+		// --- Given ---
 		srv := httptest.NewServer(http.HandlerFunc(nil))
 		url := srv.URL
 		srv.Close()
@@ -310,7 +313,8 @@ func Test_Request_get(t *testing.T) {
 		assert.Nil(t, have)
 	})
 
-	t.Run("invalid url", func(t *testing.T) {
+	t.Run("error - invalid url", func(t *testing.T) {
+		// --- Given ---
 		tspy := tester.New(t)
 		tspy.ExpectError()
 		tspy.ExpectLogEqual("Get \"https:\\\\\": http: no Host in request URL")
@@ -341,16 +345,22 @@ func Test_IsConnRefused(t *testing.T) {
 	})
 
 	t.Run("is not", func(t *testing.T) {
+		// --- Given ---
+		err := errors.New("test error")
+
 		// --- When ---
-		have := IsConnRefused(errors.New("test error"))
+		have := IsConnRefused(err)
 
 		// --- Then ---
 		assert.False(t, have)
 	})
 
 	t.Run("nil", func(t *testing.T) {
+		// --- Given ---
+		var err error
+
 		// --- When ---
-		have := IsConnRefused(nil)
+		have := IsConnRefused(err)
 
 		// --- Then ---
 		assert.False(t, have)
