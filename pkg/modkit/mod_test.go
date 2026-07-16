@@ -86,7 +86,7 @@ func Test_Tmp(t *testing.T) {
 		assert.NoDirExist(t, have)
 	})
 
-	t.Run("subs must not be empty slice", func(t *testing.T) {
+	t.Run("error - subs must not be empty slice", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
 		tspy.ExpectFail()
@@ -94,13 +94,13 @@ func Test_Tmp(t *testing.T) {
 		tspy.Close()
 
 		// --- When ---
-		got := Tmp(tspy, "dir", "")
+		have := Tmp(tspy, "dir", "")
 
 		// --- Then ---
-		assert.Equal(t, "", got)
+		assert.Equal(t, "", have)
 	})
 
-	t.Run("sub mut not be empty", func(t *testing.T) {
+	t.Run("error - sub must not be empty", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
 		tspy.ExpectFail()
@@ -108,34 +108,11 @@ func Test_Tmp(t *testing.T) {
 		tspy.Close()
 
 		// --- When ---
-		got := Tmp(tspy, "")
+		have := Tmp(tspy, "")
 
 		// --- Then ---
-		assert.Equal(t, "", got)
+		assert.Equal(t, "", have)
 	})
-}
-
-func Test_ModVer_tabular(t *testing.T) {
-	tt := []struct {
-		testN string
-
-		pkg string
-		exp string
-	}{
-		{"1", "github.com/dave/jennifer", "v1.5.0"},
-		{"2", "github.com/davecgh/go-spew", "v1.1.1"},
-	}
-
-	for _, tc := range tt {
-		t.Run(tc.testN, func(t *testing.T) {
-			// --- When ---
-			ver, err := ModVer("testdata/mod/go.mod.example", tc.pkg)
-
-			// --- Then ---
-			assert.NoError(t, err)
-			assert.Equal(t, tc.exp, ver)
-		})
-	}
 }
 
 func Test_Ver(t *testing.T) {
@@ -162,7 +139,7 @@ func Test_Ver(t *testing.T) {
 }
 
 func Test_ModVer(t *testing.T) {
-	t.Run("invalid file", func(t *testing.T) {
+	t.Run("error - invalid file", func(t *testing.T) {
 		// --- Given ---
 		pth := "testdata/mod/go.mod.invalid"
 
@@ -174,7 +151,7 @@ func Test_ModVer(t *testing.T) {
 		assert.Empty(t, ver)
 	})
 
-	t.Run("multiple candidates", func(t *testing.T) {
+	t.Run("error - multiple candidates", func(t *testing.T) {
 		// --- Given ---
 		pth := "testdata/mod/go.mod.multiple"
 
@@ -198,7 +175,7 @@ func Test_ModVer(t *testing.T) {
 		assert.Empty(t, ver)
 	})
 
-	t.Run("invalid file path", func(t *testing.T) {
+	t.Run("error - invalid file path", func(t *testing.T) {
 		// --- Given ---
 		pth := "testdata/mod/not_existing"
 
@@ -209,6 +186,29 @@ func Test_ModVer(t *testing.T) {
 		assert.ErrorIs(t, fs.ErrNotExist, err)
 		assert.Empty(t, ver)
 	})
+}
+
+func Test_ModVer_tabular(t *testing.T) {
+	tt := []struct {
+		testN string
+
+		pkg string
+		exp string
+	}{
+		{"1", "github.com/dave/jennifer", "v1.5.0"},
+		{"2", "github.com/davecgh/go-spew", "v1.1.1"},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.testN, func(t *testing.T) {
+			// --- When ---
+			ver, err := ModVer("testdata/mod/go.mod.example", tc.pkg)
+
+			// --- Then ---
+			assert.NoError(t, err)
+			assert.Equal(t, tc.exp, ver)
+		})
+	}
 }
 
 func Test_GoVer(t *testing.T) {
@@ -224,7 +224,7 @@ func Test_GoVer(t *testing.T) {
 		assert.Equal(t, "1.17", ver)
 	})
 
-	t.Run("invalid file", func(t *testing.T) {
+	t.Run("error - invalid file", func(t *testing.T) {
 		// --- Given ---
 		pth := "testdata/mod/go.mod.no-go-version"
 
@@ -236,7 +236,7 @@ func Test_GoVer(t *testing.T) {
 		assert.Empty(t, ver)
 	})
 
-	t.Run("multiple candidates", func(t *testing.T) {
+	t.Run("error - multiple candidates", func(t *testing.T) {
 		// --- Given ---
 		pth := "testdata/mod/go.mod.multiple-go-versions"
 
@@ -248,7 +248,7 @@ func Test_GoVer(t *testing.T) {
 		assert.Empty(t, ver)
 	})
 
-	t.Run("invalid file path", func(t *testing.T) {
+	t.Run("error - invalid file path", func(t *testing.T) {
 		// --- Given ---
 		pth := "testdata/mod/not_existing"
 
