@@ -18,7 +18,7 @@ func Test_ErrWriteCloser(t *testing.T) {
 		// --- Given ---
 		pth := filepath.Join(t.TempDir(), "file.txt")
 		dst := must.Value(os.Create(pth))
-		defer t.Cleanup(func() { _ = dst.Close() })
+		t.Cleanup(func() { _ = dst.Close() })
 
 		// --- When ---
 		have := ErrWriteCloser(dst, 42)
@@ -35,7 +35,7 @@ func Test_ErrWriteCloser(t *testing.T) {
 		// --- Given ---
 		pth := filepath.Join(t.TempDir(), "file.txt")
 		dst := must.Value(os.Create(pth))
-		defer t.Cleanup(func() { _ = dst.Close() })
+		t.Cleanup(func() { _ = dst.Close() })
 
 		// --- When ---
 		have := ErrWriteCloser(dst, -1)
@@ -53,7 +53,7 @@ func Test_ErrWriteCloser(t *testing.T) {
 		custom := errors.New("my error")
 		pth := filepath.Join(t.TempDir(), "file.txt")
 		dst := must.Value(os.Create(pth))
-		defer t.Cleanup(func() { _ = dst.Close() })
+		t.Cleanup(func() { _ = dst.Close() })
 
 		// --- When ---
 		have := ErrWriteCloser(dst, 42, WithWriteErr(custom))

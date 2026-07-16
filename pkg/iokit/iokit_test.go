@@ -13,6 +13,8 @@ import (
 	"github.com/ctx42/testing/pkg/assert"
 	"github.com/ctx42/testing/pkg/must"
 	"github.com/ctx42/testing/pkg/tester"
+
+	"github.com/ctx42/testkit/pkg/oskit"
 )
 
 func Test_ReadAll(t *testing.T) {
@@ -24,10 +26,10 @@ func Test_ReadAll(t *testing.T) {
 		rdr := strings.NewReader("content")
 
 		// --- When ---
-		got := ReadAll(tspy, rdr)
+		have := ReadAll(tspy, rdr)
 
 		// --- Then ---
-		assert.Equal(t, "content", string(got))
+		assert.Equal(t, "content", string(have))
 	})
 
 	t.Run("error from reader", func(t *testing.T) {
@@ -40,10 +42,10 @@ func Test_ReadAll(t *testing.T) {
 		rdr := ErrReader(strings.NewReader("content"), 1)
 
 		// --- When ---
-		got := ReadAll(tspy, rdr)
+		have := ReadAll(tspy, rdr)
 
 		// --- Then ---
-		assert.Equal(t, []byte{byte('c')}, got)
+		assert.Equal(t, []byte{byte('c')}, have)
 	})
 
 	t.Run("close is called", func(t *testing.T) {
@@ -54,11 +56,11 @@ func Test_ReadAll(t *testing.T) {
 		fil := must.Value(os.Open("testdata/file.txt"))
 
 		// --- When ---
-		got := ReadAll(tspy, fil)
+		have := ReadAll(tspy, fil)
 
 		// --- Then ---
 		tspy.Finish().AssertExpectations()
-		assert.Equal(t, []byte("content"), got)
+		assert.Equal(t, []byte("content"), have)
 		wMsg := "close testdata/file.txt: file already closed"
 		assert.ErrorEqual(t, wMsg, fil.Close())
 	})
@@ -73,10 +75,10 @@ func Test_ReadAllStr(t *testing.T) {
 		rdr := strings.NewReader("content")
 
 		// --- When ---
-		got := ReadAllStr(tspy, rdr)
+		have := ReadAllStr(tspy, rdr)
 
 		// --- Then ---
-		assert.Equal(t, "content", got)
+		assert.Equal(t, "content", have)
 	})
 
 	t.Run("error from reader", func(t *testing.T) {
@@ -89,10 +91,10 @@ func Test_ReadAllStr(t *testing.T) {
 		rdr := ErrReader(strings.NewReader("content"), 1)
 
 		// --- When ---
-		got := ReadAllStr(tspy, rdr)
+		have := ReadAllStr(tspy, rdr)
 
 		// --- Then ---
-		assert.Equal(t, "c", got)
+		assert.Equal(t, "c", have)
 	})
 
 	t.Run("close is called", func(t *testing.T) {
@@ -103,11 +105,11 @@ func Test_ReadAllStr(t *testing.T) {
 		fil := must.Value(os.Open("testdata/file.txt"))
 
 		// --- When ---
-		got := ReadAllStr(tspy, fil)
+		have := ReadAllStr(tspy, fil)
 
 		// --- Then ---
 		tspy.Finish().AssertExpectations()
-		assert.Equal(t, "content", got)
+		assert.Equal(t, "content", have)
 		wMsg := "close testdata/file.txt: file already closed"
 		assert.ErrorEqual(t, wMsg, fil.Close())
 	})
@@ -132,7 +134,7 @@ func Test_Offset(t *testing.T) {
 	// --- Given ---
 	pth := filepath.Join(t.TempDir(), "test_file.txt")
 	content := "line1\nline2\nend"
-	must.Nil(os.WriteFile(pth, []byte(content), 0600))
+	oskit.Create(t, content, pth)
 
 	fil := must.Value(os.Open(pth))
 	must.Value(fil.Read(make([]byte, 3)))
@@ -148,7 +150,7 @@ func Test_Seek(t *testing.T) {
 	// --- Given ---
 	pth := filepath.Join(t.TempDir(), "test_file.txt")
 	content := "line1\nline2\nend"
-	must.Nil(os.WriteFile(pth, []byte(content), 0600))
+	oskit.Create(t, content, pth)
 
 	fil := must.Value(os.Open(pth))
 
