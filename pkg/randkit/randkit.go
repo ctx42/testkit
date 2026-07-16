@@ -14,24 +14,27 @@ import (
 	"strings"
 )
 
-// Uppercase is the list of uppercase letters.
-const Uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+// Character sets used to generate random strings.
+const (
+	// Uppercase is the list of uppercase letters.
+	Uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-// Lowercase is the list of lowercase letters.
-const Lowercase = "abcdefghijklmnopqrstuvwxyz"
+	// Lowercase is the list of lowercase letters.
+	Lowercase = "abcdefghijklmnopqrstuvwxyz"
 
-// Letters list of lowercase and uppercase letters.
-const Letters = Lowercase + Uppercase
+	// Letters is a list of lowercase and uppercase letters.
+	Letters = Lowercase + Uppercase
 
-// Digits is a list of digits 0 to 9.
-const Digits = "0123456789"
+	// Digits is a list of digits 0 to 9.
+	Digits = "0123456789"
+)
 
 // WithChars is a [Str] option setting the list of characters to use when
 // generating random strings. All passed strings are concatenated in the
 // order they were passed.
 func WithChars(list ...string) func(*options) {
-	return func(opts *options) {
-		opts.chars = strings.Join(list, "")
+	return func(opt *options) {
+		opt.chars = strings.Join(list, "")
 	}
 }
 
@@ -53,10 +56,9 @@ func WithLen(n int) func(*options) {
 	return func(opt *options) { opt.n = n }
 }
 
-// WithSeed replaces the global [math/rand/v2] source with a deterministic
-// ChaCha8 PRNG seeded by seed. Use only when a test must assert exact
-// generated values — never in production code where unpredictability is
-// required.
+// WithSeed sets this call's source to a deterministic ChaCha8 PRNG seeded
+// by seed. Use only when a test must assert exact generated values — never
+// in production code where unpredictability is required.
 func WithSeed(seed int64) func(*options) {
 	return func(opt *options) { opt.rng = seededRand(seed) }
 }
@@ -72,7 +74,8 @@ type options struct {
 
 // Str returns a random string based on provided options. When no options
 // are given, the generated string will be 10 characters long containing
-// only letters.
+// only letters. It panics if the character set is empty
+// (e.g. WithChars("")).
 func Str(opts ...func(*options)) string {
 	def := options{
 		chars: Letters,
@@ -102,7 +105,8 @@ func FileName(dir string, opts ...func(*options)) string {
 	return filepath.Join(dir, name)
 }
 
-// Int generates a random integer in the range [1, max].
+// Int generates a random integer in the range [1, max]. It panics if
+// maximum is not positive.
 func Int(maximum int, opts ...func(*options)) int {
 	def := options{rng: globalRand}
 	for _, opt := range opts {
@@ -143,7 +147,7 @@ func seededRand(seed int64) func(n int) int {
 	r := mrand.New(src)
 	return func(n int) int {
 		if n <= 0 {
-			panic("invalid argument to RandIntn: n must be > 0")
+			panic("randkit: n must be > 0")
 		}
 		return r.IntN(n)
 	}

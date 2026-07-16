@@ -131,9 +131,9 @@ fmt.Println(randkit.Password(16, randkit.WithSeed(1)))
 
 ### WithSeed
 
-`WithSeed` replaces the global PRNG with a deterministic ChaCha8
-source, making the output reproducible for a given seed. Use it when
-a test needs to assert exact generated values:
+`WithSeed` sets this call's source to a deterministic ChaCha8 PRNG
+seeded by the given seed, making the output reproducible for a given
+seed. Use it when a test needs to assert exact generated values:
 
 ```go
 func TestMyFeature(t *testing.T) {
