@@ -30,11 +30,11 @@ func ExampleSelf_Run_toStdout() {
 	args := []string{"prog", "--toStdout", "hello", "--toStderr", "world"}
 
 	se := selfkit.New(selfkit.WithArgs(args))
-	testsRun, _ := se.Run(&sout, &eout)
+	runTests, _ := se.Run(&sout, &eout)
 
 	fmt.Println(sout.String())
 	fmt.Println(eout.String())
-	fmt.Println(testsRun)
+	fmt.Println(runTests)
 	// Output:
 	// |sout: hello|
 	// |eout: world|
@@ -61,9 +61,9 @@ func ExampleSelf_Run_printEnv() {
 	args := []string{"prog", "--printEnv", "MY_VAR"}
 
 	se := selfkit.New(selfkit.WithArgs(args))
-	testsRun, _ := se.Run(&sout, io.Discard)
+	runTests, _ := se.Run(&sout, io.Discard)
 
-	fmt.Println(testsRun)
+	fmt.Println(runTests)
 	fmt.Println(sout.String())
 	// Output:
 	// false
@@ -75,7 +75,7 @@ func ExampleSelf_Run_printArgs() {
 	args := []string{"prog", "--printArgs", "label", "arg1", "arg2"}
 
 	se := selfkit.New(selfkit.WithArgs(args))
-	se.Run(&sout, io.Discard)
+	_, _ = se.Run(&sout, io.Discard)
 
 	fmt.Println(sout.String())
 	// Output:
@@ -87,7 +87,7 @@ func ExampleSelf_Run_noWrap() {
 	args := []string{"prog", "--noWrap", "--toStdout", "hello"}
 
 	se := selfkit.New(selfkit.WithArgs(args))
-	se.Run(&sout, io.Discard)
+	_, _ = se.Run(&sout, io.Discard)
 
 	fmt.Println(sout.String())
 	// Output:
@@ -101,7 +101,7 @@ func ExampleSelf_Run_printToStderr() {
 	args := []string{"prog", "--printToStderr", "--printEnv", "MY_VAR"}
 
 	se := selfkit.New(selfkit.WithArgs(args))
-	se.Run(io.Discard, &eout)
+	_, _ = se.Run(io.Discard, &eout)
 
 	fmt.Println(eout.String())
 	// Output:

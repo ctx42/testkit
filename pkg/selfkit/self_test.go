@@ -15,28 +15,31 @@ import (
 func Test_WithArgs(t *testing.T) {
 	// --- Given ---
 	args := []string{"arg0", "arg1"}
-	se := &Self{}
+	slf := &Self{}
 
 	// --- When ---
-	WithArgs(args)(se)
+	WithArgs(args)(slf)
 
 	// --- Then ---
-	assert.Equal(t, []string{"arg0", "arg1"}, se.args)
+	assert.Equal(t, []string{"arg0", "arg1"}, slf.args)
 }
 
 func Test_New(t *testing.T) {
 	t.Run("empty args", func(t *testing.T) {
+		// --- Given ---
+		args := []string{}
+
 		// --- When ---
-		se := New(WithArgs([]string{}))
+		slf := New(WithArgs(args))
 
 		// --- Then ---
-		assert.Equal(t, "", se.toStdout)
-		assert.Equal(t, "", se.toStderr)
-		assert.Equal(t, "", se.printEnv)
-		assert.Equal(t, "", se.printArgs)
-		assert.False(t, se.printToStderr)
-		assert.False(t, se.noWrap)
-		assert.Equal(t, -1, se.exitCode)
+		assert.Equal(t, "", slf.toStdout)
+		assert.Equal(t, "", slf.toStderr)
+		assert.Equal(t, "", slf.printEnv)
+		assert.Equal(t, "", slf.printArgs)
+		assert.False(t, slf.printToStderr)
+		assert.False(t, slf.noWrap)
+		assert.Equal(t, -1, slf.exitCode)
 	})
 
 	t.Run("unknown arg", func(t *testing.T) {
@@ -44,16 +47,16 @@ func Test_New(t *testing.T) {
 		args := []string{"program", "--unknown", "abc"}
 
 		// --- When ---
-		se := New(WithArgs(args))
+		slf := New(WithArgs(args))
 
 		// --- Then ---
-		assert.Equal(t, "", se.toStdout)
-		assert.Equal(t, "", se.toStderr)
-		assert.Equal(t, "", se.printEnv)
-		assert.Equal(t, "", se.printArgs)
-		assert.False(t, se.printToStderr)
-		assert.False(t, se.noWrap)
-		assert.Equal(t, -1, se.exitCode)
+		assert.Equal(t, "", slf.toStdout)
+		assert.Equal(t, "", slf.toStderr)
+		assert.Equal(t, "", slf.printEnv)
+		assert.Equal(t, "", slf.printArgs)
+		assert.False(t, slf.printToStderr)
+		assert.False(t, slf.noWrap)
+		assert.Equal(t, -1, slf.exitCode)
 	})
 
 	t.Run("set toStdout", func(t *testing.T) {
@@ -61,10 +64,10 @@ func Test_New(t *testing.T) {
 		args := []string{"program", "--toStdout", "abc"}
 
 		// --- When ---
-		se := New(WithArgs(args))
+		slf := New(WithArgs(args))
 
 		// --- Then ---
-		assert.Equal(t, "abc", se.toStdout)
+		assert.Equal(t, "abc", slf.toStdout)
 	})
 
 	t.Run("set toStderr", func(t *testing.T) {
@@ -72,10 +75,10 @@ func Test_New(t *testing.T) {
 		args := []string{"program", "--toStderr", "abc"}
 
 		// --- When ---
-		se := New(WithArgs(args))
+		slf := New(WithArgs(args))
 
 		// --- Then ---
-		assert.Equal(t, "abc", se.toStderr)
+		assert.Equal(t, "abc", slf.toStderr)
 	})
 
 	t.Run("set printEnv", func(t *testing.T) {
@@ -83,10 +86,10 @@ func Test_New(t *testing.T) {
 		args := []string{"program", "--printEnv", "abc"}
 
 		// --- When ---
-		se := New(WithArgs(args))
+		slf := New(WithArgs(args))
 
 		// --- Then ---
-		assert.Equal(t, "abc", se.printEnv)
+		assert.Equal(t, "abc", slf.printEnv)
 	})
 
 	t.Run("set printToStderr", func(t *testing.T) {
@@ -94,10 +97,10 @@ func Test_New(t *testing.T) {
 		args := []string{"program", "--printToStderr"}
 
 		// --- When ---
-		se := New(WithArgs(args))
+		slf := New(WithArgs(args))
 
 		// --- Then ---
-		assert.True(t, se.printToStderr)
+		assert.True(t, slf.printToStderr)
 	})
 
 	t.Run("set noWrap", func(t *testing.T) {
@@ -105,10 +108,10 @@ func Test_New(t *testing.T) {
 		args := []string{"program", "--noWrap"}
 
 		// --- When ---
-		se := New(WithArgs(args))
+		slf := New(WithArgs(args))
 
 		// --- Then ---
-		assert.True(t, se.noWrap)
+		assert.True(t, slf.noWrap)
 	})
 
 	t.Run("set printArgs", func(t *testing.T) {
@@ -116,10 +119,10 @@ func Test_New(t *testing.T) {
 		args := []string{"program", "--printArgs", "abc"}
 
 		// --- When ---
-		se := New(WithArgs(args))
+		slf := New(WithArgs(args))
 
 		// --- Then ---
-		assert.Equal(t, "abc", se.printArgs)
+		assert.Equal(t, "abc", slf.printArgs)
 	})
 }
 
