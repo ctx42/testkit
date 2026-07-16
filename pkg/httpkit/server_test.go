@@ -177,3 +177,155 @@ func Test_Server_smokeTest(t *testing.T) {
 		tspy.Finish().AssertExpectations()
 	})
 }
+
+func Test_Server_Delay(t *testing.T) {
+	t.Run("error - no response defined", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.ExpectError()
+		tspy.ExpectLogEqual("you need to define response first")
+		tspy.ExpectCleanups(1)
+		tspy.Close()
+
+		srv := NewServer(tspy)
+
+		// --- When ---
+		have := srv.Delay(time.Second)
+
+		// --- Then ---
+		assert.Same(t, srv, have)
+	})
+}
+
+func Test_Server_Header(t *testing.T) {
+	t.Run("error - no response defined", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.ExpectError()
+		tspy.ExpectLogEqual("you need to define a response first")
+		tspy.ExpectCleanups(1)
+		tspy.Close()
+
+		srv := NewServer(tspy)
+
+		// --- When ---
+		have := srv.Header("X-Mine", "ABC")
+
+		// --- Then ---
+		assert.Same(t, srv, have)
+	})
+}
+
+func Test_Server_Request(t *testing.T) {
+	t.Run("error - index out of range", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.ExpectError()
+		tspy.ExpectLogEqual("no request with index %d recorded", 5)
+		tspy.ExpectCleanups(1)
+		tspy.Close()
+
+		srv := NewServer(tspy)
+
+		// --- When ---
+		have := srv.Request(5)
+
+		// --- Then ---
+		assert.Nil(t, have)
+	})
+}
+
+func Test_Server_Values(t *testing.T) {
+	t.Run("error - index out of range", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.ExpectError()
+		tspy.ExpectLogEqual("no request with index %d recorded", 5)
+		tspy.ExpectCleanups(1)
+		tspy.Close()
+
+		srv := NewServer(tspy)
+
+		// --- When ---
+		have := srv.Values(5)
+
+		// --- Then ---
+		assert.Nil(t, have)
+	})
+}
+
+func Test_Server_Body(t *testing.T) {
+	t.Run("error - index out of range", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.ExpectError()
+		tspy.ExpectLogEqual("no request with index %d recorded", 5)
+		tspy.ExpectCleanups(1)
+		tspy.Close()
+
+		srv := NewServer(tspy)
+
+		// --- When ---
+		have := srv.Body(5)
+
+		// --- Then ---
+		assert.Nil(t, have)
+	})
+}
+
+func Test_Server_Headers(t *testing.T) {
+	t.Run("error - index out of range", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.ExpectError()
+		tspy.ExpectLogEqual("no request with index %d recorded", 5)
+		tspy.ExpectCleanups(1)
+		tspy.Close()
+
+		srv := NewServer(tspy)
+
+		// --- When ---
+		have := srv.Headers(5)
+
+		// --- Then ---
+		assert.Nil(t, have)
+	})
+}
+
+func Test_Server_next(t *testing.T) {
+	t.Run("error - exhausted responses", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.ExpectError()
+		tspy.ExpectLogEqual("no more responses to give")
+		tspy.ExpectCleanups(1)
+		tspy.Close()
+
+		srv := NewServer(tspy)
+
+		// --- When ---
+		have := srv.next()
+
+		// --- Then ---
+		assert.Equal(t, 0, have.status)
+	})
+}
+
+func Test_Server_Close(t *testing.T) {
+	t.Run("idempotent", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.ExpectCleanups(1)
+		tspy.Close()
+
+		srv := NewServer(tspy)
+
+		// --- When ---
+		err0 := srv.Close()
+		err1 := srv.Close()
+
+		// --- Then ---
+		assert.NoError(t, err0)
+		assert.NoError(t, err1)
+	})
+}
