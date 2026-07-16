@@ -95,68 +95,6 @@ func Test_WithLen(t *testing.T) {
 	assert.Equal(t, want, def)
 }
 
-func Test_seededRand(t *testing.T) {
-	t.Run("is deterministic", func(t *testing.T) {
-		// --- When ---
-		a := seededRand(42)
-		b := seededRand(42)
-
-		// --- Then ---
-		for range 100 {
-			assert.Equal(t, a(52), b(52))
-		}
-	})
-
-	t.Run("different seeds differ", func(t *testing.T) {
-		// --- When ---
-		a := seededRand(1)
-		b := seededRand(2)
-
-		// --- Then ---
-		differ := false
-		for range 100 {
-			if a(1000) != b(1000) {
-				differ = true
-				break
-			}
-		}
-		assert.True(t, differ)
-	})
-
-	t.Run("panics on zero", func(t *testing.T) {
-		assert.PanicContain(t, "n must be > 0", func() { seededRand(1)(0) })
-	})
-
-	t.Run("panics on negative", func(t *testing.T) {
-		assert.PanicContain(t, "n must be > 0", func() { seededRand(1)(-1) })
-	})
-}
-
-func Test_seedToBytes(t *testing.T) {
-	t.Run("is deterministic", func(t *testing.T) {
-		assert.Equal(t, seedToBytes(42), seedToBytes(42))
-	})
-
-	t.Run("different seeds differ", func(t *testing.T) {
-		assert.NotEqual(t, seedToBytes(1), seedToBytes(2))
-	})
-
-	t.Run("encodes seed as little-endian in first 8 bytes", func(t *testing.T) {
-		// --- When ---
-		b := seedToBytes(0x0102030405060708)
-
-		// --- Then ---
-		assert.Equal(t, byte(0x08), b[0])
-		assert.Equal(t, byte(0x07), b[1])
-		assert.Equal(t, byte(0x06), b[2])
-		assert.Equal(t, byte(0x05), b[3])
-		assert.Equal(t, byte(0x04), b[4])
-		assert.Equal(t, byte(0x03), b[5])
-		assert.Equal(t, byte(0x02), b[6])
-		assert.Equal(t, byte(0x01), b[7])
-	})
-}
-
 func Test_WithSeed(t *testing.T) {
 	// --- Given ---
 	def := &options{}
@@ -171,11 +109,17 @@ func Test_WithSeed(t *testing.T) {
 func Test_Str(t *testing.T) {
 	t.Run("does not repeat", func(t *testing.T) {
 		// --- Given ---
+		const count = 1000
 		history := make(map[string]struct{})
 
+		// --- When ---
+		strs := make([]string, count)
+		for i := range strs {
+			strs[i] = Str()
+		}
+
 		// --- Then ---
-		for range 1000 {
-			str := Str()
+		for _, str := range strs {
 			if _, ok := history[str]; ok {
 				t.Error("did not expect string to repeat")
 			}
@@ -359,5 +303,108 @@ func Test_Password(t *testing.T) {
 
 	t.Run("seeded is deterministic", func(t *testing.T) {
 		assert.Equal(t, "tSR9avhesITXkYun", Password(16, WithSeed(1)))
+	})
+}
+
+func Test_seededRand(t *testing.T) {
+	t.Run("is deterministic", func(t *testing.T) {
+		// --- Given ---
+		seed := int64(42)
+
+		// --- When ---
+		a := seededRand(seed)
+		b := seededRand(seed)
+
+		// --- Then ---
+		for range 100 {
+			assert.Equal(t, a(52), b(52))
+		}
+	})
+
+	t.Run("different seeds differ", func(t *testing.T) {
+		// --- Given ---
+		seedA := int64(1)
+		seedB := int64(2)
+
+		// --- When ---
+		a := seededRand(seedA)
+		b := seededRand(seedB)
+
+		// --- Then ---
+		differ := false
+		for range 100 {
+			if a(1000) != b(1000) {
+				differ = true
+				break
+			}
+		}
+		assert.True(t, differ)
+	})
+
+	t.Run("panics on zero", func(t *testing.T) {
+		// --- Given ---
+		rng := seededRand(1)
+
+		// --- When ---
+		fn := func() { rng(0) }
+
+		// --- Then ---
+		assert.PanicContain(t, "n must be > 0", fn)
+	})
+
+	t.Run("panics on negative", func(t *testing.T) {
+		// --- Given ---
+		rng := seededRand(1)
+
+		// --- When ---
+		fn := func() { rng(-1) }
+
+		// --- Then ---
+		assert.PanicContain(t, "n must be > 0", fn)
+	})
+}
+
+func Test_seedToBytes(t *testing.T) {
+	t.Run("is deterministic", func(t *testing.T) {
+		// --- Given ---
+		seed := int64(42)
+
+		// --- When ---
+		a := seedToBytes(seed)
+		b := seedToBytes(seed)
+
+		// --- Then ---
+		assert.Equal(t, a, b)
+	})
+
+	t.Run("different seeds differ", func(t *testing.T) {
+		// --- Given ---
+		seedA := int64(1)
+		seedB := int64(2)
+
+		// --- When ---
+		a := seedToBytes(seedA)
+		b := seedToBytes(seedB)
+
+		// --- Then ---
+		assert.NotEqual(t, a, b)
+	})
+
+	t.Run("encodes seed as little-endian in first 8 bytes", func(t *testing.T) {
+		// --- Given ---
+		seed := int64(0x0102030405060708)
+
+		// --- When ---
+		b := seedToBytes(seed)
+
+		// --- Then ---
+		assert.Equal(t, byte(0x08), b[0])
+		assert.Equal(t, byte(0x07), b[1])
+		assert.Equal(t, byte(0x06), b[2])
+		assert.Equal(t, byte(0x05), b[3])
+		assert.Equal(t, byte(0x04), b[4])
+		assert.Equal(t, byte(0x03), b[5])
+		assert.Equal(t, byte(0x02), b[6])
+		assert.Equal(t, byte(0x01), b[7])
 	})
 }
