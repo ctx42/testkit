@@ -55,14 +55,14 @@ func Test_Images_FindByRef(t *testing.T) {
 func Test_Images_FindByID(t *testing.T) {
 	t.Run("found with hash name", func(t *testing.T) {
 		// --- Given ---
-		img0 := &Image{ID: "sha265:id0", Repository: "rep0", Tag: "tag0"}
-		img1 := &Image{ID: "sha265:id1", Repository: "rep1", Tag: "tag1"}
-		img2 := &Image{ID: "sha265:id2", Repository: "rep2", Tag: "tag2"}
+		img0 := &Image{ID: "sha256:id0", Repository: "rep0", Tag: "tag0"}
+		img1 := &Image{ID: "sha256:id1", Repository: "rep1", Tag: "tag1"}
+		img2 := &Image{ID: "sha256:id2", Repository: "rep2", Tag: "tag2"}
 
 		ims := Images{img0, img1, img2}
 
 		// --- When ---
-		have := ims.FindByID("sha266:id1")
+		have := ims.FindByID("sha256:id1")
 
 		// --- Then ---
 		assert.Same(t, img1, have)
@@ -70,9 +70,9 @@ func Test_Images_FindByID(t *testing.T) {
 
 	t.Run("found without a hash name", func(t *testing.T) {
 		// --- Given ---
-		img0 := &Image{ID: "sha265:id0", Repository: "rep0", Tag: "tag0"}
-		img1 := &Image{ID: "sha265:id1", Repository: "rep1", Tag: "tag1"}
-		img2 := &Image{ID: "sha265:id2", Repository: "rep2", Tag: "tag2"}
+		img0 := &Image{ID: "sha256:id0", Repository: "rep0", Tag: "tag0"}
+		img1 := &Image{ID: "sha256:id1", Repository: "rep1", Tag: "tag1"}
+		img2 := &Image{ID: "sha256:id2", Repository: "rep2", Tag: "tag2"}
 
 		ims := Images{img0, img1, img2}
 

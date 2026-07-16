@@ -51,7 +51,7 @@ func Test_Ref_tabular(t *testing.T) {
 	}
 }
 
-func Test_stripHashName(t *testing.T) {
+func Test_StripHashName(t *testing.T) {
 	t.Run("trailing colon returns empty string", func(t *testing.T) {
 		assert.Equal(t, "", StripHashName("sha256:"))
 		assert.Equal(t, "", StripHashName(":"))
@@ -170,38 +170,21 @@ func Test_randString(t *testing.T) {
 	const count = 1000
 	seen := make(map[string]struct{}, count)
 	for range count {
-		s := randString()
-		if len(s) != 12 {
-			t.Errorf("expected length 12, got %d: %q", len(s), s)
-			return
-		}
-		if !isHex(s) {
-			t.Errorf("expected hex string, got: %q", s)
-			return
-		}
-		seen[s] = struct{}{}
+		have := randString()
+		assert.Len(t, 12, have)
+		assert.True(t, isHex(have))
+		seen[have] = struct{}{}
 	}
-	if len(seen) != count {
-		t.Errorf("expected %d unique values, got %d (collision)", count, len(seen))
-	}
+	assert.Len(t, count, seen)
 }
 
 func Test_RandName(t *testing.T) {
 	const count = 1000
 	const prefix = "ctx42-tst-img-"
 	for range count {
-		name := RandName()
-		wantLen := 12 + len(prefix)
-		if len(name) != wantLen {
-			format := "expected name to be %d characters long got %d: %s"
-			t.Errorf(format, wantLen, len(name), name)
-			return
-		}
-		if !strings.HasPrefix(name, prefix) {
-			format := "expected name to be prefixed with %q got: %q"
-			t.Errorf(format, prefix, name)
-			return
-		}
+		have := RandName()
+		assert.Len(t, 12+len(prefix), have)
+		assert.Regexp(t, "^"+prefix, have)
 	}
 }
 
@@ -209,18 +192,9 @@ func Test_RandTag(t *testing.T) {
 	const count = 1000
 	const prefix = "ctx42-tst-tag-"
 	for range count {
-		tag := RandTag()
-		wantLen := 12 + len(prefix)
-		if len(tag) != wantLen {
-			format := "expected tag to be %d characters long got %d: %q"
-			t.Errorf(format, wantLen, len(tag), tag)
-			return
-		}
-		if !strings.HasPrefix(tag, prefix) {
-			format := "expected tag to be prefixed with %q got: %q"
-			t.Errorf(format, prefix, tag)
-			return
-		}
+		have := RandTag()
+		assert.Len(t, 12+len(prefix), have)
+		assert.Regexp(t, "^"+prefix, have)
 	}
 }
 
@@ -229,31 +203,13 @@ func Test_RandRef(t *testing.T) {
 	const tagPrefix = "ctx42-tst-tag-"
 	const imgPrefix = "ctx42-tst-img-"
 	for range count {
-		ref := RandRef()
-		wantLen := len(imgPrefix) + 12 + 1 + len(tagPrefix) + 12
-		if len(ref) != wantLen {
-			format := "expected ref to be %d characters long got %d: %q"
-			t.Errorf(format, wantLen, len(ref), ref)
-			return
-		}
+		have := RandRef()
+		assert.Len(t, len(imgPrefix)+12+1+len(tagPrefix)+12, have)
 
-		elems := strings.Split(ref, ":")
-		if len(elems) != 2 {
-			format := "expected ref to have %d elements got: %d"
-			t.Errorf(format, 2, len(elems))
-			return
-		}
-
-		if !strings.HasPrefix(elems[0], imgPrefix) {
-			format := "expected image name to be prefixed with %q got: %q"
-			t.Errorf(format, imgPrefix, elems[0])
-			return
-		}
-		if !strings.HasPrefix(elems[1], tagPrefix) {
-			format := "expected image tag to be prefixed with %q got: %q"
-			t.Errorf(format, tagPrefix, elems[1])
-			return
-		}
+		elems := strings.Split(have, ":")
+		assert.Len(t, 2, elems)
+		assert.Regexp(t, "^"+imgPrefix, elems[0])
+		assert.Regexp(t, "^"+tagPrefix, elems[1])
 	}
 }
 
@@ -261,22 +217,13 @@ func Test_RandNet(t *testing.T) {
 	const count = 1000
 	const prefix = "ctx42-tst-net-"
 	for range count {
-		id := RandNet()
-		wantLen := 12 + len(prefix)
-		if len(id) != wantLen {
-			format := "expected name to be %d characters long got %d: %s"
-			t.Errorf(format, wantLen, len(id), id)
-			return
-		}
-		if !strings.HasPrefix(id, prefix) {
-			format := "expected name to be prefixed with %q got: %q"
-			t.Errorf(format, prefix, id)
-			return
-		}
+		have := RandNet()
+		assert.Len(t, 12+len(prefix), have)
+		assert.Regexp(t, "^"+prefix, have)
 	}
 }
 
-func Test_docker_ToBuildArgs(t *testing.T) {
+func Test_ToBuildArgs(t *testing.T) {
 	// --- Given ---
 	ags := map[string]string{
 		"ARG1": "VALUE1",
@@ -287,7 +234,7 @@ func Test_docker_ToBuildArgs(t *testing.T) {
 	args := ToBuildArgs(ags)
 
 	// --- Then ---
-	assert.Len(t, 2, ags)
+	assert.Len(t, 2, args)
 	assert.HasKey(t, "ARG1", args)
 	assert.HasKey(t, "ARG2", args)
 	assert.Equal(t, "VALUE1", *args["ARG1"])
