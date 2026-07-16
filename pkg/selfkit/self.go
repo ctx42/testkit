@@ -15,10 +15,10 @@ import (
 )
 
 // WithArgs is a [New] option overriding the argument slice. args must
-// follow os.Args convention: args[0] is the program name and args[1:]
+// follow [os.Args] convention: args[0] is the program name and args[1:]
 // are the flags to parse. Defaults to os.Args when not set.
 func WithArgs(args []string) func(*Self) {
-	return func(se *Self) { se.args = args }
+	return func(slf *Self) { slf.args = args }
 }
 
 // Self helps test cases where we would like to call a binary and expect the
@@ -88,30 +88,30 @@ type Self struct {
 // New returns new instance of [Self]. By default, [Self] uses [os.Args], but
 // you can change it with the [WithArgs] option.
 func New(opts ...func(*Self)) *Self {
-	se := &Self{
+	slf := &Self{
 		exitCode: -1,
 		args:     os.Args,
 	}
 	for _, opt := range opts {
-		opt(se)
+		opt(slf)
 	}
-	if len(se.args) == 0 {
-		return se
+	if len(slf.args) == 0 {
+		return slf
 	}
-	se.fs = flag.NewFlagSet(se.args[0], flag.ContinueOnError)
-	se.fs.SetOutput(io.Discard)
-	se.fs.StringVar(&se.toStdout, "toStdout", "", "")
-	se.fs.StringVar(&se.toStderr, "toStderr", "", "")
-	se.fs.StringVar(&se.printEnv, "printEnv", "", "")
-	se.fs.StringVar(&se.printArgs, "printArgs", "", "")
-	se.fs.BoolVar(&se.printToStderr, "printToStderr", false, "")
-	se.fs.BoolVar(&se.noWrap, "noWrap", false, "")
-	se.fs.IntVar(&se.exitCode, "exitCode", -1, "")
+	slf.fs = flag.NewFlagSet(slf.args[0], flag.ContinueOnError)
+	slf.fs.SetOutput(io.Discard)
+	slf.fs.StringVar(&slf.toStdout, "toStdout", "", "")
+	slf.fs.StringVar(&slf.toStderr, "toStderr", "", "")
+	slf.fs.StringVar(&slf.printEnv, "printEnv", "", "")
+	slf.fs.StringVar(&slf.printArgs, "printArgs", "", "")
+	slf.fs.BoolVar(&slf.printToStderr, "printToStderr", false, "")
+	slf.fs.BoolVar(&slf.noWrap, "noWrap", false, "")
+	slf.fs.IntVar(&slf.exitCode, "exitCode", -1, "")
 	// Unknown flags are intentionally ignored: the test runner passes
 	// its own flags to the binary alongside ours.
-	_ = se.fs.Parse(se.args[1:])
+	_ = slf.fs.Parse(slf.args[1:])
 
-	return se
+	return slf
 }
 
 // Run processes selfkit flags, writing any requested output to stdout
@@ -153,6 +153,8 @@ func (slf *Self) Run(stdout, stderr io.Writer) (bool, int) {
 		if slf.noWrap {
 			format = "%s"
 		}
+		// Must read the live process env: Run executes inside the spawned
+		// test binary's TestMain, so there is no ring to consult.
 		_, _ = fmt.Fprintf(out, format, os.Getenv(slf.printEnv))
 		runTests = false
 	}
