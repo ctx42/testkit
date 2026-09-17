@@ -91,4 +91,42 @@ func Test_Wait4File(t *testing.T) {
 		assert.Equal(t, "content", data)
 		assert.NoError(t, err)
 	})
+
+	t.Run("file empty for longer than the throttle", func(t *testing.T) {
+		// --- Given ---
+		var err error
+		var data string
+		started := make(chan struct{})
+		done := make(chan struct{})
+		pth := filepath.Join(t.TempDir(), "file.txt")
+
+		// --- When ---
+		go func() {
+			close(started)
+			data, err = Wait4File("1s", pth)
+			close(done)
+		}()
+
+		// --- Then ---
+		<-started
+		oskit.Write(t, "", pth)
+		time.Sleep(200 * time.Millisecond)
+		oskit.Write(t, "content", pth)
+		<-done
+		assert.Equal(t, "content", data)
+		assert.NoError(t, err)
+	})
+
+	t.Run("file is empty within timeout", func(t *testing.T) {
+		// --- Given ---
+		pth := filepath.Join(t.TempDir(), "file.txt")
+		oskit.Write(t, "", pth)
+
+		// --- When ---
+		have, err := Wait4File("100ms", pth)
+
+		// --- Then ---
+		assert.NoError(t, err)
+		assert.Empty(t, have)
+	})
 }
