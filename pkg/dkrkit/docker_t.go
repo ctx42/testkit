@@ -8,7 +8,6 @@ import (
 
 	"github.com/ctx42/testing/pkg/notice"
 	"github.com/ctx42/testing/pkg/tester"
-	"github.com/ctx42/xdef/pkg/xdef"
 )
 
 // DockerT represents a docker command with test helper methods.
@@ -41,7 +40,8 @@ func (dt *DockerT) Build(opts ...BuildOption) (string, string) {
 	dt.t.Helper()
 	name := dt.t.Name()
 	def := []BuildOption{
-		WithBuildArg(xdef.EnvImgAuthors, name),
+		WithBuildLabel(labTestName, name),
+		WithBuildArg(envTestName, name),
 	}
 	opts = append(def, opts...)
 	ref, iid, err := dt.dkr.Build(opts...)

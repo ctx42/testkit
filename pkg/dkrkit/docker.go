@@ -21,6 +21,7 @@ import (
 	"github.com/ctx42/testing/pkg/notice"
 	"github.com/ctx42/xdef/pkg/xdef"
 
+	"github.com/ctx42/testkit/internal/dkrfix"
 	"github.com/ctx42/testkit/pkg/randkit"
 	"github.com/ctx42/testkit/pkg/testkit"
 )
@@ -169,19 +170,19 @@ func readIIDFile(ref, pth string) (string, error) {
 }
 
 // testImageBuildOptions returns [BuildOption] slice for building the standard
-// test image. It reads [xdef.EnvImgCreated] and [xdef.EnvImgRefName] from the
-// environment; all other values are fixed constants.
+// test image. It reads [xdef.EnvBldDate] from the environment; all other
+// values are fixed constants.
 func (dkr *Docker) testImageBuildOptions() []BuildOption {
 	args := map[string]string{
-		xdef.EnvImgCreated:  xdef.Created(dkr.env),
-		xdef.EnvImgSrc:      "repo",
-		xdef.EnvImgRev:      "12345678",
-		xdef.EnvImgVer:      "v1.2.3",
-		xdef.EnvImgRefName:  xdef.ImgRefName(dkr.env),
-		xdef.EnvImgBaseName: TestImageBaseRef,
+		xdef.EnvBldImgBase: TestImgRef,
+		xdef.EnvPrjName:    "testkit",
+		xdef.EnvBldDate:    xdef.BldDate(dkr.env),
+		xdef.EnvScmRepo:    "https://github.com/ctx42/testkit.git",
+		xdef.EnvScmHash:    "12345678",
+		xdef.EnvScmRev:     TestImgScmTag,
 	}
 
-	bldOpt := WithBuildRdr(bytes.NewReader(exBld))
+	bldOpt := WithBuildRdr(strings.NewReader(dkrfix.Simple.Content()))
 	argOpt := WithBuildArgs(args)
 	return []BuildOption{bldOpt, argOpt}
 }

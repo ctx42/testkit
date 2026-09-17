@@ -129,8 +129,8 @@ ref, iid, err := dkr.Build(
 ### BuildTestImg
 
 `BuildTestImg` builds the package's own embedded test image. It reads
-`C42_IMG_CREATED` and `C42_IMG_REF_NAME` from the environment and
-sets the remaining OCI labels to fixed test values:
+`C42_BLD_DATE` from the environment and sets the remaining OCI labels to
+fixed test values:
 
 ```go
 ref, iid, err := dkr.BuildTestImg()

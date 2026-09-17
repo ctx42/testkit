@@ -13,23 +13,28 @@
 package dkrkit
 
 import (
-	_ "embed"
-
 	"github.com/ctx42/testing/pkg/check"
 	"github.com/ctx42/testing/pkg/notice"
 	"github.com/ctx42/testing/pkg/tester"
 )
 
-// exBld represents minimal dockerfile contents.
-//
-//go:embed testdata/simple/Dockerfile
-var exBld []byte
-
 // Test image constants used in integration tests.
 const (
-	TestImageName    = "busybox"
-	TestImageTag     = "1.38-uclibc"
-	TestImageBaseRef = TestImageName + ":" + TestImageTag
+	TestImgRep     = "busybox"
+	TestImgTag     = "1.38-uclibc"
+	TestImgRef     = TestImgRep + ":" + TestImgTag
+	TestImgEnvPATH = "" +
+		"/usr/local/sbin" +
+		":/usr/local/bin" +
+		":/usr/sbin" +
+		":/usr/bin" +
+		":/sbin" +
+		":/bin"
+
+	// TestImgScmTag is the semver tag the test image built by
+	// [Docker.BuildTestImg] is stamped with. It is the value of the xdef
+	// EnvScmRev build argument that image is built with.
+	TestImgScmTag = "v1.2.3"
 )
 
 // Test-only DockerT image labels set by testdata Dockerfiles to verify
@@ -44,16 +49,26 @@ const (
 	// verify that helpers correctly detect and read non-empty label
 	// values.
 	labTestValue = "com.ctx42.test.value"
+
+	// labTestName is a test-only label naming the test image. Set from the
+	// envTestName build argument by the testdata Dockerfiles, so a test can
+	// tell the image it built from any other.
+	labTestName = "com.ctx42.test.name"
 )
 
-// Test-only and build-control environment variables. C42_TEST_* vars
+// Test-only and build-control environment variables. C42_TST_* vars
 // are baked into the image; C42_BLD_* vars control build behavior.
 const (
 	// envTestEmpty is a test-only environment variable with an empty value.
-	envTestEmpty = "C42_TEST_EMPTY"
+	envTestEmpty = "C42_TST_EMPTY"
 
 	// envTestValue is a test-only environment variable with a non-empty value.
-	envTestValue = "C42_TEST_VALUE"
+	envTestValue = "C42_TST_VALUE"
+
+	// envTestName is a test-only environment variable naming the test image.
+	// Passed as a build argument and baked into the image alongside the
+	// labTestName label.
+	envTestName = "C42_TST_NAME"
 
 	// envBldNoCache, when set to any non-empty value in the test
 	// runner environment, forces DockerT builds to skip the build cache.

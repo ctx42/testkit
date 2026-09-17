@@ -112,7 +112,7 @@ func Test_HasLabel(t *testing.T) {
 		tspy.Close()
 
 		// --- When ---
-		have := HasLabel(tspy, TestImg0.ref, xdef.LabImgTitle, "Image0")
+		have := HasLabel(tspy, TestImg0.ref, labTestName, "TestImage0")
 
 		// --- Then ---
 		assert.True(t, have)
@@ -139,10 +139,12 @@ func Test_HasLabel(t *testing.T) {
 			"     ref: %s\n" +
 			"    want: \"not.existing.label\"\n" +
 			"  labels:\n" +
-			"          \"" + labTestEmpty + "\"\n" +
-			"          \"" + xdef.LabImgBaseName + "\"\n" +
-			"          \"" + xdef.LabImgCreated + "\"\n" +
-			"          \"" + xdef.LabImgTitle + "\""
+			"          \"com.ctx42.test.empty\"\n" +
+			"          \"com.ctx42.test.name\"\n" +
+			"          \"org.opencontainers.image.created\"\n" +
+			"          \"org.opencontainers.image.revision\"\n" +
+			"          \"org.opencontainers.image.source\"\n" +
+			"          \"org.opencontainers.image.version\""
 		tspy.ExpectLogEqual(wMsg, TestImg0.ref)
 		tspy.Close()
 
@@ -162,12 +164,12 @@ func Test_HasLabel(t *testing.T) {
 			"    ref: %s\n" +
 			"  label: %q\n" +
 			"   want: \"abc\"\n" +
-			"   have: \"Image0\""
-		tspy.ExpectLogEqual(wMsg, TestImg0.ref, xdef.LabImgTitle)
+			"   have: \"TestImage0\""
+		tspy.ExpectLogEqual(wMsg, TestImg0.ref, labTestName)
 		tspy.Close()
 
 		// --- When ---
-		have := HasLabel(tspy, TestImg0.ref, xdef.LabImgTitle, "abc")
+		have := HasLabel(tspy, TestImg0.ref, labTestName, "abc")
 
 		// --- Then ---
 		assert.False(t, have)
@@ -188,7 +190,7 @@ func Test_HasLabel(t *testing.T) {
 		tspy.Close()
 
 		// --- When ---
-		have := HasLabel(tspy, ref, xdef.LabImgAuthors, "abc")
+		have := HasLabel(tspy, ref, xdef.LabImgRev, "abc")
 
 		// --- Then ---
 		assert.False(t, have)
@@ -241,7 +243,7 @@ func Test_HasNoLabel(t *testing.T) {
 		tspy.Close()
 
 		// --- When ---
-		have := HasNoLabel(tspy, ref, xdef.LabImgAuthors)
+		have := HasNoLabel(tspy, ref, xdef.LabImgRev)
 
 		// --- Then ---
 		assert.False(t, have)
@@ -257,7 +259,7 @@ func Test_HasLabels(t *testing.T) {
 		// --- When ---
 		want := map[string]string{
 			xdef.LabImgCreated: "2000-01-02T03:04:05Z",
-			xdef.LabImgTitle:   "Image0",
+			labTestName:        "TestImage0",
 			labTestEmpty:       "",
 		}
 		have := HasLabels(tspy, TestImg0.ref, want)
@@ -280,7 +282,7 @@ func Test_HasLabels(t *testing.T) {
 		// --- When ---
 		want := map[string]string{
 			xdef.LabImgCreated:        "2000-01-02T03:04:05Z",
-			xdef.LabImgTitle:          "Image0",
+			labTestName:               "TestImage0",
 			"com.ctx42.meta.missing0": "no",
 			"com.ctx42.meta.missing1": "no",
 		}
@@ -315,7 +317,7 @@ func Test_HasLabels(t *testing.T) {
 		// --- When ---
 		want := map[string]string{
 			xdef.LabImgCreated:        "2001-01-01T01:01:01Z",
-			xdef.LabImgTitle:          "Image0",
+			labTestName:               "TestImage0",
 			labTestEmpty:              "wrong0",
 			"com.ctx42.meta.missing0": "no",
 			"com.ctx42.meta.missing1": "no",
@@ -355,7 +357,7 @@ func Test_HasEnv(t *testing.T) {
 		tspy.Close()
 
 		// --- When ---
-		have := HasEnv(tspy, TestImg0.ref, xdef.EnvImgTitle, "Image0")
+		have := HasEnv(tspy, TestImg0.ref, envTestName, "TestImage0")
 
 		// --- Then ---
 		assert.True(t, have)
@@ -384,10 +386,12 @@ func Test_HasEnv(t *testing.T) {
 			"   ref: %s\n" +
 			"  want: \"NOT_EXISTING\"\n" +
 			"   env:\n" +
-			"        \"C42_TEST_EMPTY\"\n" +
-			"        \"OCI_IMAGE_BASE_NAME\"\n" +
-			"        \"OCI_IMAGE_CREATED\"\n" +
-			"        \"OCI_IMAGE_TITLE\"\n" +
+			"        \"C42_BLD_DATE\"\n" +
+			"        \"C42_PRJ_NAME\"\n" +
+			"        \"C42_SCM_HASH\"\n" +
+			"        \"C42_SCM_REV\"\n" +
+			"        \"C42_TST_EMPTY\"\n" +
+			"        \"C42_TST_NAME\"\n" +
 			"        \"PATH\""
 		tspy.ExpectLogEqual(wMsg, TestImg0.ref)
 		tspy.Close()
@@ -406,14 +410,14 @@ func Test_HasEnv(t *testing.T) {
 		wMsg := "" +
 			"[getting environment variable] expected variable value:\n" +
 			"   ref: %s\n" +
-			"  name: \"OCI_IMAGE_TITLE\"\n" +
+			"  name: \"C42_TST_NAME\"\n" +
 			"  want: \"other\"\n" +
-			"  have: \"Image0\""
+			"  have: \"TestImage0\""
 		tspy.ExpectLogEqual(wMsg, TestImg0.ref)
 		tspy.Close()
 
 		// --- When ---
-		have := HasEnv(tspy, TestImg0.ref, xdef.EnvImgTitle, "other")
+		have := HasEnv(tspy, TestImg0.ref, envTestName, "other")
 
 		// --- Then ---
 		assert.False(t, have)
@@ -434,7 +438,7 @@ func Test_HasEnv(t *testing.T) {
 		tspy.Close()
 
 		// --- When ---
-		have := HasEnv(tspy, ref, xdef.LabImgAuthors, t.Name())
+		have := HasEnv(tspy, ref, xdef.LabImgRev, t.Name())
 
 		// --- Then ---
 		assert.False(t, have)
@@ -463,7 +467,7 @@ func Test_HasNoEnv(t *testing.T) {
 		wMsg := "" +
 			"[getting environment variable] expected variable not to exist:\n" +
 			"        ref: %s\n" +
-			"       name: \"C42_TEST_EMPTY\"\n" +
+			"       name: \"C42_TST_EMPTY\"\n" +
 			"  has value: \"\""
 		tspy.ExpectLogEqual(wMsg, TestImg0.iid)
 		tspy.Close()
@@ -490,7 +494,7 @@ func Test_HasNoEnv(t *testing.T) {
 		tspy.Close()
 
 		// --- When ---
-		have := HasNoEnv(tspy, ref, "C42_TEST_VALUE0")
+		have := HasNoEnv(tspy, ref, "C42_TST_VALUE0")
 
 		// --- Then ---
 		assert.Empty(t, have)
@@ -505,10 +509,9 @@ func Test_HasEnvs(t *testing.T) {
 
 		// --- When ---
 		want := map[string]string{
-			xdef.EnvImgCreated:  "2000-01-02T03:04:05Z",
-			xdef.EnvImgBaseName: TestImageBaseRef,
-			xdef.EnvImgTitle:    "Image0",
-			envTestEmpty:        "",
+			xdef.EnvBldDate: "2000-01-02T03:04:05Z",
+			envTestName:     "TestImage0",
+			envTestEmpty:    "",
 		}
 		have := HasEnvs(tspy, TestImg0.iid, want)
 
@@ -523,15 +526,15 @@ func Test_HasEnvs(t *testing.T) {
 		wMsg := "" +
 			"[getting environment variables] expected the map to have keys:\n" +
 			"   ref: %s\n" +
-			"  keys: \"C42_TEST_MISSING0\", \"C42_TEST_VALUE\""
+			"  keys: \"C42_TST_MISS0\", \"C42_TST_VALUE\""
 		tspy.ExpectLogEqual(wMsg, TestImg0.ref)
 		tspy.Close()
 
 		// --- When ---
 		want := map[string]string{
-			envTestEmpty:        "",
-			envTestValue:        "value",
-			"C42_TEST_MISSING0": "missing0",
+			envTestEmpty:    "",
+			envTestValue:    "value",
+			"C42_TST_MISS0": "missing0",
 		}
 		have := HasEnvs(tspy, TestImg0.ref, want)
 
@@ -546,27 +549,25 @@ func Test_HasEnvs(t *testing.T) {
 		wMsg := "" +
 			"multiple expectations violated:\n" +
 			"  error: [getting environment variables] expected values to be equal\n" +
-			"  trail: map[\"C42_TEST_EMPTY\"]\n" +
-			"   want: \"wrong\"\n" +
-			"   have: \"\"\n" +
+			"  trail: map[\"C42_PRJ_NAME\"]\n" +
+			"   want: \"wrong0\"\n   have: \"testkit\"\n" +
 			"      ---\n" +
 			"  error: [getting environment variables] expected values to be equal\n" +
-			"  trail: map[\"OCI_IMAGE_TITLE\"]\n" +
-			"   want: \"wrong\"\n" +
-			"   have: \"Image0\"\n" +
+			"  trail: map[\"C42_TST_EMPTY\"]\n" +
+			"   want: \"wrong1\"\n   have: \"\"\n" +
 			"      ---\n" +
 			"  error: [getting environment variables] expected the map to have keys\n" +
 			"    ref: %s\n" +
-			"   keys: \"C42_TEST_MISSING0\", \"C42_TEST_MISSING1\""
+			"   keys: \"C42_TST_MISS0\", \"C42_TST_MISS1\""
 		tspy.ExpectLogEqual(wMsg, TestImg0.ref)
 		tspy.Close()
 
 		// --- When ---
 		want := map[string]string{
-			xdef.EnvImgTitle:    "wrong",
-			envTestEmpty:        "wrong",
-			"C42_TEST_MISSING0": "missing0",
-			"C42_TEST_MISSING1": "missing1",
+			xdef.EnvPrjName: "wrong0",
+			envTestEmpty:    "wrong1",
+			"C42_TST_MISS0": "missing0",
+			"C42_TST_MISS1": "missing1",
 		}
 		have := HasEnvs(tspy, TestImg0.ref, want)
 

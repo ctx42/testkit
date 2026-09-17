@@ -246,13 +246,19 @@ func Test_getLabels(t *testing.T) {
 		// --- When ---
 		have, err := getLabels(t.Context(), os.Environ(), TestImg0.iid)
 
+		// TODO(rz): The xdef should have a helper for creating xdef.LabImgVer
+		//  it should wok n a way that provides cicd if it is set, provide
+		//  state if it is other than clean.
+
 		// --- Then ---
 		assert.NoError(t, err)
 		want := map[string]string{
-			xdef.LabImgCreated:  "2000-01-02T03:04:05Z",
-			xdef.LabImgTitle:    "Image0",
-			xdef.LabImgBaseName: TestImageBaseRef,
-			labTestEmpty:        "",
+			xdef.LabImgCreated: "2000-01-02T03:04:05Z",
+			xdef.LabImgRev:     xdef.PhHash,
+			xdef.LabImgVer:     xdef.PhTag,
+			xdef.LabImgSrc:     "https://github.com/ctx42/testkit",
+			labTestName:        "TestImage0",
+			labTestEmpty:       "",
 		}
 		assert.Equal(t, want, have)
 	})
@@ -264,10 +270,12 @@ func Test_getLabels(t *testing.T) {
 		// --- Then ---
 		assert.NoError(t, err)
 		want := map[string]string{
-			xdef.LabImgCreated:  "2000-01-02T03:04:05Z",
-			xdef.LabImgTitle:    "Image1",
-			xdef.LabImgBaseName: TestImageBaseRef,
-			labTestEmpty:        "",
+			xdef.LabImgCreated: "2000-01-02T03:04:05Z",
+			xdef.LabImgRev:     xdef.PhHash,
+			xdef.LabImgVer:     xdef.PhTag,
+			xdef.LabImgSrc:     "https://github.com/ctx42/testkit",
+			labTestName:        "TestImage1",
+			labTestEmpty:       "",
 		}
 		assert.Equal(t, want, have)
 	})
@@ -319,11 +327,15 @@ func Test_getEnvs(t *testing.T) {
 		// --- Then ---
 		assert.NoError(t, err)
 		want := map[string]string{
-			xdef.EnvImgCreated: "2000-01-02T03:04:05Z",
-			xdef.EnvImgTitle:   "Image0",
-			envTestEmpty:       "",
+			xdef.EnvBldDate: "2000-01-02T03:04:05Z",
+			xdef.EnvPrjName: "testkit",
+			xdef.EnvScmHash: xdef.PhHash,
+			xdef.EnvScmRev:  xdef.PhTag,
+			envTestName:     "TestImage0",
+			envTestEmpty:    "",
+			"PATH":          TestImgEnvPATH,
 		}
-		assert.MapSubset(t, want, have)
+		assert.Equal(t, want, have)
 	})
 
 	t.Run("success by ref", func(t *testing.T) {
@@ -333,11 +345,15 @@ func Test_getEnvs(t *testing.T) {
 		// --- Then ---
 		assert.NoError(t, err)
 		want := map[string]string{
-			xdef.EnvImgCreated: "2000-01-02T03:04:05Z",
-			xdef.EnvImgTitle:   "Image1",
-			envTestEmpty:       "",
+			xdef.EnvBldDate: "2000-01-02T03:04:05Z",
+			xdef.EnvPrjName: "testkit",
+			xdef.EnvScmHash: xdef.PhHash,
+			xdef.EnvScmRev:  xdef.PhTag,
+			envTestName:     "TestImage1",
+			envTestEmpty:    "",
+			"PATH":          TestImgEnvPATH,
 		}
-		assert.MapSubset(t, want, have)
+		assert.Equal(t, want, have)
 	})
 
 	t.Run("success by cid", func(t *testing.T) {
@@ -352,11 +368,15 @@ func Test_getEnvs(t *testing.T) {
 		// --- Then ---
 		assert.NoError(t, err)
 		want := map[string]string{
-			xdef.EnvImgCreated: "2000-01-02T03:04:05Z",
-			xdef.EnvImgTitle:   "Image1",
-			envTestEmpty:       "",
+			xdef.EnvBldDate: "2000-01-02T03:04:05Z",
+			xdef.EnvPrjName: "testkit",
+			xdef.EnvScmHash: xdef.PhHash,
+			xdef.EnvScmRev:  xdef.PhTag,
+			envTestName:     "TestImage1",
+			envTestEmpty:    "",
+			"PATH":          TestImgEnvPATH,
 		}
-		assert.MapSubset(t, want, have)
+		assert.Equal(t, want, have)
 	})
 
 	t.Run("error - non-existent ref", func(t *testing.T) {

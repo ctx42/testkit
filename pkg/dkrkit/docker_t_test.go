@@ -15,6 +15,7 @@ import (
 	"github.com/ctx42/testing/pkg/tester"
 	"github.com/ctx42/xdef/pkg/xdef"
 
+	"github.com/ctx42/testkit/internal/dkrfix"
 	"github.com/ctx42/testkit/pkg/exekit"
 	"github.com/ctx42/testkit/pkg/netkit"
 	"github.com/ctx42/testkit/pkg/randkit"
@@ -57,8 +58,8 @@ func Test_DockerT_ImgPull(t *testing.T) {
 		dkr := NewT(tspy)
 
 		// --- When ---
-		dkr.ImgPull(TestImageBaseRef)
-		exekit.New(t).Exe("docker", "image", "inspect", TestImageBaseRef)
+		dkr.ImgPull(TestImgRef)
+		exekit.New(t).Exe("docker", "image", "inspect", TestImgRef)
 	})
 
 	t.Run("error - invalid ref", func(t *testing.T) {
@@ -81,7 +82,7 @@ func Test_DockerT_ImgPull(t *testing.T) {
 }
 
 func Test_DockerT_Build(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
+	t.Run("cleanup removes image after test", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
 		tspy.ExpectCleanups(1)
@@ -89,8 +90,8 @@ func Test_DockerT_Build(t *testing.T) {
 		tspy.Close()
 
 		dkr := NewT(tspy)
-		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
-		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
+		bldOpt := WithBuildPth(dkrfix.Minimal.Write(t, t.TempDir()))
+		argOpt := WithBuildArg(xdef.EnvBldImgBase, TestImgRef)
 
 		// --- When ---
 		ref, iid := dkr.Build(bldOpt, argOpt)
@@ -100,12 +101,21 @@ func Test_DockerT_Build(t *testing.T) {
 		assert.NotEmpty(t, iid)
 
 		hLabels := must.Value(getLabels(t.Context(), os.Environ(), ref))
-		wLabels := map[string]string{xdef.LabImgAuthors: t.Name()}
-		assert.MapSubset(t, wLabels, hLabels)
+		wLabels := map[string]string{
+			labTestName:  t.Name(),
+			labTestEmpty: "",
+			labTestValue: "value",
+		}
+		assert.Equal(t, wLabels, hLabels)
 
 		hEnv := must.Value(getEnvs(t.Context(), os.Environ(), ref))
-		wEnv := map[string]string{xdef.EnvImgAuthors: t.Name()}
-		assert.MapSubset(t, wEnv, hEnv)
+		wEnv := map[string]string{
+			envTestName:  t.Name(),
+			envTestEmpty: "",
+			envTestValue: "value",
+			"PATH":       TestImgEnvPATH,
+		}
+		assert.Equal(t, wEnv, hEnv)
 
 		tspy.Finish()
 		exekit.New(t, exekit.WithExitCode(1)).Exe("docker", "history", ref)
@@ -142,7 +152,8 @@ func Test_DockerT_BuildTestImg(t *testing.T) {
 		tspy.ExpectCleanups(1)
 		tspy.Close()
 
-		dkr := NewT(tspy)
+		env := append(os.Environ(), xdef.EnvBldDate+"=2000-01-02T03:04:05Z")
+		dkr := NewT(tspy, WithEnv(env))
 
 		// --- When ---
 		ref, iid := dkr.BuildTestImg()
@@ -152,14 +163,29 @@ func Test_DockerT_BuildTestImg(t *testing.T) {
 		assert.NotEmpty(t, iid)
 
 		hLabels := must.Value(getLabels(t.Context(), os.Environ(), ref))
-		wLabels := map[string]string{xdef.LabImgAuthors: t.Name()}
-		assert.MapSubset(t, wLabels, hLabels)
+		wLabels := map[string]string{
+			xdef.LabImgCreated: "2000-01-02T03:04:05Z",
+			xdef.LabImgRev:     "12345678",
+			xdef.LabImgVer:     TestImgScmTag,
+			xdef.LabImgSrc:     "https://github.com/ctx42/testkit.git",
+			labTestEmpty:       "",
+			labTestName:        t.Name(),
+		}
+		assert.Equal(t, wLabels, hLabels)
 
 		hEnv := must.Value(getEnvs(t.Context(), os.Environ(), ref))
-		wEnv := map[string]string{xdef.EnvImgAuthors: t.Name()}
-		assert.MapSubset(t, wEnv, hEnv)
+		wEnv := map[string]string{
+			xdef.EnvBldDate: "2000-01-02T03:04:05Z",
+			xdef.EnvPrjName: "testkit",
+			xdef.EnvScmHash: "12345678",
+			xdef.EnvScmRev:  TestImgScmTag,
+			envTestEmpty:    "",
+			envTestName:     t.Name(),
+			"PATH":          TestImgEnvPATH,
+		}
+		assert.Equal(t, wEnv, hEnv)
 
-		assert.Equal(t, t.Name(), NewT(t).Label(iid, xdef.LabImgAuthors))
+		assert.Equal(t, t.Name(), NewT(t).Label(iid, labTestName))
 		tspy.Finish()
 		exekit.New(t, exekit.WithExitCode(1)).Exe("docker", "history", ref)
 	})
@@ -180,7 +206,7 @@ func Test_DockerT_ImgLs(t *testing.T) {
 		img := ims.FindByRef(TestImg0.ref)
 		assert.NotNil(t, img)
 		assert.Equal(t, TestImg0.iid, img.ID)
-		assert.Equal(t, TestImg0.name, img.Repository)
+		assert.Equal(t, TestImg0.rep, img.Repository)
 		assert.Equal(t, TestImg0.tag, img.Tag)
 	})
 
@@ -211,8 +237,7 @@ func Test_DockerT_Labels(t *testing.T) {
 		tspy := tester.New(t)
 		tspy.Close()
 
-		env := append(os.Environ(), xdef.EnvImgCreated+"=2000-01-02T03:04:05Z")
-		env = append(env, xdef.EnvImgRefName+"=ccid")
+		env := append(os.Environ(), xdef.EnvBldDate+"=2000-01-02T03:04:05Z")
 		dkr := NewT(tspy, WithEnv(env))
 
 		// --- When ---
@@ -220,10 +245,12 @@ func Test_DockerT_Labels(t *testing.T) {
 
 		// --- Then ---
 		want := map[string]string{
-			xdef.LabImgCreated:  "2000-01-02T03:04:05Z",
-			xdef.LabImgBaseName: TestImageBaseRef,
-			xdef.LabImgTitle:    "Image0",
-			labTestEmpty:        "",
+			xdef.LabImgCreated: "2000-01-02T03:04:05Z",
+			xdef.LabImgRev:     xdef.PhHash,
+			xdef.LabImgSrc:     "https://github.com/ctx42/testkit",
+			xdef.LabImgVer:     xdef.PhTag,
+			labTestName:        "TestImage0",
+			labTestEmpty:       "",
 		}
 		assert.Equal(t, want, have)
 	})
@@ -254,10 +281,10 @@ func Test_DockerT_Label(t *testing.T) {
 		dkr := NewT(tspy)
 
 		// --- When ---
-		have := dkr.Label(TestImg0.ref, xdef.LabImgTitle)
+		have := dkr.Label(TestImg0.ref, labTestName)
 
 		// --- Then ---
-		assert.Equal(t, "Image0", have)
+		assert.Equal(t, "TestImage0", have)
 	})
 
 	t.Run("error - non-existent label", func(t *testing.T) {
@@ -290,11 +317,15 @@ func Test_DockerT_Envs(t *testing.T) {
 
 		// --- Then ---
 		want := map[string]string{
-			xdef.EnvImgCreated: "2000-01-02T03:04:05Z",
-			xdef.EnvImgTitle:   "Image0",
-			envTestEmpty:       "",
+			xdef.EnvBldDate: "2000-01-02T03:04:05Z",
+			xdef.EnvPrjName: "testkit",
+			xdef.EnvScmHash: xdef.PhHash,
+			xdef.EnvScmRev:  xdef.PhTag,
+			envTestEmpty:    "",
+			envTestName:     "TestImage0",
+			"PATH":          TestImgEnvPATH,
 		}
-		assert.MapSubset(t, want, have)
+		assert.Equal(t, want, have)
 	})
 
 	t.Run("error - non-existent reference", func(t *testing.T) {
@@ -324,10 +355,10 @@ func Test_DockerT_Env(t *testing.T) {
 		dkr := NewT(tspy)
 
 		// --- When ---
-		have := dkr.Env(TestImg0.ref, xdef.EnvImgTitle)
+		have := dkr.Env(TestImg0.ref, envTestName)
 
 		// --- Then ---
-		assert.Equal(t, "Image0", have)
+		assert.Equal(t, "TestImage0", have)
 	})
 
 	t.Run("error - non-existent environment variable", func(t *testing.T) {
@@ -739,7 +770,7 @@ func Test_DockerT_NetLs(t *testing.T) {
 			"network",
 			"create",
 			"--attachable",
-			"--label", xdef.LabImgAuthors + "=" + t.Name(),
+			"--label", labTestName + "=" + t.Name(),
 			"--label", "com.ctx42.meta.abc=abc",
 			name,
 		}
@@ -762,7 +793,7 @@ func Test_DockerT_NetLs(t *testing.T) {
 		assert.Equal(t, name, network.Name)
 		assert.True(t, network.Attachable)
 		wLabels := map[string]string{
-			xdef.LabImgAuthors:   t.Name(),
+			labTestName:          t.Name(),
 			"com.ctx42.meta.abc": "abc",
 		}
 		assert.Equal(t, wLabels, network.Labels)

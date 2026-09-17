@@ -16,6 +16,7 @@ import (
 	"github.com/ctx42/testing/pkg/must"
 	"github.com/ctx42/xdef/pkg/xdef"
 
+	"github.com/ctx42/testkit/internal/dkrfix"
 	"github.com/ctx42/testkit/pkg/exekit"
 	"github.com/ctx42/testkit/pkg/netkit"
 	"github.com/ctx42/testkit/pkg/oskit"
@@ -61,11 +62,11 @@ func Test_Docker_ImgPull(t *testing.T) {
 		dkr := New()
 
 		// --- When ---
-		err := dkr.ImgPull(TestImageBaseRef)
+		err := dkr.ImgPull(TestImgRef)
 
 		// --- Then ---
 		assert.NoError(t, err)
-		exekit.New(t).Exe("docker", "image", "inspect", TestImageBaseRef)
+		exekit.New(t).Exe("docker", "image", "inspect", TestImgRef)
 	})
 
 	t.Run("error - non-existent ref", func(t *testing.T) {
@@ -106,8 +107,8 @@ func Test_Docker_Build(t *testing.T) {
 	t.Run("ref and iid format", func(t *testing.T) {
 		// --- Given ---
 		dkr := New()
-		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
-		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
+		bldOpt := WithBuildPth(dkrfix.Minimal.Write(t, t.TempDir()))
+		argOpt := WithBuildArg(xdef.EnvBldImgBase, TestImgRef)
 
 		// --- When ---
 		ref, iid, err := dkr.Build(bldOpt, argOpt)
@@ -125,8 +126,9 @@ func Test_Docker_Build(t *testing.T) {
 	t.Run("build from the current working directory", func(t *testing.T) {
 		// --- Given ---
 		dkr := New()
-		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
-		oskit.Chdir(t, "testdata/simple")
+		argOpt := WithBuildArg(xdef.EnvBldImgBase, TestImgRef)
+		pth := dkrfix.Minimal.Write(t, t.TempDir())
+		oskit.Chdir(t, filepath.Dir(pth))
 
 		// --- When ---
 		ref, iid, err := dkr.Build(argOpt)
@@ -144,8 +146,8 @@ func Test_Docker_Build(t *testing.T) {
 	t.Run("labels and env values - default build args", func(t *testing.T) {
 		// --- Given ---
 		dkr := New()
-		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
-		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
+		bldOpt := WithBuildPth(dkrfix.Minimal.Write(t, t.TempDir()))
+		argOpt := WithBuildArg(xdef.EnvBldImgBase, TestImgRef)
 
 		// --- When ---
 		ref, iid, err := dkr.Build(bldOpt, argOpt)
@@ -160,43 +162,29 @@ func Test_Docker_Build(t *testing.T) {
 
 		hLabels := must.Value(getLabels(t.Context(), os.Environ(), ref))
 		wLabels := map[string]string{
-			xdef.LabImgCreated: "0001-01-01T00:00:00Z",
-			xdef.LabImgAuthors: "unknown",
-			xdef.LabImgRefName: "unknown",
-			xdef.LabImgSrc:     "unknown",
-			xdef.LabImgRev:     "0000000",
-			xdef.LabImgVer:     "v0.0.0",
-			labTestEmpty:       "",
-			labTestValue:       "value",
+			labTestEmpty: "",
+			labTestValue: "value",
+			labTestName:  "unknown",
 		}
-		assert.MapSubset(t, wLabels, hLabels)
+		assert.Equal(t, wLabels, hLabels)
 
 		hEnv := must.Value(getEnvs(t.Context(), os.Environ(), ref))
 		wEnv := map[string]string{
-			xdef.EnvImgCreated: "0001-01-01T00:00:00Z",
-			xdef.EnvImgAuthors: "unknown",
-			xdef.EnvImgRefName: "unknown",
-			xdef.EnvImgSrc:     "unknown",
-			xdef.EnvImgRev:     "0000000",
-			xdef.EnvImgVer:     "v0.0.0",
-			envTestEmpty:       "",
-			envTestValue:       "value",
+			envTestEmpty: "",
+			envTestValue: "value",
+			envTestName:  "unknown",
+			"PATH":       TestImgEnvPATH,
 		}
-		assert.MapSubset(t, wEnv, hEnv)
+		assert.Equal(t, wEnv, hEnv)
 	})
 
 	t.Run("labels and env values - custom build args", func(t *testing.T) {
 		// --- Given ---
 		dkr := New()
-		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
+		bldOpt := WithBuildPth(dkrfix.Minimal.Write(t, t.TempDir()))
 		argOpt := WithBuildArgs(map[string]string{
-			xdef.EnvImgBaseName: TestImageBaseRef,
-			xdef.EnvImgCreated:  "2000-01-02T03:04:05Z",
-			xdef.EnvImgAuthors:  "author",
-			xdef.EnvImgRefName:  "ccid",
-			xdef.EnvImgSrc:      "repo",
-			xdef.EnvImgRev:      "abc",
-			xdef.EnvImgVer:      "v1.2.3",
+			xdef.EnvBldImgBase: TestImgRef,
+			envTestName:        t.Name(),
 		})
 
 		// --- When ---
@@ -212,37 +200,28 @@ func Test_Docker_Build(t *testing.T) {
 
 		hLabels := must.Value(getLabels(t.Context(), os.Environ(), ref))
 		wLabels := map[string]string{
-			xdef.LabImgCreated: "2000-01-02T03:04:05Z",
-			xdef.LabImgAuthors: "author",
-			xdef.LabImgRefName: "ccid",
-			xdef.LabImgSrc:     "repo",
-			xdef.LabImgRev:     "abc",
-			xdef.LabImgVer:     "v1.2.3",
-			labTestEmpty:       "",
-			labTestValue:       "value",
+			labTestEmpty: "",
+			labTestValue: "value",
+			labTestName:  t.Name(),
 		}
-		assert.MapSubset(t, wLabels, hLabels)
+		assert.Equal(t, wLabels, hLabels)
 
 		hEnv := must.Value(getEnvs(t.Context(), os.Environ(), ref))
 		wEnv := map[string]string{
-			xdef.EnvImgCreated: "2000-01-02T03:04:05Z",
-			xdef.EnvImgAuthors: "author",
-			xdef.EnvImgRefName: "ccid",
-			xdef.EnvImgSrc:     "repo",
-			xdef.EnvImgRev:     "abc",
-			xdef.EnvImgVer:     "v1.2.3",
-			envTestEmpty:       "",
-			envTestValue:       "value",
+			envTestEmpty: "",
+			envTestValue: "value",
+			envTestName:  t.Name(),
+			"PATH":       TestImgEnvPATH,
 		}
-		assert.MapSubset(t, wEnv, hEnv)
+		assert.Equal(t, wEnv, hEnv)
 	})
 
 	t.Run("provide a Dockerfile as a reader", func(t *testing.T) {
 		// --- Given ---
 		dkr := New()
-		rdr := must.Value(os.Open("testdata/simple/Dockerfile"))
+		rdr := must.Value(os.Open(dkrfix.Minimal.Write(t, t.TempDir())))
 		bldOpt := WithBuildRdr(rdr)
-		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
+		argOpt := WithBuildArg(xdef.EnvBldImgBase, TestImgRef)
 
 		// --- When ---
 		ref, iid, err := dkr.Build(bldOpt, argOpt)
@@ -290,8 +269,8 @@ func Test_Docker_Build(t *testing.T) {
 	t.Run("WithBuildName", func(t *testing.T) {
 		// --- Given ---
 		dkr := New()
-		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
-		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
+		bldOpt := WithBuildPth(dkrfix.Minimal.Write(t, t.TempDir()))
+		argOpt := WithBuildArg(xdef.EnvBldImgBase, TestImgRef)
 		name := RandName() + "-my-name"
 		nameOpt := WithBuildName(name)
 
@@ -308,8 +287,8 @@ func Test_Docker_Build(t *testing.T) {
 	t.Run("WithBuildTag", func(t *testing.T) {
 		// --- Given ---
 		dkr := New()
-		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
-		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
+		bldOpt := WithBuildPth(dkrfix.Minimal.Write(t, t.TempDir()))
+		argOpt := WithBuildArg(xdef.EnvBldImgBase, TestImgRef)
 		tag := RandName() + "-my-tag"
 		tagOpt := WithBuildTag(tag)
 
@@ -330,9 +309,9 @@ func Test_Docker_Build(t *testing.T) {
 		idfPth := filepath.Join(t.TempDir(), "iid.log")
 		have := &bytes.Buffer{}
 		dryOpt := WithBuildDryRun(have)
-		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
+		bldOpt := WithBuildPth(dkrfix.Minimal.Write(t, t.TempDir()))
 		idfOpt := withBuildIIDFile(idfPth)
-		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
+		argOpt := WithBuildArg(xdef.EnvBldImgBase, TestImgRef)
 
 		// --- When ---
 		ref, iid, err := dkr.Build(dryOpt, bldOpt, argOpt, idfOpt)
@@ -349,7 +328,7 @@ func Test_Docker_Build(t *testing.T) {
 			"-t %s " +
 			"--iidfile %s " +
 			"--ssh=default " +
-			"--build-arg OCI_IMAGE_BASE_NAME=busybox:1.38-uclibc " +
+			"--build-arg C42_BLD_IMG_BASE=busybox:1.38-uclibc " +
 			"--file Dockerfile ."
 		assert.Equal(t, fmt.Sprintf(want, ref, idfPth), have.String())
 		exekit.New(t, exekit.WithExitCode(1)).Exe("docker", "image", "rm", ref)
@@ -363,9 +342,9 @@ func Test_Docker_Build(t *testing.T) {
 		idfPth := filepath.Join(t.TempDir(), "iid.log")
 		have := &bytes.Buffer{}
 		dryOpt := WithBuildDryRun(have)
-		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
+		bldOpt := WithBuildPth(dkrfix.Minimal.Write(t, t.TempDir()))
 		idfOpt := withBuildIIDFile(idfPth)
-		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
+		argOpt := WithBuildArg(xdef.EnvBldImgBase, TestImgRef)
 
 		// --- When ---
 		ref, iid, err := dkr.Build(dryOpt, bldOpt, argOpt, idfOpt)
@@ -378,7 +357,7 @@ func Test_Docker_Build(t *testing.T) {
 			"DOCKER_BUILDKIT=1 docker build --rm " +
 			"-t %s " +
 			"--iidfile %s " +
-			"--build-arg OCI_IMAGE_BASE_NAME=busybox:1.38-uclibc " +
+			"--build-arg C42_BLD_IMG_BASE=busybox:1.38-uclibc " +
 			"--file Dockerfile ."
 		assert.Equal(t, fmt.Sprintf(want, ref, idfPth), have.String())
 		exekit.New(t, exekit.WithExitCode(1)).Exe("docker", "image", "rm", ref)
@@ -390,10 +369,10 @@ func Test_Docker_Build(t *testing.T) {
 		dkr := New(env)
 		idfPth := filepath.Join(t.TempDir(), "iid.log")
 		have := &bytes.Buffer{}
-		rdr := must.Value(os.Open("testdata/simple/Dockerfile"))
+		rdr := must.Value(os.Open(dkrfix.Minimal.Write(t, t.TempDir())))
 		dryOpt := WithBuildDryRun(have)
 		bldOpt := WithBuildRdr(rdr)
-		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
+		argOpt := WithBuildArg(xdef.EnvBldImgBase, TestImgRef)
 		idfOpt := withBuildIIDFile(idfPth)
 
 		// --- When ---
@@ -409,7 +388,7 @@ func Test_Docker_Build(t *testing.T) {
 			"-t %s " +
 			"--iidfile %s " +
 			"--ssh=default " +
-			"--build-arg OCI_IMAGE_BASE_NAME=busybox:1.38-uclibc " +
+			"--build-arg C42_BLD_IMG_BASE=busybox:1.38-uclibc " +
 			"-"
 		assert.Equal(t, fmt.Sprintf(want, ref, idfPth), have.String())
 	})
@@ -418,8 +397,8 @@ func Test_Docker_Build(t *testing.T) {
 		// --- Given ---
 		dkr := New()
 		idfPth := filepath.Join(t.TempDir(), "iid.log")
-		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
-		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
+		bldOpt := WithBuildPth(dkrfix.Minimal.Write(t, t.TempDir()))
+		argOpt := WithBuildArg(xdef.EnvBldImgBase, TestImgRef)
 		idfOpt := withBuildIIDFile(idfPth)
 
 		// --- When ---
@@ -438,7 +417,7 @@ func Test_Docker_Build(t *testing.T) {
 		dkr := New()
 		dryBuf := &bytes.Buffer{}
 		dryOpt := WithBuildDryRun(dryBuf)
-		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
+		bldOpt := WithBuildPth(dkrfix.Minimal.Write(t, t.TempDir()))
 		idfPth := filepath.Join(t.TempDir(), "iid.log")
 		idfOpt := withBuildIIDFile(idfPth)
 		labOpt := WithBuildLabel("my.label", "val")
@@ -458,8 +437,8 @@ func Test_Docker_Build(t *testing.T) {
 		idPth := filepath.Join(t.TempDir(), "iid.log")
 		have := &bytes.Buffer{}
 		dryOpt := WithBuildDryRun(have)
-		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
-		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
+		bldOpt := WithBuildPth(dkrfix.Minimal.Write(t, t.TempDir()))
+		argOpt := WithBuildArg(xdef.EnvBldImgBase, TestImgRef)
 		idfOpt := withBuildIIDFile(idPth)
 
 		// --- When ---
@@ -477,9 +456,9 @@ func Test_Docker_Build(t *testing.T) {
 		idfPth := filepath.Join(t.TempDir(), "iid.log")
 		buf := &bytes.Buffer{}
 		dryOpt := WithBuildDryRun(buf)
-		bldOpt := WithBuildPth("testdata/simple/Dockerfile")
+		bldOpt := WithBuildPth(dkrfix.Minimal.Write(t, t.TempDir()))
 		idfOpt := withBuildIIDFile(idfPth)
-		argOpt := WithBuildArg(xdef.EnvImgBaseName, TestImageBaseRef)
+		argOpt := WithBuildArg(xdef.EnvBldImgBase, TestImgRef)
 		nocOpt := WithBuildNoCache()
 
 		// --- When ---
@@ -498,7 +477,7 @@ func Test_Docker_Build(t *testing.T) {
 			"--rm -t %s " +
 			"--iidfile %s " +
 			"--ssh=default " +
-			"--build-arg OCI_IMAGE_BASE_NAME=busybox:1.38-uclibc " +
+			"--build-arg C42_BLD_IMG_BASE=busybox:1.38-uclibc " +
 			"--no-cache " +
 			"--file Dockerfile ."
 		assert.Equal(t, fmt.Sprintf(want, ref, idfPth), have)
@@ -558,8 +537,7 @@ func Test_readIIDFile(t *testing.T) {
 func Test_Docker_testImageBuildOptions(t *testing.T) {
 	t.Run("static args", func(t *testing.T) {
 		// --- Given ---
-		env := append(os.Environ(), xdef.EnvImgCreated+"=2000-01-02T03:04:05Z")
-		env = append(env, xdef.EnvImgRefName+"=ccid")
+		env := append(os.Environ(), xdef.EnvBldDate+"=2000-01-02T03:04:05Z")
 		dkr := New(WithEnv(env))
 
 		// --- When ---
@@ -579,20 +557,20 @@ func Test_Docker_testImageBuildOptions(t *testing.T) {
 		assert.False(t, opts.noCache)
 		assert.Nil(t, opts.dryRun)
 		want := map[string]string{
-			xdef.EnvImgCreated:  "2000-01-02T03:04:05Z",
-			xdef.EnvImgRefName:  "ccid",
-			xdef.EnvImgBaseName: TestImageBaseRef,
-			xdef.EnvImgSrc:      "repo",
-			xdef.EnvImgRev:      "12345678",
-			xdef.EnvImgVer:      "v1.2.3",
+			xdef.EnvBldImgBase: TestImgRef,
+			xdef.EnvBldDate:    "2000-01-02T03:04:05Z",
+			xdef.EnvPrjName:    "testkit",
+			xdef.EnvScmHash:    "12345678",
+			xdef.EnvScmRev:     TestImgScmTag,
+			xdef.EnvScmRepo:    "https://github.com/ctx42/testkit.git",
 		}
 		assert.Equal(t, want, opts.args)
 		assert.Fields(t, 9, BuildOptions{})
 	})
 
-	t.Run("OCI_IMAGE_CREATED from env", func(t *testing.T) {
+	t.Run("C42_BLD_DATE from env", func(t *testing.T) {
 		// --- Given ---
-		env := append(os.Environ(), xdef.EnvImgCreated+"=2000-01-02T03:04:05Z")
+		env := append(os.Environ(), xdef.EnvBldDate+"=2000-01-02T03:04:05Z")
 		dkr := New(WithEnv(env))
 
 		// --- When ---
@@ -603,31 +581,14 @@ func Test_Docker_testImageBuildOptions(t *testing.T) {
 		for _, opt := range have {
 			opt(opts)
 		}
-		assert.Equal(t, "2000-01-02T03:04:05Z", opts.args[xdef.EnvImgCreated])
-	})
-
-	t.Run("OCI_IMAGE_REF_NAME from env", func(t *testing.T) {
-		// --- Given ---
-		env := append(os.Environ(), xdef.EnvImgRefName+"=ccid")
-		dkr := New(WithEnv(env))
-
-		// --- When ---
-		have := dkr.testImageBuildOptions()
-
-		// --- Then ---
-		opts := &BuildOptions{}
-		for _, opt := range have {
-			opt(opts)
-		}
-		assert.Equal(t, "ccid", opts.args[xdef.EnvImgRefName])
+		assert.Equal(t, "2000-01-02T03:04:05Z", opts.args[xdef.EnvBldDate])
 	})
 }
 
 func Test_Docker_BuildTestImg(t *testing.T) {
-	t.Run("created and ccid set from env variables", func(t *testing.T) {
+	t.Run("created set from env variable", func(t *testing.T) {
 		// --- Given ---
-		env := append(os.Environ(), xdef.EnvImgCreated+"=2000-01-02T03:04:05Z")
-		env = append(env, xdef.EnvImgRefName+"=ccid")
+		env := append(os.Environ(), xdef.EnvBldDate+"=2000-01-02T03:04:05Z")
 		dkr := New(WithEnv(env))
 
 		// --- When ---
@@ -640,31 +601,31 @@ func Test_Docker_BuildTestImg(t *testing.T) {
 
 		hLabels := must.Value(getLabels(t.Context(), os.Environ(), ref))
 		wLabels := map[string]string{
-			xdef.LabImgCreated:  "2000-01-02T03:04:05Z",
-			xdef.LabImgSrc:      "repo",
-			xdef.LabImgRev:      "12345678",
-			xdef.LabImgVer:      "v1.2.3",
-			xdef.LabImgRefName:  "ccid",
-			xdef.LabImgBaseName: TestImageBaseRef,
+			xdef.LabImgCreated: "2000-01-02T03:04:05Z",
+			xdef.LabImgRev:     "12345678",
+			xdef.LabImgVer:     TestImgScmTag,
+			xdef.LabImgSrc:     "https://github.com/ctx42/testkit.git",
+			labTestEmpty:       "",
+			labTestName:        "",
 		}
-		assert.MapSubset(t, wLabels, hLabels)
+		assert.Equal(t, wLabels, hLabels)
 
 		hEnv := must.Value(getEnvs(t.Context(), os.Environ(), ref))
 		wEnv := map[string]string{
-			xdef.EnvImgCreated:  "2000-01-02T03:04:05Z",
-			xdef.EnvImgSrc:      "repo",
-			xdef.EnvImgRev:      "12345678",
-			xdef.EnvImgVer:      "v1.2.3",
-			xdef.EnvImgRefName:  "ccid",
-			xdef.EnvImgBaseName: TestImageBaseRef,
+			xdef.EnvBldDate: "2000-01-02T03:04:05Z",
+			xdef.EnvPrjName: "testkit",
+			xdef.EnvScmHash: "12345678",
+			xdef.EnvScmRev:  TestImgScmTag,
+			envTestEmpty:    "",
+			envTestName:     "",
+			"PATH":          TestImgEnvPATH,
 		}
-		assert.MapSubset(t, wEnv, hEnv)
+		assert.Equal(t, wEnv, hEnv)
 	})
 
 	t.Run("empty environment build date is ignored", func(t *testing.T) {
 		// --- Given ---
-		env := append(os.Environ(), xdef.EnvImgCreated+"=")
-		env = append(env, xdef.EnvImgRefName+"=ccid")
+		env := append(os.Environ(), xdef.EnvBldDate+"=")
 		dkr := New(WithEnv(env))
 
 		// --- When ---
@@ -681,30 +642,8 @@ func Test_Docker_BuildTestImg(t *testing.T) {
 		assert.True(t, strings.HasSuffix(valBDate, "Z"))
 
 		hEnv := must.Value(getEnvs(t.Context(), os.Environ(), ref))
-		valBDate, _ = assert.HasKey(t, xdef.EnvImgCreated, hEnv)
+		valBDate, _ = assert.HasKey(t, xdef.EnvBldDate, hEnv)
 		assert.Within(t, time.Now(), "3s", valBDate)
-	})
-
-	t.Run("empty environment CCID is ignored", func(t *testing.T) {
-		// --- Given ---
-		env := append(os.Environ(), xdef.EnvImgRefName+"=")
-		dkr := New(WithEnv(env))
-
-		// --- When ---
-		ref, iid, err := dkr.BuildTestImg()
-
-		// --- Then ---
-		assert.NoError(t, err)
-		t.Cleanup(func() { exekit.New(t).Exe("docker", "image", "rm", ref) })
-		assert.NotEmpty(t, iid)
-
-		hLabels := must.Value(getLabels(t.Context(), os.Environ(), ref))
-		val, _ := assert.HasKey(t, xdef.LabImgRefName, hLabels)
-		assert.True(t, strings.HasPrefix(val, "no-ccid-"))
-
-		hEnv := must.Value(getEnvs(t.Context(), os.Environ(), ref))
-		val, _ = assert.HasKey(t, xdef.EnvImgRefName, hEnv)
-		assert.True(t, strings.HasPrefix(val, "no-ccid-"))
 	})
 
 	t.Run("entrypoint without args", func(t *testing.T) {
@@ -753,7 +692,7 @@ func Test_Docker_ImgLs(t *testing.T) {
 		img := have.FindByRef(TestImg0.ref)
 		assert.NotNil(t, img)
 		assert.Equal(t, TestImg0.iid, img.ID)
-		assert.Equal(t, TestImg0.name, img.Repository)
+		assert.Equal(t, TestImg0.rep, img.Repository)
 		assert.Equal(t, TestImg0.tag, img.Tag)
 	})
 
@@ -772,7 +711,7 @@ func Test_Docker_ImgLs(t *testing.T) {
 		img := have.FindByRef(TestImg1.ref)
 		assert.NotNil(t, img)
 		assert.Equal(t, TestImg1.iid, img.ID)
-		assert.Equal(t, TestImg1.name, img.Repository)
+		assert.Equal(t, TestImg1.rep, img.Repository)
 		assert.Equal(t, TestImg1.tag, img.Tag)
 	})
 
@@ -818,10 +757,12 @@ func Test_Docker_Labels(t *testing.T) {
 		// --- Then ---
 		assert.NoError(t, err)
 		want := map[string]string{
-			xdef.LabImgCreated:  "2000-01-02T03:04:05Z",
-			xdef.LabImgBaseName: TestImageBaseRef,
-			xdef.LabImgTitle:    "Image0",
-			labTestEmpty:        "",
+			xdef.LabImgCreated: "2000-01-02T03:04:05Z",
+			xdef.LabImgRev:     xdef.PhHash,
+			xdef.LabImgVer:     xdef.PhTag,
+			xdef.LabImgSrc:     "https://github.com/ctx42/testkit",
+			labTestName:        "TestImage0",
+			labTestEmpty:       "",
 		}
 		assert.Equal(t, want, have)
 	})
@@ -846,11 +787,11 @@ func Test_Docker_Label(t *testing.T) {
 		dkr := New()
 
 		// --- When ---
-		have, err := dkr.Label(TestImg0.ref, xdef.LabImgTitle)
+		have, err := dkr.Label(TestImg0.ref, labTestName)
 
 		// --- Then ---
 		assert.NoError(t, err)
-		assert.Equal(t, "Image0", have)
+		assert.Equal(t, "TestImage0", have)
 	})
 
 	t.Run("empty existing label", func(t *testing.T) {
@@ -879,9 +820,11 @@ func Test_Docker_Label(t *testing.T) {
 			"    want: \"not.existing.label\"\n" +
 			"  labels:\n" +
 			"          \"com.ctx42.test.empty\"\n" +
-			"          \"org.opencontainers.image.base.name\"\n" +
+			"          \"com.ctx42.test.name\"\n" +
 			"          \"org.opencontainers.image.created\"\n" +
-			"          \"org.opencontainers.image.title\""
+			"          \"org.opencontainers.image.revision\"\n" +
+			"          \"org.opencontainers.image.source\"\n" +
+			"          \"org.opencontainers.image.version\""
 		wMsg = fmt.Sprintf(wMsg, TestImg0.ref)
 		assert.ErrorEqual(t, wMsg, err)
 		assert.Empty(t, have)
@@ -893,7 +836,7 @@ func Test_Docker_Label(t *testing.T) {
 		ref := RandRef()
 
 		// --- When ---
-		have, err := dkr.Label(ref, xdef.LabImgAuthors)
+		have, err := dkr.Label(ref, labTestName)
 
 		// --- Then ---
 		wMsg := "" +
@@ -918,11 +861,15 @@ func Test_Docker_Envs(t *testing.T) {
 		// --- Then ---
 		assert.NoError(t, err)
 		want := map[string]string{
-			xdef.EnvImgCreated: "2000-01-02T03:04:05Z",
-			xdef.EnvImgTitle:   "Image0",
-			envTestEmpty:       "",
+			xdef.EnvBldDate: "2000-01-02T03:04:05Z",
+			xdef.EnvPrjName: "testkit",
+			xdef.EnvScmHash: xdef.PhHash,
+			xdef.EnvScmRev:  xdef.PhTag,
+			envTestName:     "TestImage0",
+			envTestEmpty:    "",
+			"PATH":          TestImgEnvPATH,
 		}
-		assert.MapSubset(t, want, have)
+		assert.Equal(t, want, have)
 	})
 
 	t.Run("error - non-existent ref", func(t *testing.T) {
@@ -945,11 +892,11 @@ func Test_Docker_Env(t *testing.T) {
 		dkr := New()
 
 		// --- When ---
-		have, err := dkr.Env(TestImg0.iid, xdef.EnvImgTitle)
+		have, err := dkr.Env(TestImg0.iid, envTestName)
 
 		// --- Then ---
 		assert.NoError(t, err)
-		assert.Equal(t, "Image0", have)
+		assert.Equal(t, "TestImage0", have)
 	})
 
 	t.Run("empty existing environment variable", func(t *testing.T) {
@@ -976,10 +923,12 @@ func Test_Docker_Env(t *testing.T) {
 			"   ref: %s\n" +
 			"  want: \"NOT_EXISTING\"\n" +
 			"   env:\n" +
-			"        \"C42_TEST_EMPTY\"\n" +
-			"        \"OCI_IMAGE_BASE_NAME\"\n" +
-			"        \"OCI_IMAGE_CREATED\"\n" +
-			"        \"OCI_IMAGE_TITLE\"\n" +
+			"        \"C42_BLD_DATE\"\n" +
+			"        \"C42_PRJ_NAME\"\n" +
+			"        \"C42_SCM_HASH\"\n" +
+			"        \"C42_SCM_REV\"\n" +
+			"        \"C42_TST_EMPTY\"\n" +
+			"        \"C42_TST_NAME\"\n" +
 			"        \"PATH\""
 		wMsg = fmt.Sprintf(wMsg, TestImg0.iid)
 		assert.ErrorEqual(t, wMsg, err)
@@ -992,7 +941,7 @@ func Test_Docker_Env(t *testing.T) {
 		ref := RandRef()
 
 		// --- When ---
-		have, err := dkr.Env(ref, "C42_TEST_VALUE0")
+		have, err := dkr.Env(ref, "C42_TST_VALUE0")
 
 		// --- Then ---
 		wMsg := "[getting environment variable] docker command error"
@@ -1596,15 +1545,13 @@ func Test_Docker_CtrPs(t *testing.T) {
 
 		ctr0 := must.Value(have.FindByID(cid0))
 		assert.NotNil(t, ctr0)
-		wLabels := map[string]string{"ctr": "ctr0"}
-		assert.MapSubset(t, wLabels, ctr0.Labels)
+		assert.HasKeyValue(t, "ctr", "ctr0", ctr0.Labels)
 		assert.Equal(t, "exited", ctr0.State.Status)
 		assert.HasKey(t, "bridge", ctr0.Networks)
 
 		ctr1 := must.Value(have.FindByID(cid1))
 		assert.NotNil(t, ctr1)
-		wLabels = map[string]string{"ctr": "ctr1"}
-		assert.MapSubset(t, wLabels, ctr1.Labels)
+		assert.HasKeyValue(t, "ctr", "ctr1", ctr1.Labels)
 		assert.Equal(t, "exited", ctr1.State.Status)
 		assert.HasKey(t, "bridge", ctr1.Networks)
 	})
@@ -1704,7 +1651,7 @@ func Test_Docker_NetLs(t *testing.T) {
 			"network",
 			"create",
 			"--attachable",
-			"--label", xdef.LabImgAuthors + "=" + t.Name(),
+			"--label", labTestName + "=" + t.Name(),
 			"--label", "com.ctx42.meta.abc=abc",
 			name,
 		}
@@ -1724,7 +1671,7 @@ func Test_Docker_NetLs(t *testing.T) {
 		assert.Equal(t, name, network.Name)
 		assert.True(t, network.Attachable)
 		wLabels := map[string]string{
-			xdef.LabImgAuthors:   t.Name(),
+			labTestName:          t.Name(),
 			"com.ctx42.meta.abc": "abc",
 		}
 		assert.Equal(t, wLabels, network.Labels)

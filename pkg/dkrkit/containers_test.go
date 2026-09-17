@@ -119,7 +119,7 @@ func Test_Container_UnmarshalJSON(t *testing.T) {
 func Test_Containers_FindByImage(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		// --- Given ---
-		ctr0 := &Container{ID: "ID0", Image: "Image0"}
+		ctr0 := &Container{ID: "ID0", Image: "TestImage0"}
 		ctr1 := &Container{ID: "ID1", Image: "Image1"}
 		ctr2 := &Container{ID: "ID2", Image: "Image2"}
 
@@ -149,7 +149,7 @@ func Test_Containers_FindByImage(t *testing.T) {
 func Test_Containers_FindByID(t *testing.T) {
 	t.Run("not found", func(t *testing.T) {
 		// --- Given ---
-		ctr0 := &Container{ID: "ID0", Image: "Image0"}
+		ctr0 := &Container{ID: "ID0", Image: "TestImage0"}
 		ctr1 := &Container{ID: "ID1", Image: "Image1"}
 		ctr2 := &Container{ID: "ID2", Image: "Image2"}
 

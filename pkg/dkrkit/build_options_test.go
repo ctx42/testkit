@@ -51,7 +51,7 @@ func Test_DefaultBuildOptions(t *testing.T) {
 
 	t.Run("error - WithBuildPth with WithBuildRdr", func(t *testing.T) {
 		// --- Given ---
-		pthOpt := WithBuildPth("testdata/simple/Dockerfile")
+		pthOpt := WithBuildPth("Dockerfile")
 		rdrOpt := WithBuildRdr(strings.NewReader("abc"))
 
 		// --- When ---
