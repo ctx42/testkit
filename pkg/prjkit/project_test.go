@@ -16,6 +16,7 @@ import (
 	"github.com/ctx42/testing/pkg/must"
 	"github.com/ctx42/testing/pkg/tester"
 
+	"github.com/ctx42/testkit/internal/dkrfix"
 	"github.com/ctx42/testkit/pkg/exekit"
 	"github.com/ctx42/testkit/pkg/oskit"
 	"github.com/ctx42/testkit/pkg/randkit"
@@ -1941,7 +1942,7 @@ func Test_Project_CfgBldTargets(t *testing.T) {
 
 		// --- Then ---
 		pth := filepath.Join(prj.Root(), "configs", "project.conf")
-		want := "C42_BLD_TARGETS=first,second\n"
+		want := "C42_BLD_IMG_TARGETS=first,second\n"
 		assert.Equal(t, want, oskit.ReadFileStr(t, pth))
 
 		prj.Close() // Must close to prevent error.
@@ -1979,8 +1980,8 @@ func Test_Project_CfgBldTargets(t *testing.T) {
 		// --- Then ---
 		pth := filepath.Join(prj.Root(), "configs", "project.conf")
 		want := "" +
-			"C42_BLD_TARGETS=first,second\n" +
-			"C42_BLD_TARGETS=second,third\n"
+			"C42_BLD_IMG_TARGETS=first,second\n" +
+			"C42_BLD_IMG_TARGETS=second,third\n"
 		assert.Equal(t, want, oskit.ReadFileStr(t, pth))
 
 		prj.Close() // Must close to prevent error.
@@ -2003,7 +2004,8 @@ func Test_Project_WithDockerfile(t *testing.T) {
 		// --- Then ---
 		pth := filepath.Join(prj.Root(), "Dockerfile")
 		assert.Equal(t, pth, have)
-		assert.Equal(t, string(dockerfile), oskit.ReadFileStr(t, pth))
+		content := oskit.ReadFileStr(t, pth)
+		assert.Equal(t, dkrfix.Targets.Content(), content)
 		assert.NotEmpty(t, prj.imgName)
 		assert.NotEmpty(t, prj.imgTag)
 
@@ -2049,7 +2051,8 @@ func Test_Project_WithDockerfileNEP(t *testing.T) {
 		// --- Then ---
 		pth := filepath.Join(prj.Root(), "Dockerfile")
 		assert.Equal(t, pth, have)
-		assert.Equal(t, string(dockerfileNEP), oskit.ReadFileStr(t, pth))
+		content := oskit.ReadFileStr(t, pth)
+		assert.Equal(t, dkrfix.TargetsNEP.Content(), content)
 		assert.NotEmpty(t, prj.imgName)
 		assert.NotEmpty(t, prj.imgTag)
 

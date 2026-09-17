@@ -15,7 +15,6 @@ import (
 	"bufio"
 	"bytes"
 	"context"
-	_ "embed"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -32,22 +31,12 @@ import (
 	"github.com/ctx42/testing/pkg/tester"
 	"github.com/ctx42/xdef/pkg/xdef"
 
+	"github.com/ctx42/testkit/internal/dkrfix"
 	"github.com/ctx42/testkit/pkg/dkrkit"
 	"github.com/ctx42/testkit/pkg/exekit"
 	"github.com/ctx42/testkit/pkg/oskit"
 	"github.com/ctx42/testkit/pkg/pathkit"
 )
-
-// dockerfile contains the content of the example Dockerfile with three targets.
-//
-//go:embed data/Dockerfile
-var dockerfile []byte
-
-// dockerfileNEP contains the content of the example Dockerfile with three
-// targets without entrypoint.
-//
-//go:embed data/Dockerfile-nep
-var dockerfileNEP []byte
 
 // Default test project values.
 const (
@@ -579,37 +568,45 @@ func (prj *Project) CfgBldTargets(targets string) {
 	prj.t.Helper()
 	prj.CheckOpen()
 
-	prj.CfgAdd(xdef.EnvBldTargets, targets)
+	prj.CfgAdd(xdef.EnvBldImgTargets, targets)
 }
 
 // WithDockerfile adds an example Dockerfile to the project. The Dockerfile
-// defines three targets with entrypoint to simplify testing. It also generates
-// random Docker image and tag values and adds removal of the images with those
-// references (and "latest" tag) to test cleanup. If the private repo value is
-// required, [Project.CfgRegRepo] or [Project.CfgRegRepoDef] method must be
-// called before this one. Returns the absolute path to the Dockerfile.
+// defines three chained targets named "first", "second" and "third", each with
+// an entrypoint echoing its own target name. The image it builds on comes from
+// the C42_BLD_IMG_BASE build argument, which defaults to a pinned BusyBox
+// image. It also generates random Docker image and tag values and adds removal
+// of the images with those references (and "latest" tag) to test cleanup. If
+// the private repo value is required, [Project.CfgRegRepo] or
+// [Project.CfgRegRepoDef] method must be called before this one. Returns the
+// absolute path to the Dockerfile, which [Project.WithDockerfileNEP]
+// overwrites when both are called.
 func (prj *Project) WithDockerfile() string {
 	prj.t.Helper()
 	prj.CheckOpen()
 
 	pth := filepath.Join(prj.Root(), "Dockerfile")
-	oskit.Write(prj.t, dockerfile, pth)
+	oskit.Write(prj.t, dkrfix.Targets.Content(), pth)
 	prj.ImgNameTagSet(dkrkit.RandName(), dkrkit.RandTag())
 	return pth
 }
 
 // WithDockerfileNEP adds an example Dockerfile to the project (NEP: no
-// entrypoint). The Dockerfile defines three targets without an ENTRYPOINT.
+// entrypoint). The Dockerfile defines the same three chained targets as
+// [Project.WithDockerfile], named "first", "second" and "third", but none of
+// them sets an ENTRYPOINT or a CMD. The image it builds on comes from the
+// C42_BLD_IMG_BASE build argument, which defaults to a pinned BusyBox image.
 // It also generates random Docker image and tag values and adds removal of
 // those images (and "latest" tag) to test cleanup. If the private repo value
 // is required, [Project.CfgRegRepo] or [Project.CfgRegRepoDef] must be
-// called before this one. Returns the absolute path to the Dockerfile.
+// called before this one. Returns the absolute path to the Dockerfile, which
+// [Project.WithDockerfile] overwrites when both are called.
 func (prj *Project) WithDockerfileNEP() string {
 	prj.t.Helper()
 	prj.CheckOpen()
 
 	pth := filepath.Join(prj.Root(), "Dockerfile")
-	oskit.Write(prj.t, dockerfileNEP, pth)
+	oskit.Write(prj.t, dkrfix.TargetsNEP.Content(), pth)
 	prj.ImgNameTagSet(dkrkit.RandName(), dkrkit.RandTag())
 	return pth
 }
