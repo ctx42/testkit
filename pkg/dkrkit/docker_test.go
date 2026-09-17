@@ -1150,6 +1150,107 @@ func Test_Docker_ImgRm(t *testing.T) {
 	})
 }
 
+func Test_Docker_imgRmCmd(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		// --- Given ---
+		dkr := New()
+		img := must.Value(createMinImage(t.Name()))
+
+		// --- When ---
+		have, err := dkr.imgRmCmd(t.Context(), img.iid, false)
+
+		// --- Then ---
+		assert.NoError(t, err)
+		assert.Equal(t, "", have)
+
+		exekit.New(t, exekit.WithExitCode(1)).Exe("docker", "history", img.iid)
+	})
+
+	t.Run("error - non-existent image", func(t *testing.T) {
+		// --- Given ---
+		dkr := New()
+		ref := RandRef()
+
+		// --- When ---
+		have, err := dkr.imgRmCmd(t.Context(), ref, false)
+
+		// --- Then ---
+		assert.Error(t, err)
+		assert.Contain(t, "No such image: "+ref, have)
+		assert.ErrorContain(t, "cmd: docker image rm "+ref, err)
+	})
+
+	t.Run("error - image used by a stopped container", func(t *testing.T) {
+		// --- Given ---
+		dkr := New()
+		img := must.Value(createMinImage(t.Name()))
+
+		// Run container in the background but do not remove it after it exits.
+		args := []string{"run", "-d", img.ref, "echo", "ok"}
+		cid := exekit.New(t).ExeStdout("docker", args...)
+		t.Cleanup(func() {
+			exekit.New(t).Exe("docker", "rm", cid)
+			exekit.New(t).Exe("docker", "rmi", "-f", img.iid)
+		})
+
+		// --- When ---
+		have, err := dkr.imgRmCmd(t.Context(), img.ref, false)
+
+		// --- Then ---
+		assert.Error(t, err)
+		assert.Contain(t, "is using its referenced image", have)
+	})
+
+	t.Run("force removes an image in use", func(t *testing.T) {
+		// --- Given ---
+		dkr := New()
+		img := must.Value(createMinImage(t.Name()))
+
+		// Run container in the background but do not remove it after it exits.
+		args := []string{"run", "-d", img.ref, "echo", "ok"}
+		cid := exekit.New(t).ExeStdout("docker", args...)
+		t.Cleanup(func() {
+			exekit.New(t).Exe("docker", "rm", cid)
+			exekit.New(t, exekit.WithLax).Exe("docker", "rmi", "-f", img.iid)
+		})
+
+		// --- When ---
+		have, err := dkr.imgRmCmd(t.Context(), img.ref, true)
+
+		// --- Then ---
+		assert.NoError(t, err)
+		assert.Equal(t, "", have)
+
+		exekit.New(t, exekit.WithExitCode(1)).Exe("docker", "history", img.ref)
+	})
+}
+
+func Test_Docker_imgRmDangling(t *testing.T) {
+	t.Run("removes the image", func(t *testing.T) {
+		// --- Given ---
+		dkr := New()
+		img := must.Value(createMinImage(t.Name()))
+
+		// --- When ---
+		dkr.imgRmDangling(t.Context(), img.iid)
+
+		// --- Then ---
+		exekit.New(t, exekit.WithExitCode(1)).Exe("docker", "history", img.iid)
+	})
+
+	t.Run("non-existent image is ignored", func(t *testing.T) {
+		// --- Given ---
+		dkr := New()
+		ref := RandRef()
+
+		// --- When ---
+		dkr.imgRmDangling(t.Context(), ref)
+
+		// --- Then ---
+		exekit.New(t, exekit.WithExitCode(1)).Exe("docker", "history", ref)
+	})
+}
+
 func Test_Docker_CtrRun(t *testing.T) {
 	t.Run("success by iid", func(t *testing.T) {
 		// --- Given ---

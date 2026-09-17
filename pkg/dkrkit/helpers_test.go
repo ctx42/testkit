@@ -8,12 +8,80 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/ctx42/testing/pkg/assert"
 	"github.com/ctx42/xdef/pkg/xdef"
 
 	"github.com/ctx42/testkit/pkg/exekit"
 )
+
+func Test_imgRmRetry_next(t *testing.T) {
+	t.Run("running container", func(t *testing.T) {
+		// --- Given ---
+		rty := &imgRmRetry{iid: "ref"}
+		eout := "" +
+			"Error response from daemon: conflict: unable to delete abc " +
+			"(cannot be forced) - image is being used by running container " +
+			"1234abcd"
+
+		// --- When ---
+		have := rty.next(eout, time.Millisecond)
+
+		// --- Then ---
+		assert.True(t, have)
+		assert.Equal(t, "ref", rty.iid)
+		assert.False(t, rty.force)
+	})
+
+	t.Run("stopped container", func(t *testing.T) {
+		// --- Given ---
+		rty := &imgRmRetry{iid: "ref"}
+		eout := "" +
+			"Error response from daemon: conflict: unable to delete abc " +
+			"(must be forced) - image is being used by stopped container " +
+			"1234abcd"
+
+		// --- When ---
+		have := rty.next(eout, time.Millisecond)
+
+		// --- Then ---
+		assert.True(t, have)
+		assert.Equal(t, "ref", rty.iid)
+		assert.True(t, rty.force)
+	})
+
+	t.Run("referenced image", func(t *testing.T) {
+		// --- Given ---
+		rty := &imgRmRetry{iid: "ref"}
+		eout := "" +
+			"Error response from daemon: conflict: unable to delete abc " +
+			"(must force) - container 1234abcd is using its referenced " +
+			"image deadbeef4242"
+
+		// --- When ---
+		have := rty.next(eout, time.Millisecond)
+
+		// --- Then ---
+		assert.True(t, have)
+		assert.Equal(t, "deadbeef4242", rty.iid)
+		assert.True(t, rty.force)
+	})
+
+	t.Run("unknown error", func(t *testing.T) {
+		// --- Given ---
+		rty := &imgRmRetry{iid: "ref"}
+		eout := "Error response from daemon: something else"
+
+		// --- When ---
+		have := rty.next(eout, time.Millisecond)
+
+		// --- Then ---
+		assert.False(t, have)
+		assert.Equal(t, "ref", rty.iid)
+		assert.False(t, rty.force)
+	})
+}
 
 func Test_Ref_tabular(t *testing.T) {
 	tt := []struct {

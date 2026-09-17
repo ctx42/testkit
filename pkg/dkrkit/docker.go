@@ -14,7 +14,6 @@ import (
 	"path/filepath"
 	"slices"
 	"strings"
-	"time"
 
 	"github.com/ctx42/testing/pkg/check"
 	"github.com/ctx42/testing/pkg/notice"
@@ -245,64 +244,61 @@ func (dkr *Docker) Env(ref, name string) (string, error) {
 // Special cases when the method returns nil:
 //   - The ref is an empty string,
 //   - The ref is not found.
-//
-// TODO: refactor to reduce cognitive complexity.
-//
-//nolint:gocognit,cyclop
 func (dkr *Docker) ImgRm(ref string, opts ...ImgRmOption) error {
 	if ref == "" {
 		return nil
 	}
 	def := DefaultImgRmOptions(opts...)
 
+	rty := imgRmRetry{iid: ref}
 	tries := 0
-	iid := ref
-	force := false
 	ctx := context.Background()
 	for {
 		tries++
-		args := []string{"image", "rm"}
-		if force {
-			args = append(args, "--force")
-		}
-		args = append(args, ref)
-
-		_, eout, err := dockerCmd(ctx, dkr.env, args)
+		eout, err := dkr.imgRmCmd(ctx, ref, rty.force)
 		if err == nil {
-			if force && iid != ref {
-				args = []string{"image", "rm", iid}
-				_, eout, err = dockerCmd(ctx, dkr.env, args)
-				if err != nil && !strings.Contains(eout, "No such image") {
-					s := classifyImgRmErr(eout)
-					if s.action == imgRmForce {
-						args = []string{"image", "rm", "--force", iid}
-						_, _, _ = dockerCmd(ctx, dkr.env, args)
-					}
-				}
+			if rty.force && rty.iid != ref {
+				dkr.imgRmDangling(ctx, rty.iid)
 			}
 			return nil
 		}
 		if strings.Contains(eout, "No such image") {
 			return nil
 		}
-		if tries >= def.tries {
+		if tries >= def.tries || !rty.next(eout, def.sleep) {
 			return notice.From(err, "removing image")
 		}
+	}
+}
 
-		s := classifyImgRmErr(eout)
-		switch s.action {
-		case imgRmWait:
-			time.Sleep(def.sleep)
-		case imgRmForce:
-			if s.iid != "" {
-				iid = s.iid
-			}
-			if s.force {
-				force = true
-			}
-		default:
-			return notice.From(err, "removing image")
-		}
+// imgRmCmd runs the docker image rm command for the ref image, passing
+// --force when force is set. Returns what docker wrote to its standard error
+// and the error the command exited with.
+func (dkr *Docker) imgRmCmd(
+	ctx context.Context,
+	ref string,
+	force bool,
+) (string, error) {
+
+	args := []string{"image", "rm"}
+	if force {
+		args = append(args, "--force")
+	}
+	args = append(args, ref)
+	_, eout, err := dockerCmd(ctx, dkr.env, args)
+	return eout, err
+}
+
+// imgRmDangling removes the image with the given ID, left untagged by a
+// forced removal by reference. The removal is best effort: a missing image
+// and any error the retry cannot act on are ignored.
+func (dkr *Docker) imgRmDangling(ctx context.Context, iid string) {
+	eout, err := dkr.imgRmCmd(ctx, iid, false)
+	if err == nil || strings.Contains(eout, "No such image") {
+		return
+	}
+	if classifyImgRmErr(eout).action == imgRmForce {
+		_, _ = dkr.imgRmCmd(ctx, iid, true)
 	}
 }
 

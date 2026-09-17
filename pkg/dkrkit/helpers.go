@@ -12,6 +12,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/ctx42/testing/pkg/notice"
 
@@ -75,6 +76,37 @@ func classifyImgRmErr(eout string) imgRmState {
 		}
 	}
 	return imgRmState{action: imgRmUnknown}
+}
+
+// imgRmRetry is the state [Docker.ImgRm] carries between removal attempts.
+// Its zero value removes the image by the reference the caller gave.
+type imgRmRetry struct {
+	iid   string // Image ID a forced removal by reference leaves untagged.
+	force bool   // Whether the next attempt passes --force.
+}
+
+// next applies the classification of eout, the standard error of a failed
+// removal, to the retry state and reports whether another attempt is worth
+// making. It sleeps for the given duration when the image is held by a
+// running container.
+func (rty *imgRmRetry) next(eout string, sleep time.Duration) bool {
+	s := classifyImgRmErr(eout)
+	switch s.action {
+	case imgRmWait:
+		time.Sleep(sleep)
+
+	case imgRmForce:
+		if s.iid != "" {
+			rty.iid = s.iid
+		}
+		if s.force {
+			rty.force = true
+		}
+
+	default:
+		return false
+	}
+	return true
 }
 
 // Ref returns a Docker image reference composed of repo, name, and tag.
