@@ -14,10 +14,10 @@ import (
 	"github.com/ctx42/testing/pkg/notice"
 )
 
-// cmdOption is a functional option for [dockerCmd].
+// cmdOption is a functional option for dockerCmd.
 type cmdOption func(cmd *cmdOptions)
 
-// cmdOptions represents [dockerCmd] options.
+// cmdOptions represents dockerCmd options.
 type cmdOptions struct {
 	wd  string    // Working directory, by default current working directory.
 	env []string  // Environment, by default current environment.

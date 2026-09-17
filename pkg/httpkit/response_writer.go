@@ -31,7 +31,6 @@ func NewRespWriter(t tester.T, w http.ResponseWriter) *RespWriter {
 	}
 }
 
-// implements [http.ResponseWriter]. Errors the test if headers already sent.
 func (rsw *RespWriter) Header() http.Header {
 	if rsw.written {
 		rsw.t.Helper()
@@ -47,7 +46,6 @@ func (rsw *RespWriter) Write(data []byte) (int, error) {
 	return rsw.ResponseWriter.Write(data)
 }
 
-// implements [http.ResponseWriter]. Errors the test if headers already sent.
 func (rsw *RespWriter) WriteHeader(status int) {
 	if rsw.written {
 		rsw.t.Helper()

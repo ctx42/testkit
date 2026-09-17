@@ -28,8 +28,6 @@ func ErrReadSeeker(src io.ReadSeeker, n int, opts ...Option) *ErrorReadSeeker {
 	}
 }
 
-// implements [io.Seeker]. Returns the [WithSeekErr] error, if set, after the
-// underlying Seek completes.
 func (rs *ErrorReadSeeker) Seek(offset int64, whence int) (int64, error) {
 	n, err := rs.seek.Seek(offset, whence)
 	if rs.errSeek != nil {

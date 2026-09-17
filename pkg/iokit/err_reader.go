@@ -44,8 +44,6 @@ func ErrReader(src io.Reader, n int, opts ...Option) *ErrorReader {
 	return r
 }
 
-// implements [io.Reader]. Returns the configured error once the read limit
-// is reached, or the underlying reader's error first.
 func (r *ErrorReader) Read(p []byte) (int, error) {
 	// Read up to the limit - no more.
 	if r.n >= 0 && r.off+len(p) > r.n {

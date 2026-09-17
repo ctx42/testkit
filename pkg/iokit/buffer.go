@@ -82,7 +82,6 @@ func (buf *Buffer) SkipExamine() *Buffer {
 	return buf
 }
 
-// implements [io.Writer]. Thread-safe; increments the write count.
 func (buf *Buffer) Write(p []byte) (n int, err error) {
 	buf.mx.Lock()
 	defer buf.mx.Unlock()
@@ -90,7 +89,6 @@ func (buf *Buffer) Write(p []byte) (n int, err error) {
 	return buf.buf.Write(p)
 }
 
-// implements [io.StringWriter]. Thread-safe; increments the write count.
 func (buf *Buffer) WriteString(s string) (n int, err error) {
 	buf.mx.Lock()
 	defer buf.mx.Unlock()
@@ -105,7 +103,6 @@ func (buf *Buffer) MustWriteString(s string) int {
 	return n
 }
 
-// implements [fmt.Stringer]. Thread-safe; increments the read count.
 func (buf *Buffer) String() string {
 	buf.mx.Lock()
 	defer buf.mx.Unlock()

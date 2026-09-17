@@ -29,8 +29,6 @@ func ErrReadCloser(src io.ReadCloser, n int, opts ...Option) *ErrorReadCloser {
 	}
 }
 
-// implements [io.Closer]. The underlying Close is always called; a custom
-// error set via [WithCloseErr] overrides its result.
 func (rc *ErrorReadCloser) Close() error {
 	err := rc.cls.Close() // The underlying Close method is always called.
 	if rc.errClose != nil {
