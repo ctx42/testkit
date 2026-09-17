@@ -14,6 +14,7 @@
     * [ImgRm options](#imgrm-options)
   * [Inspecting labels and environment variables](#inspecting-labels-and-environment-variables)
     * [Labels / Label](#labels--label)
+    * [LabImgTarget](#labimgtarget)
     * [Envs / Env](#envs--env)
   * [Running containers](#running-containers)
     * [CtrRun](#ctrrun)
@@ -214,6 +215,28 @@ or container ID:
 lbs, err := dkr.Labels(iid)
 val, err := dkr.Label(ref, "com.example.version")
 ```
+
+### LabImgTarget
+
+The OCI Image Spec defines fourteen annotation keys and none of them
+covers the build target an image was built from — the stage named by
+`FROM ... AS <name>` and selected with `docker build --target`. The
+spec reserves the `org.opencontainers` prefix for itself and says
+third-party keys SHOULD use reverse domain notation, so `dkrkit` names
+that one key itself:
+
+```go
+const LabImgTarget = "com.ctx42.image.target"
+
+dkrkit.HasLabel(t, ref, dkrkit.LabImgTarget, "second")
+```
+
+It takes the value of the `C42_BLD_IMG_TARGET` environment variable on
+the same image, so the label and the variable cannot drift apart. This
+is a ctx42 name, not a standard one: the `xdef` module defines no
+vendor-specific label key, so an organization building on `xdef` picks
+its own prefix, and an image built elsewhere carries whatever key its
+own build chose — `Label` reads that one just as well.
 
 ### Envs / Env
 

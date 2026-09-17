@@ -10,6 +10,11 @@
 //
 // Package-level assertion helpers ([HasLabel], [HasEnv], etc.) inspect images
 // and containers and report failures via a [tester.T].
+//
+// [LabImgTarget] names the image label ctx42 builds stamp the build target
+// with. The OCI Image Spec has no annotation for a build target, so the key is
+// a ctx42 one rather than a standard one; the xdef module, which other
+// organizations use, deliberately defines no such key.
 package dkrkit
 
 import (
@@ -36,6 +41,21 @@ const (
 	// EnvScmRev build argument that image is built with.
 	TestImgScmTag = "v1.2.3"
 )
+
+// LabImgTarget is the image label carrying the name of the build target an
+// image was built from — the stage named by "FROM ... AS <name>" and selected
+// with "docker build --target". It takes the value of the xdef
+// EnvBldImgTarget environment variable, so the label and the variable on the
+// image cannot drift apart.
+//
+// The OCI Image Spec defines no annotation for a build target and reserves the
+// "org.opencontainers" prefix for itself, so the key follows the reverse
+// domain notation the spec prescribes for everyone else. It is a ctx42 name,
+// not a standard one: an image built outside ctx42 carries whatever key its
+// own build chose, and [Docker.Label] reads that one just as well.
+//
+// Example: com.ctx42.image.target="second"
+const LabImgTarget = "com.ctx42.image.target"
 
 // Test-only DockerT image labels set by testdata Dockerfiles to verify
 // that helpers read both empty and non-empty label values correctly.
