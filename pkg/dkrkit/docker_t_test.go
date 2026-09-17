@@ -6,6 +6,7 @@ package dkrkit
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/ctx42/testkit/internal/dkrfix"
 	"github.com/ctx42/testkit/pkg/exekit"
+	"github.com/ctx42/testkit/pkg/iokit"
 	"github.com/ctx42/testkit/pkg/netkit"
 	"github.com/ctx42/testkit/pkg/randkit"
 )
@@ -82,6 +84,45 @@ func Test_DockerT_ImgPull(t *testing.T) {
 }
 
 func Test_DockerT_Build(t *testing.T) {
+	t.Run("dry run", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.ExpectCleanups(1)
+		tspy.ExpectNames(1)
+		tspy.Close()
+
+		env := WithEnv(append(os.Environ(), "SSH_AUTH_SOCK=/tmp/ssh.sock"))
+		dkr := NewT(tspy, env)
+
+		buf := iokit.WetBuffer(t)
+		dryOpt := WithBuildDryRun(buf)
+		bldOpt := WithBuildPth(dkrfix.Minimal.Write(t, t.TempDir()))
+		argOpt := WithBuildArg(xdef.EnvBldImgBase, TestImgRef)
+		idfPth := filepath.Join(t.TempDir(), "iid.log")
+		idfOpt := withBuildIIDFile(idfPth)
+
+		// --- When ---
+		ref, iid := dkr.Build(dryOpt, bldOpt, argOpt, idfOpt)
+
+		// --- Then ---
+		assert.Empty(t, iid)
+		exekit.New(t, exekit.WithExitCode(1)).Exe("docker", "history", ref)
+		assert.Contain(t, "ctx42-tst-img-", ref)
+		assert.Contain(t, "ctx42-tst-tag-", ref)
+
+		want := "DOCKER_BUILDKIT=1 docker build " +
+			"--rm " +
+			"-t %s " +
+			"--iidfile %s " +
+			"--ssh=default " +
+			"--label com.ctx42.test.name=Test_DockerT_Build/dry_run " +
+			"--build-arg C42_BLD_IMG_BASE=busybox:1.38-uclibc " +
+			"--build-arg C42_TST_NAME=Test_DockerT_Build/dry_run " +
+			"--file Dockerfile ."
+		want = fmt.Sprintf(want, ref, idfPth)
+		assert.Equal(t, want, buf.String())
+	})
+
 	t.Run("cleanup removes image after test", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)

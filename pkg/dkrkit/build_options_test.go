@@ -5,10 +5,13 @@ package dkrkit
 
 import (
 	"bytes"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/ctx42/testing/pkg/assert"
+
+	"github.com/ctx42/testkit/pkg/oskit"
 )
 
 func Test_DefaultBuildOptions(t *testing.T) {
@@ -61,6 +64,172 @@ func Test_DefaultBuildOptions(t *testing.T) {
 		wMsg := "WithBuildPth and WithBuildRdr are mutually exclusive"
 		assert.ErrorEqual(t, wMsg, err)
 		assert.Nil(t, have)
+	})
+}
+
+func Test_BuildOptions_normalize(t *testing.T) {
+	t.Run("generated values", func(t *testing.T) {
+		// --- Given ---
+		def := &BuildOptions{}
+		env := []string{"KEY0=VAL0"}
+		tmpDir := t.TempDir()
+
+		// --- When ---
+		have, cleanup := def.normalize(env, tmpDir)
+
+		// --- Then ---
+		assert.Equal(t, def.imgName+":"+def.imgTag, have)
+		assert.Contain(t, "ctx42-tst-img-", def.imgName)
+		assert.Contain(t, "ctx42-tst-tag-", def.imgTag)
+		assert.False(t, def.noCache)
+
+		assert.Equal(t, tmpDir, filepath.Dir(def.iidPth))
+		assert.Contain(t, ".iid.log", def.iidPth)
+
+		oskit.Create(t, "content", def.iidPth)
+		cleanup()
+		assert.NoFileExist(t, def.iidPth)
+	})
+
+	t.Run("set values are kept", func(t *testing.T) {
+		// --- Given ---
+		idfPth := oskit.Create(t, "content", t.TempDir(), "iid.log")
+		def := &BuildOptions{
+			imgName: "name",
+			imgTag:  "tag",
+			iidPth:  idfPth,
+		}
+		env := []string{"KEY0=VAL0"}
+		tmpDir := t.TempDir()
+
+		// --- When ---
+		have, cleanup := def.normalize(env, tmpDir)
+
+		// --- Then ---
+		assert.Equal(t, "name:tag", have)
+		assert.Equal(t, idfPth, def.iidPth)
+
+		cleanup()
+		assert.FileExist(t, idfPth)
+	})
+
+	t.Run("no cache set by env variable", func(t *testing.T) {
+		// --- Given ---
+		def := &BuildOptions{}
+		env := []string{envBldNoCache + "=1"}
+		tmpDir := t.TempDir()
+
+		// --- When ---
+		_, _ = def.normalize(env, tmpDir)
+
+		// --- Then ---
+		assert.True(t, def.noCache)
+	})
+
+	t.Run("no cache set by option", func(t *testing.T) {
+		// --- Given ---
+		def := &BuildOptions{noCache: true}
+		env := []string{"KEY0=VAL0"}
+		tmpDir := t.TempDir()
+
+		// --- When ---
+		_, _ = def.normalize(env, tmpDir)
+
+		// --- Then ---
+		assert.True(t, def.noCache)
+	})
+}
+
+func Test_BuildOptions_cmdArgs(t *testing.T) {
+	t.Run("all options", func(t *testing.T) {
+		// --- Given ---
+		def := &BuildOptions{
+			iidPth:  "/tmp/iid.log",
+			labels:  map[string]string{"lbl1": "v1", "lbl0": "v0"},
+			args:    map[string]string{"ARG1": "v1", "ARG0": "v0"},
+			noCache: true,
+		}
+		ref := "name:tag"
+		env := []string{"SSH_AUTH_SOCK=/tmp/ssh.sock"}
+
+		// --- When ---
+		have := def.cmdArgs(ref, env)
+
+		// --- Then ---
+		want := []string{
+			"build",
+			"--rm",
+			"-t", "name:tag",
+			"--iidfile", "/tmp/iid.log",
+			"--ssh=default",
+			"--label", "lbl0=v0",
+			"--label", "lbl1=v1",
+			"--build-arg", "ARG0=v0",
+			"--build-arg", "ARG1=v1",
+			"--no-cache",
+		}
+		assert.Equal(t, want, have)
+	})
+
+	t.Run("no SSH_AUTH_SOCK", func(t *testing.T) {
+		// --- Given ---
+		def := &BuildOptions{iidPth: "/tmp/iid.log"}
+		ref := "name:tag"
+		env := []string{"KEY0=VAL0"}
+
+		// --- When ---
+		have := def.cmdArgs(ref, env)
+
+		// --- Then ---
+		want := []string{
+			"build",
+			"--rm",
+			"-t", "name:tag",
+			"--iidfile", "/tmp/iid.log",
+		}
+		assert.Equal(t, want, have)
+	})
+}
+
+func Test_BuildOptions_source(t *testing.T) {
+	t.Run("Dockerfile path", func(t *testing.T) {
+		// --- Given ---
+		def := &BuildOptions{bldPth: "/tmp/ctx/Containerfile"}
+
+		// --- When ---
+		hDir, hSin, hArgs := def.source()
+
+		// --- Then ---
+		assert.Equal(t, "/tmp/ctx", hDir)
+		assert.Nil(t, hSin)
+		assert.Equal(t, []string{"--file", "Containerfile", "."}, hArgs)
+	})
+
+	t.Run("Dockerfile path not set", func(t *testing.T) {
+		// --- Given ---
+		def := &BuildOptions{}
+
+		// --- When ---
+		hDir, hSin, hArgs := def.source()
+
+		// --- Then ---
+		assert.Equal(t, ".", hDir)
+		assert.Nil(t, hSin)
+		assert.Equal(t, []string{"--file", "Dockerfile", "."}, hArgs)
+	})
+
+	t.Run("Dockerfile reader", func(t *testing.T) {
+		// --- Given ---
+		rdr := strings.NewReader("FROM scratch")
+		def := &BuildOptions{bldRdr: rdr}
+
+		// --- When ---
+		hDir, hSin, hArgs := def.source()
+
+		// --- Then ---
+		assert.Equal(t, "", hDir)
+		assert.Same(t, rdr, hSin)
+		assert.Equal(t, []string{"-"}, hArgs)
 	})
 }
 

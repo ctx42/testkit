@@ -9,7 +9,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -22,7 +21,6 @@ import (
 	"github.com/ctx42/xdef/pkg/xdef"
 
 	"github.com/ctx42/testkit/internal/dkrfix"
-	"github.com/ctx42/testkit/pkg/randkit"
 	"github.com/ctx42/testkit/pkg/testkit"
 )
 
@@ -65,71 +63,21 @@ func (dkr *Docker) ImgPull(ref string) error {
 
 // Build builds test Docker image. Returns image reference and image ID.
 // It's up to the caller to remove the image when it's no longer needed.
-//
-// TODO: refactor to reduce cyclomatic complexity.
-//
-//nolint:cyclop
 func (dkr *Docker) Build(opts ...BuildOption) (string, string, error) {
 	def, err := DefaultBuildOptions(opts...)
 	if err != nil {
 		return "", "", err
 	}
 
-	if def.imgName == "" {
-		def.imgName = RandName()
-	}
-	if def.imgTag == "" {
-		def.imgTag = RandTag()
-	}
-	if !def.noCache && envGet(dkr.env, envBldNoCache) != "" {
-		def.noCache = true
+	ref, cleanup := def.normalize(dkr.env, os.TempDir())
+	defer cleanup()
+	if rwc, ok := def.bldRdr.(io.ReadCloser); ok {
+		defer func() { _ = rwc.Close() }()
 	}
 
-	ref := fmt.Sprintf("%s:%s", def.imgName, def.imgTag)
-	if def.iidPth == "" {
-		def.iidPth = filepath.Join(os.TempDir(), randkit.Str()+".iid.log")
-		defer func() { _ = os.Remove(def.iidPth) }()
-	}
-
-	args := []string{
-		"build",
-		"--rm",
-		"-t", ref,
-		"--iidfile", def.iidPth,
-	}
-	if envGet(dkr.env, "SSH_AUTH_SOCK") != "" {
-		args = append(args, "--ssh=default")
-	}
-	for name, value := range def.labels {
-		args = append(args, "--label", name+"="+value)
-	}
-	for name, value := range def.args {
-		args = append(args, "--build-arg", name+"="+value)
-	}
-	if def.noCache {
-		args = append(args, "--no-cache")
-	}
-
-	var dir string
-	var sin io.Reader
-	if def.bldRdr != nil {
-		sin = def.bldRdr
-		args = append(args, "-")
-		if rw, ok := def.bldRdr.(io.ReadCloser); ok {
-			defer func() { _ = rw.Close() }()
-		}
-	} else {
-		dir = filepath.Dir(def.bldPth)
-		dockerfile := filepath.Base(def.bldPth)
-		if dockerfile == "." {
-			dockerfile = "Dockerfile"
-		}
-		args = append(args, "--file", dockerfile, ".")
-	}
-
-	sinOpt := withCmdStdin(sin)
-	wdOpt := withCmdWD(dir)
-	envOpt := append(slices.Clone(dkr.env), "DOCKER_BUILDKIT=1")
+	dir, sin, srcArgs := def.source()
+	args := def.cmdArgs(ref, dkr.env)
+	args = append(args, srcArgs...)
 
 	if def.dryRun != nil {
 		out := "DOCKER_BUILDKIT=1 docker " + strings.Join(args, " ")
@@ -137,8 +85,11 @@ func (dkr *Docker) Build(opts ...BuildOption) (string, string, error) {
 		return ref, "", nil
 	}
 
+	env := append(slices.Clone(dkr.env), "DOCKER_BUILDKIT=1")
+	sinOpt := withCmdStdin(sin)
+	wdOpt := withCmdWD(dir)
 	ctx := context.Background()
-	_, _, err = dockerCmd(ctx, envOpt, args, wdOpt, sinOpt)
+	_, _, err = dockerCmd(ctx, env, args, wdOpt, sinOpt)
 	if err != nil {
 		return "", "", notice.From(err, "building image")
 	}
