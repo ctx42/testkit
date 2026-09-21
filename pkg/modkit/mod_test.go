@@ -121,7 +121,7 @@ func Test_Ver(t *testing.T) {
 		have := Ver("github.com/ctx42/testing")
 
 		// --- Then ---
-		assert.Equal(t, "v0.55.0", have)
+		assert.Equal(t, "v0.56.0", have)
 	})
 
 	t.Run("failure", func(t *testing.T) {
