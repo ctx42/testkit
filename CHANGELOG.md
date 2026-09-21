@@ -1,3 +1,16 @@
+## v0.12.0 (Mon, 21 Sep 2026 11:09:06 UTC)
+- fix(testkit): keep re-reading an empty file in Wait4File.
+- feat(dkrfix): add internal package owning the example Dockerfiles.
+- refactor(dkrkit)!: adopt the xdef v0.7.0 build metadata names.
+- feat(dkrkit): add the LabImgTarget image label constant.
+- refactor(prjkit)!: take the example Dockerfiles from dkrfix.
+- refactor(dkrkit): split Docker.Build into BuildOptions helpers.
+- refactor(dkrkit): split Docker.ImgRm into a retry state and helpers.
+- docs: drop the comments that read as godoc but are not.
+- chore(idea): fix the go test all run configuration.
+- chore(deps): drop the stale xdef v0.6.0 lines from go.sum.
+- build(deps): bump testing to v0.56.0 and xdef to v0.8.0.
+
 ## v0.11.0 (Fri, 17 Jul 2026 12:59:27 UTC)
 - style: fix inert //nolint directive spacing.
 - chore: add SPDX headers to httpkit and prjkit.
