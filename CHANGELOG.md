@@ -1,3 +1,6 @@
+## v0.13.0 (Mon, 21 Sep 2026 11:24:25 UTC)
+- build(deps): bump xdef to v0.9.0.
+
 ## v0.12.0 (Mon, 21 Sep 2026 11:09:06 UTC)
 - fix(testkit): keep re-reading an empty file in Wait4File.
 - feat(dkrfix): add internal package owning the example Dockerfiles.
