@@ -6,3 +6,5 @@ github.com/ctx42/xdef v0.7.0 h1:ErbZDu6nGlqctx64abByy4bbQAJDX4UsoFZxmZ96cB8=
 github.com/ctx42/xdef v0.7.0/go.mod h1:KY52keTViC/5i/nI25eRNBtYifhRqqyLs7gvIVbbaZ8=
 github.com/ctx42/xdef v0.8.0 h1:hudqPi15qX67nPWMTZl1fS2ru1AEBrN7/kPf51at6W4=
 github.com/ctx42/xdef v0.8.0/go.mod h1:KY52keTViC/5i/nI25eRNBtYifhRqqyLs7gvIVbbaZ8=
+github.com/ctx42/xdef v0.9.0 h1:bXHhghQ4QPpC0wD1ChDsZA/jm22X1wE4RDxpLsxtqy4=
+github.com/ctx42/xdef v0.9.0/go.mod h1:KY52keTViC/5i/nI25eRNBtYifhRqqyLs7gvIVbbaZ8=

@@ -4,5 +4,5 @@ go 1.26
 
 require (
 	github.com/ctx42/testing v0.56.0
-	github.com/ctx42/xdef v0.8.0
+	github.com/ctx42/xdef v0.9.0
 )
