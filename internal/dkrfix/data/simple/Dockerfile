@@ -27,6 +27,7 @@ ARG C42_PRJ_NAME="unknown"
 ARG C42_SCM_HASH="0000000"
 ARG C42_SCM_REV="v0.0.0"
 ARG C42_SCM_REPO="unknown"
+ARG C42_SCM_STATE="unknown"
 
 LABEL org.opencontainers.image.created="$C42_BLD_DATE" \
       org.opencontainers.image.revision="$C42_SCM_HASH" \
@@ -36,7 +37,8 @@ LABEL org.opencontainers.image.created="$C42_BLD_DATE" \
 ENV C42_BLD_DATE="$C42_BLD_DATE" \
     C42_PRJ_NAME="$C42_PRJ_NAME" \
     C42_SCM_HASH="$C42_SCM_HASH" \
-    C42_SCM_REV="$C42_SCM_REV"
+    C42_SCM_REV="$C42_SCM_REV" \
+    C42_SCM_STATE="$C42_SCM_STATE"
 
 # Added to test values of labels and environmental variables.
 ARG C42_TST_NAME

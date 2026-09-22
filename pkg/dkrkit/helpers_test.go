@@ -395,13 +395,14 @@ func Test_getEnvs(t *testing.T) {
 		// --- Then ---
 		assert.NoError(t, err)
 		want := map[string]string{
-			xdef.EnvBldDate: "2000-01-02T03:04:05Z",
-			xdef.EnvPrjName: "testkit",
-			xdef.EnvScmHash: xdef.PhHash,
-			xdef.EnvScmRev:  xdef.PhTag,
-			envTestName:     "TestImage0",
-			envTestEmpty:    "",
-			"PATH":          TestImgEnvPATH,
+			xdef.EnvBldDate:  "2000-01-02T03:04:05Z",
+			xdef.EnvPrjName:  "testkit",
+			xdef.EnvScmHash:  xdef.PhHash,
+			xdef.EnvScmRev:   xdef.PhTag,
+			xdef.EnvScmState: xdef.PhUnknown,
+			envTestName:      "TestImage0",
+			envTestEmpty:     "",
+			"PATH":           TestImgEnvPATH,
 		}
 		assert.Equal(t, want, have)
 	})
@@ -413,13 +414,14 @@ func Test_getEnvs(t *testing.T) {
 		// --- Then ---
 		assert.NoError(t, err)
 		want := map[string]string{
-			xdef.EnvBldDate: "2000-01-02T03:04:05Z",
-			xdef.EnvPrjName: "testkit",
-			xdef.EnvScmHash: xdef.PhHash,
-			xdef.EnvScmRev:  xdef.PhTag,
-			envTestName:     "TestImage1",
-			envTestEmpty:    "",
-			"PATH":          TestImgEnvPATH,
+			xdef.EnvBldDate:  "2000-01-02T03:04:05Z",
+			xdef.EnvPrjName:  "testkit",
+			xdef.EnvScmHash:  xdef.PhHash,
+			xdef.EnvScmRev:   xdef.PhTag,
+			xdef.EnvScmState: xdef.PhUnknown,
+			envTestName:      "TestImage1",
+			envTestEmpty:     "",
+			"PATH":           TestImgEnvPATH,
 		}
 		assert.Equal(t, want, have)
 	})
@@ -436,13 +438,14 @@ func Test_getEnvs(t *testing.T) {
 		// --- Then ---
 		assert.NoError(t, err)
 		want := map[string]string{
-			xdef.EnvBldDate: "2000-01-02T03:04:05Z",
-			xdef.EnvPrjName: "testkit",
-			xdef.EnvScmHash: xdef.PhHash,
-			xdef.EnvScmRev:  xdef.PhTag,
-			envTestName:     "TestImage1",
-			envTestEmpty:    "",
-			"PATH":          TestImgEnvPATH,
+			xdef.EnvBldDate:  "2000-01-02T03:04:05Z",
+			xdef.EnvPrjName:  "testkit",
+			xdef.EnvScmHash:  xdef.PhHash,
+			xdef.EnvScmRev:   xdef.PhTag,
+			xdef.EnvScmState: xdef.PhUnknown,
+			envTestName:      "TestImage1",
+			envTestEmpty:     "",
+			"PATH":           TestImgEnvPATH,
 		}
 		assert.Equal(t, want, have)
 	})

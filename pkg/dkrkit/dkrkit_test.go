@@ -390,6 +390,7 @@ func Test_HasEnv(t *testing.T) {
 			"        \"C42_PRJ_NAME\"\n" +
 			"        \"C42_SCM_HASH\"\n" +
 			"        \"C42_SCM_REV\"\n" +
+			"        \"C42_SCM_STATE\"\n" +
 			"        \"C42_TST_EMPTY\"\n" +
 			"        \"C42_TST_NAME\"\n" +
 			"        \"PATH\""

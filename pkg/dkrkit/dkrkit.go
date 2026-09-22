@@ -40,6 +40,11 @@ const (
 	// [Docker.BuildTestImg] is stamped with. It is the value of the xdef
 	// EnvScmRev build argument that image is built with.
 	TestImgScmTag = "v1.2.3"
+
+	// TestImgScmState is the working-tree state the test image built by
+	// [Docker.BuildTestImg] is stamped with. It is the value of the xdef
+	// EnvScmState build argument that image is built with.
+	TestImgScmState = "clean"
 )
 
 // LabImgTarget is the image label carrying the name of the build target an

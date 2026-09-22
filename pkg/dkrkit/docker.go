@@ -130,6 +130,7 @@ func (dkr *Docker) testImageBuildOptions() []BuildOption {
 		xdef.EnvScmRepo:    "https://github.com/ctx42/testkit.git",
 		xdef.EnvScmHash:    "12345678",
 		xdef.EnvScmRev:     TestImgScmTag,
+		xdef.EnvScmState:   TestImgScmState,
 	}
 
 	bldOpt := WithBuildRdr(strings.NewReader(dkrfix.Simple.Content()))

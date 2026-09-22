@@ -562,6 +562,7 @@ func Test_Docker_testImageBuildOptions(t *testing.T) {
 			xdef.EnvPrjName:    "testkit",
 			xdef.EnvScmHash:    "12345678",
 			xdef.EnvScmRev:     TestImgScmTag,
+			xdef.EnvScmState:   TestImgScmState,
 			xdef.EnvScmRepo:    "https://github.com/ctx42/testkit.git",
 		}
 		assert.Equal(t, want, opts.args)
@@ -612,13 +613,14 @@ func Test_Docker_BuildTestImg(t *testing.T) {
 
 		hEnv := must.Value(getEnvs(t.Context(), os.Environ(), ref))
 		wEnv := map[string]string{
-			xdef.EnvBldDate: "2000-01-02T03:04:05Z",
-			xdef.EnvPrjName: "testkit",
-			xdef.EnvScmHash: "12345678",
-			xdef.EnvScmRev:  TestImgScmTag,
-			envTestEmpty:    "",
-			envTestName:     "",
-			"PATH":          TestImgEnvPATH,
+			xdef.EnvBldDate:  "2000-01-02T03:04:05Z",
+			xdef.EnvPrjName:  "testkit",
+			xdef.EnvScmHash:  "12345678",
+			xdef.EnvScmRev:   TestImgScmTag,
+			xdef.EnvScmState: TestImgScmState,
+			envTestEmpty:     "",
+			envTestName:      "",
+			"PATH":           TestImgEnvPATH,
 		}
 		assert.Equal(t, wEnv, hEnv)
 	})
@@ -861,13 +863,14 @@ func Test_Docker_Envs(t *testing.T) {
 		// --- Then ---
 		assert.NoError(t, err)
 		want := map[string]string{
-			xdef.EnvBldDate: "2000-01-02T03:04:05Z",
-			xdef.EnvPrjName: "testkit",
-			xdef.EnvScmHash: xdef.PhHash,
-			xdef.EnvScmRev:  xdef.PhTag,
-			envTestName:     "TestImage0",
-			envTestEmpty:    "",
-			"PATH":          TestImgEnvPATH,
+			xdef.EnvBldDate:  "2000-01-02T03:04:05Z",
+			xdef.EnvPrjName:  "testkit",
+			xdef.EnvScmHash:  xdef.PhHash,
+			xdef.EnvScmRev:   xdef.PhTag,
+			xdef.EnvScmState: xdef.PhUnknown,
+			envTestName:      "TestImage0",
+			envTestEmpty:     "",
+			"PATH":           TestImgEnvPATH,
 		}
 		assert.Equal(t, want, have)
 	})
@@ -927,6 +930,7 @@ func Test_Docker_Env(t *testing.T) {
 			"        \"C42_PRJ_NAME\"\n" +
 			"        \"C42_SCM_HASH\"\n" +
 			"        \"C42_SCM_REV\"\n" +
+			"        \"C42_SCM_STATE\"\n" +
 			"        \"C42_TST_EMPTY\"\n" +
 			"        \"C42_TST_NAME\"\n" +
 			"        \"PATH\""

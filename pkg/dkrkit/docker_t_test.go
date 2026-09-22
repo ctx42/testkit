@@ -216,13 +216,14 @@ func Test_DockerT_BuildTestImg(t *testing.T) {
 
 		hEnv := must.Value(getEnvs(t.Context(), os.Environ(), ref))
 		wEnv := map[string]string{
-			xdef.EnvBldDate: "2000-01-02T03:04:05Z",
-			xdef.EnvPrjName: "testkit",
-			xdef.EnvScmHash: "12345678",
-			xdef.EnvScmRev:  TestImgScmTag,
-			envTestEmpty:    "",
-			envTestName:     t.Name(),
-			"PATH":          TestImgEnvPATH,
+			xdef.EnvBldDate:  "2000-01-02T03:04:05Z",
+			xdef.EnvPrjName:  "testkit",
+			xdef.EnvScmHash:  "12345678",
+			xdef.EnvScmRev:   TestImgScmTag,
+			xdef.EnvScmState: TestImgScmState,
+			envTestEmpty:     "",
+			envTestName:      t.Name(),
+			"PATH":           TestImgEnvPATH,
 		}
 		assert.Equal(t, wEnv, hEnv)
 
@@ -358,13 +359,14 @@ func Test_DockerT_Envs(t *testing.T) {
 
 		// --- Then ---
 		want := map[string]string{
-			xdef.EnvBldDate: "2000-01-02T03:04:05Z",
-			xdef.EnvPrjName: "testkit",
-			xdef.EnvScmHash: xdef.PhHash,
-			xdef.EnvScmRev:  xdef.PhTag,
-			envTestEmpty:    "",
-			envTestName:     "TestImage0",
-			"PATH":          TestImgEnvPATH,
+			xdef.EnvBldDate:  "2000-01-02T03:04:05Z",
+			xdef.EnvPrjName:  "testkit",
+			xdef.EnvScmHash:  xdef.PhHash,
+			xdef.EnvScmRev:   xdef.PhTag,
+			xdef.EnvScmState: xdef.PhUnknown,
+			envTestEmpty:     "",
+			envTestName:      "TestImage0",
+			"PATH":           TestImgEnvPATH,
 		}
 		assert.Equal(t, want, have)
 	})
