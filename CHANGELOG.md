@@ -1,3 +1,6 @@
+## v0.14.0 (Tue, 22 Sep 2026 08:04:32 UTC)
+- feat(dkrkit)!: stamp C42_SCM_STATE on the test image.
+
 ## v0.13.0 (Mon, 21 Sep 2026 11:24:25 UTC)
 - build(deps): bump xdef to v0.9.0.
 
