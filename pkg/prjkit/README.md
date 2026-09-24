@@ -40,6 +40,8 @@ functions:
   exist.
 - `WithProjectEnv(env)` — override the environment used when running
   commands.
+- `WithGitBranch(branch)` — initialize the git repository on `branch`
+  instead of the default `master`.
 
 ## File Operations
 
@@ -66,12 +68,17 @@ the base name of the project root directory.
 prj.GitInitAddAll("v1.0.0")           // init, stage all, commit, tag
 prj.GitSetRemote()                    // add default origin remote
 prj.GitCommit("v1.1.0", "Release v1.1.0")
+prj.GitDetach()                       // detach HEAD on the current commit
 
 prj.Close()
 
 hash := prj.GitHash()
 log  := prj.GitCommitLog()
 ```
+
+The repository is initialized on `master` unless `WithGitBranch` names
+another branch, so a test never depends on the ambient
+`init.defaultBranch` git setting.
 
 ## Docker Configuration
 

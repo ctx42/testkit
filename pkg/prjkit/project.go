@@ -50,6 +50,10 @@ const (
 	// GoModName represents the default Go module name used with "go mod init".
 	GoModName = GoModNameStem + ProjDir
 
+	// GitBranch represents the branch a test project's repository is
+	// initialized on.
+	GitBranch = "master"
+
 	// GitOrigin represents git origin without the "ssh://" prefix.
 	GitOrigin = "git@example.com:comp/" + ProjDir + ".git"
 
@@ -85,6 +89,18 @@ func WithProjectCreate(prj *Project) {
 // WithProjectEnv is an option for [New] that sets the environment to use.
 func WithProjectEnv(env []string) func(*Project) {
 	return func(prj *Project) { prj.env = env }
+}
+
+// WithGitBranch is an option for [New] that sets the branch the project's
+// git repository is initialized on. Without it, or when the branch is empty,
+// the branch is [GitBranch], so a test project never depends on the ambient
+// "init.defaultBranch" setting.
+func WithGitBranch(branch string) func(*Project) {
+	return func(prj *Project) {
+		if branch != "" {
+			prj.gitBranch = branch
+		}
+	}
 }
 
 // Project represents a test Go project.
@@ -132,6 +148,9 @@ type Project struct {
 	// Environment when executing commands (default: os.Environ).
 	env []string
 
+	// Branch the git repository is initialized on (default: [GitBranch]).
+	gitBranch string
+
 	gitID  bool     // True after git user identity has been configured.
 	closed bool     // Instance closed for edits.
 	misuse bool     // True when t.Error* or t.Fatal were called.
@@ -145,9 +164,10 @@ type Project struct {
 func New(t tester.T, root string, opts ...func(*Project)) *Project {
 	t.Helper()
 	prj := &Project{
-		root:    root,
-		testDir: oskit.Getwd(t),
-		t:       t,
+		root:      root,
+		testDir:   oskit.Getwd(t),
+		gitBranch: GitBranch,
+		t:         t,
 	}
 	for _, opt := range opts {
 		opt(prj)
@@ -393,13 +413,14 @@ func (prj *Project) GoModTidy() {
 }
 
 // GitInitAddAll initializes git repository in project root, adds all files and
-// commits them. If a tag is set, the commit will be tagged with it. Returns
-// current git hash.
+// commits them. The repository is initialized on [GitBranch] unless
+// [WithGitBranch] set another branch. If a tag is set, the commit will be
+// tagged with it. Returns current git hash.
 func (prj *Project) GitInitAddAll(tags ...string) *GitCommit {
 	prj.t.Helper()
 	prj.CheckOpen()
 
-	prj.Exe("git", "init")
+	prj.Exe("git", "init", "-b", prj.gitBranch)
 	var tag string
 	if len(tags) == 1 {
 		tag = tags[0]
@@ -431,6 +452,15 @@ func (prj *Project) GitCommit(tag string, mss ...string) *GitCommit {
 		prj.Exe("git", "tag", "-a", "-m", "test tag"+tag, tag)
 	}
 	return prj.GitCommitLog().Latest()
+}
+
+// GitDetach detaches the HEAD of the test project's git repository, leaving it
+// on the commit it was already on.
+func (prj *Project) GitDetach() {
+	prj.t.Helper()
+	prj.CheckOpen()
+
+	prj.Exe("git", "checkout", "--detach")
 }
 
 // GitSetRemote sets git remote repository for the test project. If no remote

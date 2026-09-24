@@ -82,6 +82,31 @@ func Test_WithProjectEnv(t *testing.T) {
 	assert.Equal(t, env, prj.env)
 }
 
+func Test_WithGitBranch(t *testing.T) {
+	t.Run("set", func(t *testing.T) {
+		// --- Given ---
+		branch := "feature/x"
+		prj := &Project{gitBranch: GitBranch}
+
+		// --- When ---
+		WithGitBranch(branch)(prj)
+
+		// --- Then ---
+		assert.Equal(t, branch, prj.gitBranch)
+	})
+
+	t.Run("empty keeps default", func(t *testing.T) {
+		// --- Given ---
+		prj := &Project{gitBranch: GitBranch}
+
+		// --- When ---
+		WithGitBranch("")(prj)
+
+		// --- Then ---
+		assert.Equal(t, GitBranch, prj.gitBranch)
+	})
+}
+
 func Test_NewProject(t *testing.T) {
 	t.Run("default", func(t *testing.T) {
 		// --- Given ---
@@ -102,6 +127,7 @@ func Test_NewProject(t *testing.T) {
 		assert.Equal(t, must.Value(os.Getwd()), prj.testDir)
 		assert.Equal(t, "", prj.tmpDir)
 		assert.Equal(t, 0, prj.commits)
+		assert.Equal(t, GitBranch, prj.gitBranch)
 		assert.Same(t, tspy, prj.t)
 	})
 
@@ -1142,6 +1168,26 @@ func Test_Project_GitInitAddAll(t *testing.T) {
 		prj.Close() // Must close to prevent error.
 	})
 
+	t.Run("branch set by option", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.ExpectCleanups(1)
+		tspy.Close()
+
+		prj := New(tspy, t.TempDir(), WithGitBranch("feature/x"))
+		oskit.CopyFile(t, prj.root, "testdata/file0.txt")
+
+		// --- When ---
+		prj.GitInitAddAll()
+
+		// --- Then ---
+		exe := exekit.New(t, exekit.WithWd(prj.root), exekit.WithTrim)
+		have := exe.ExeStdout("git", "branch", "--show-current")
+		assert.Equal(t, "feature/x", have)
+
+		prj.Close() // Must close to prevent error.
+	})
+
 	t.Run("on closed", func(t *testing.T) {
 		// --- Given ---
 		tspy := tester.New(t)
@@ -1169,7 +1215,7 @@ func Test_Project_GitCommit(t *testing.T) {
 
 		exe := exekit.New(t, exekit.WithWd(prj.root), exekit.WithTrim)
 		oskit.CopyFile(t, prj.root, "testdata/file0.txt")
-		exe.Exe("git", "init")
+		exe.Exe("git", "init", "-b", GitBranch)
 
 		// --- When ---
 		cm := prj.GitCommit("")
@@ -1199,7 +1245,7 @@ func Test_Project_GitCommit(t *testing.T) {
 
 		exe := exekit.New(t, exekit.WithWd(prj.root), exekit.WithTrim)
 		oskit.CopyFile(t, prj.root, "testdata/file0.txt")
-		exe.Exe("git", "init")
+		exe.Exe("git", "init", "-b", GitBranch)
 
 		// --- When ---
 		cm := prj.GitCommit("v1.1.1")
@@ -1229,7 +1275,7 @@ func Test_Project_GitCommit(t *testing.T) {
 
 		exe := exekit.New(t, exekit.WithWd(prj.root), exekit.WithTrim)
 		oskit.CopyFile(t, prj.root, "testdata/file0.txt")
-		exe.Exe("git", "init")
+		exe.Exe("git", "init", "-b", GitBranch)
 
 		// --- When ---
 		cm := prj.GitCommit("v1.1.1", "my message")
@@ -1276,7 +1322,7 @@ func Test_Project_GitCommit(t *testing.T) {
 		oskit.CopyFile(t, prj.root, "testdata/file0.txt")
 
 		exe := exekit.New(t, exekit.WithWd(prj.root), exekit.WithTrim)
-		exe.Exe("git", "init")
+		exe.Exe("git", "init", "-b", GitBranch)
 
 		// --- When ---
 		prj.GitCommit("")
@@ -1311,6 +1357,64 @@ func Test_Project_GitCommit(t *testing.T) {
 	})
 }
 
+func Test_Project_GitDetach(t *testing.T) {
+	t.Run("on opened", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.ExpectCleanups(1)
+		tspy.Close()
+
+		prj := New(tspy, t.TempDir())
+		oskit.CopyFile(t, prj.root, "testdata/file0.txt")
+		cm := prj.GitInitAddAll()
+
+		// --- When ---
+		prj.GitDetach()
+
+		// --- Then ---
+		exe := exekit.New(t, exekit.WithWd(prj.root), exekit.WithTrim)
+		assert.Equal(t, "", exe.ExeStdout("git", "branch", "--show-current"))
+
+		have := exe.ExeStdout("git", "rev-parse", "--short", "HEAD")
+		assert.Equal(t, cm.Hash, have)
+
+		prj.Close() // Must close to prevent error.
+	})
+
+	t.Run("error - no commits", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.ExpectCleanups(1)
+		tspy.ExpectError()
+		tspy.ExpectLogContain("You are on a branch yet to be born")
+		tspy.Close()
+
+		prj := New(tspy, t.TempDir())
+		prj.Exe("git", "init", "-b", GitBranch)
+
+		// --- When ---
+		prj.GitDetach()
+
+		// --- Then ---
+		prj.Close() // Must close to prevent error.
+	})
+
+	t.Run("on closed", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.ExpectCleanups(1)
+		tspy.ExpectFatal()
+		tspy.ExpectLogEqual("expected test project instance to be open")
+		tspy.Close()
+
+		prj := New(tspy, t.TempDir())
+		prj.Close()
+
+		// --- When ---
+		assert.Panic(t, func() { prj.GitDetach() })
+	})
+}
+
 func Test_Project_GitSetRemote(t *testing.T) {
 	t.Run("on opened", func(t *testing.T) {
 		// --- Given ---
@@ -1322,7 +1426,7 @@ func Test_Project_GitSetRemote(t *testing.T) {
 
 		exe := exekit.New(t, exekit.WithWd(prj.root), exekit.WithTrim)
 		oskit.CopyFile(t, prj.root, "testdata/file0.txt")
-		exe.Exe("git", "init")
+		exe.Exe("git", "init", "-b", GitBranch)
 
 		// --- When ---
 		prj.GitSetRemote()
@@ -1347,7 +1451,7 @@ func Test_Project_GitSetRemote(t *testing.T) {
 
 		exe := exekit.New(t, exekit.WithWd(prj.root), exekit.WithTrim)
 		oskit.CopyFile(t, prj.root, "testdata/file0.txt")
-		exe.Exe("git", "init")
+		exe.Exe("git", "init", "-b", GitBranch)
 
 		// --- When ---
 		prj.GitSetRemote(GitSSHOrigin)
@@ -1406,7 +1510,7 @@ func Test_Project_GitHash(t *testing.T) {
 
 		exe := exekit.New(t, exekit.WithWd(prj.root), exekit.WithTrim)
 		oskit.CopyFile(t, prj.root, "testdata/file0.txt")
-		exe.Exe("git", "init")
+		exe.Exe("git", "init", "-b", GitBranch)
 		exe.Exe("git", "config", "user.email", "test@example.com")
 		exe.Exe("git", "config", "user.name", "Test User")
 		exe.Exe("git", "add", "-A")
@@ -1463,7 +1567,7 @@ func Test_Project_GitCommitLog(t *testing.T) {
 		prj := New(tspy, t.TempDir())
 
 		exe := exekit.New(t, exekit.WithWd(prj.root), exekit.WithTrim)
-		exe.Exe("git", "init")
+		exe.Exe("git", "init", "-b", GitBranch)
 		exe.Exe("git", "config", "user.email", "test@example.com")
 		exe.Exe("git", "config", "user.name", "Test User")
 
@@ -1508,7 +1612,7 @@ func Test_Project_GitCommitLog(t *testing.T) {
 		prj := New(tspy, t.TempDir())
 
 		exe := exekit.New(t, exekit.WithWd(prj.root), exekit.WithTrim)
-		exe.Exe("git", "init")
+		exe.Exe("git", "init", "-b", GitBranch)
 		exe.Exe("git", "config", "user.email", "test@example.com")
 		exe.Exe("git", "config", "user.name", "Test User")
 
@@ -1554,7 +1658,7 @@ func Test_Project_GitCommitLog(t *testing.T) {
 		prj := New(tspy, t.TempDir())
 
 		exe := exekit.New(t, exekit.WithWd(prj.root), exekit.WithTrim)
-		exe.Exe("git", "init")
+		exe.Exe("git", "init", "-b", GitBranch)
 		exe.Exe("git", "config", "user.email", "test@example.com")
 		exe.Exe("git", "config", "user.name", "Test User")
 
