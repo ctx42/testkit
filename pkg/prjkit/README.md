@@ -78,7 +78,8 @@ log  := prj.GitCommitLog()
 
 The repository is initialized on `master` unless `WithGitBranch` names
 another branch, so a test never depends on the ambient
-`init.defaultBranch` git setting.
+`init.defaultBranch` git setting. Setting the branch uses `git init -b`,
+which requires git 2.28 or newer.
 
 ## Docker Configuration
 
