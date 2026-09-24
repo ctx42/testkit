@@ -1,3 +1,7 @@
+## v0.15.0 (Thu, 24 Sep 2026 09:07:38 UTC)
+- feat(prjkit): pin the git init branch and add GitDetach.
+- docs(prjkit): note the git 2.28 requirement for the init branch.
+
 ## v0.14.0 (Tue, 22 Sep 2026 08:04:32 UTC)
 - feat(dkrkit)!: stamp C42_SCM_STATE on the test image.
 
