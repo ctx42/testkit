@@ -1,3 +1,7 @@
+## v0.16.0 (Fri, 09 Oct 2026 15:50:41 UTC)
+- feat(prjkit): add GitBare to create bare repositories.
+- build: bump github.com/ctx42/xdef to v0.9.1.
+
 ## v0.15.0 (Thu, 24 Sep 2026 09:07:38 UTC)
 - feat(prjkit): pin the git init branch and add GitDetach.
 - docs(prjkit): note the git 2.28 requirement for the init branch.
