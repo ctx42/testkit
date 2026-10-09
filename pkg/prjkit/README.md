@@ -81,6 +81,14 @@ another branch, so a test never depends on the ambient
 `init.defaultBranch` git setting. Setting the branch uses `git init -b`,
 which requires git 2.28 or newer.
 
+`GitBare` creates a bare repository in an existing directory to use as a
+push, fetch, or clone remote; it needs no `Project`:
+
+```go
+bare := prjkit.GitBare(t)             // bare repo in t.TempDir()
+prj.GitSetRemote(bare)                // use it as the project's origin
+```
+
 ## Docker Configuration
 
 ```go

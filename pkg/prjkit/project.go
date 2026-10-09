@@ -17,6 +17,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -878,4 +879,37 @@ func NewGitCommit(lin string) (GitCommit, error) {
 		Summary: ms[4],
 	}
 	return gc, nil
+}
+
+// GitBare creates a bare git repository and returns the absolute path to it,
+// even when the provided path elements are relative. The directory must
+// exist. When no path elements are provided, the repository is created in a
+// directory from t.TempDir. It is used as a push, fetch, or clone remote in
+// tests.
+func GitBare(t tester.T, elems ...string) string {
+	t.Helper()
+	var dir string
+	var err error
+
+	if len(elems) == 0 {
+		dir = t.TempDir()
+	} else {
+		dir = filepath.Join(elems...)
+		if !filepath.IsAbs(dir) {
+			if dir, err = filepath.Abs(dir); err != nil {
+				t.Error(err)
+				return ""
+			}
+		}
+	}
+
+	eout := &bytes.Buffer{}
+	cmd := exec.Command("git", "init", "--bare")
+	cmd.Stdout, cmd.Stderr = io.Discard, eout
+	cmd.Dir = dir
+	if err = cmd.Run(); err != nil {
+		t.Error(fmt.Errorf("%w: %s", err, eout.String()))
+		return ""
+	}
+	return dir
 }

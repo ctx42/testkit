@@ -19,6 +19,7 @@ import (
 	"github.com/ctx42/testkit/internal/dkrfix"
 	"github.com/ctx42/testkit/pkg/exekit"
 	"github.com/ctx42/testkit/pkg/oskit"
+	"github.com/ctx42/testkit/pkg/pathkit"
 	"github.com/ctx42/testkit/pkg/randkit"
 )
 
@@ -2859,4 +2860,72 @@ func Test_NewGitCommit_tabular(t *testing.T) {
 			assert.Equal(t, tc.expSummary, gc.Summary)
 		})
 	}
+}
+
+func Test_GitBare(t *testing.T) {
+	t.Run("temporary directory", func(t *testing.T) {
+		// --- Given ---
+		tspy := tester.New(t)
+		tspy.ExpectTempDir(1)
+		tspy.Close()
+
+		// --- When ---
+		have := GitBare(tspy)
+
+		// --- Then ---
+		args := []string{"rev-parse", "--is-bare-repository"}
+		out := exekit.New(t, exekit.WithWd(have)).ExeStdout("git", args...)
+		assert.Equal(t, "true\n", out)
+		assert.Equal(t, tspy.GetTempDir(0), have)
+
+		tspy.Finish()
+		assert.NoDirExist(t, have)
+	})
+
+	t.Run("absolute path", func(t *testing.T) {
+		// --- Given ---
+		dir := oskit.MkdirAll(t, t.TempDir(), "repo.git")
+
+		tspy := tester.New(t)
+		tspy.Close()
+
+		// --- When ---
+		have := GitBare(tspy, dir)
+
+		// --- Then ---
+		assert.Equal(t, dir, have)
+		assert.DirExist(t, filepath.Join(dir, "refs"))
+	})
+
+	t.Run("relative path", func(t *testing.T) {
+		// --- Given ---
+		wd := oskit.Chdir(t, t.TempDir())
+		dir := pathkit.EvalSymlinks(t, oskit.MkdirAll(t, wd, "repo.git"))
+
+		tspy := tester.New(t)
+		tspy.Close()
+
+		// --- When ---
+		have := GitBare(tspy, "repo.git")
+
+		// --- Then ---
+		assert.Equal(t, dir, have)
+	})
+
+	t.Run("error - not existing directory", func(t *testing.T) {
+		// --- Given ---
+		dir := filepath.Join(t.TempDir(), "not_existing")
+
+		tspy := tester.New(t)
+		tspy.ExpectError()
+		tspy.ExpectLogContain("no such file or directory")
+		tspy.ExpectLogContain(dir)
+		tspy.Close()
+
+		// --- When ---
+		have := GitBare(tspy, dir)
+
+		// --- Then ---
+		assert.Empty(t, have)
+	})
 }
