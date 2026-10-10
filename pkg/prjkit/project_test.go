@@ -60,7 +60,7 @@ func Test_WithProjectCreate(t *testing.T) {
 
 		tspy := tester.New(t)
 		tspy.ExpectError()
-		wMsg := "expected path to not be an existing directory:\n  path: %s"
+		wMsg := "expected path not to exist:\n  path: %s"
 		tspy.ExpectLogEqual(wMsg, root)
 		tspy.Close()
 
