@@ -1,3 +1,7 @@
+## v0.16.2 (Sat, 10 Oct 2026 19:21:39 UTC)
+- test(modkit): run Test_Ver against a fixture go.mod.
+- fix(modkit): return scanner errors from ModVer and GoVer.
+
 ## v0.16.1 (Sat, 10 Oct 2026 19:13:00 UTC)
 - build(deps): update github.com/ctx42/testing to v0.57.0.
 
