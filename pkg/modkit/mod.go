@@ -110,6 +110,9 @@ func ModVer(pth, mod string) (string, error) {
 			cand = append(cand, lin)
 		}
 	}
+	if err = scn.Err(); err != nil {
+		return "", fmt.Errorf("reading %s: %w", fil.Name(), err)
+	}
 
 	switch len(cand) {
 	case 0:
@@ -146,6 +149,9 @@ func GoVer(pth ...string) (string, error) {
 		if strings.HasPrefix(lin, "go ") {
 			cand = append(cand, lin)
 		}
+	}
+	if err = scn.Err(); err != nil {
+		return "", fmt.Errorf("reading %s: %w", fil.Name(), err)
 	}
 
 	errInv := errors.New("invalid go.mod file")

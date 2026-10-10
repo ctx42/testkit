@@ -4,9 +4,11 @@
 package modkit
 
 import (
+	"bufio"
 	"fmt"
 	"io/fs"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/ctx42/testing/pkg/assert"
@@ -198,6 +200,19 @@ func Test_ModVer(t *testing.T) {
 		assert.ErrorIs(t, fs.ErrNotExist, err)
 		assert.Empty(t, ver)
 	})
+
+	t.Run("error - line too long", func(t *testing.T) {
+		// --- Given ---
+		lin := strings.Repeat("a", bufio.MaxScanTokenSize)
+		pth := oskit.Create(t, lin, t.TempDir(), "go.mod")
+
+		// --- When ---
+		ver, err := ModVer(pth, "github.com/dave/jennifer")
+
+		// --- Then ---
+		assert.ErrorIs(t, bufio.ErrTooLong, err)
+		assert.Empty(t, ver)
+	})
 }
 
 func Test_ModVer_tabular(t *testing.T) {
@@ -269,6 +284,19 @@ func Test_GoVer(t *testing.T) {
 
 		// --- Then ---
 		assert.ErrorIs(t, fs.ErrNotExist, err)
+		assert.Empty(t, ver)
+	})
+
+	t.Run("error - line too long", func(t *testing.T) {
+		// --- Given ---
+		lin := strings.Repeat("a", bufio.MaxScanTokenSize)
+		pth := oskit.Create(t, lin, t.TempDir(), "go.mod")
+
+		// --- When ---
+		ver, err := GoVer(pth)
+
+		// --- Then ---
+		assert.ErrorIs(t, bufio.ErrTooLong, err)
 		assert.Empty(t, ver)
 	})
 }
