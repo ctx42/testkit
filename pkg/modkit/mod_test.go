@@ -117,11 +117,23 @@ func Test_Tmp(t *testing.T) {
 
 func Test_Ver(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
+		// --- Given ---
+		// Fake module in a temporary directory.
+		dir := t.TempDir()
+		oskit.Chdir(t, dir)
+		mod := `module example.com/fake
+
+go 1.26
+
+require github.com/ctx42/testing v1.2.3
+`
+		oskit.Create(t, mod, dir, "go.mod")
+
 		// --- When ---
 		have := Ver("github.com/ctx42/testing")
 
 		// --- Then ---
-		assert.Equal(t, "v0.57.0", have)
+		assert.Equal(t, "v1.2.3", have)
 	})
 
 	t.Run("failure", func(t *testing.T) {
