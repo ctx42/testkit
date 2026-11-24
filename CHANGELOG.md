@@ -1,3 +1,6 @@
+## v0.16.4 (Tue, 24 Nov 2026 14:32:46 UTC)
+- test(dkrkit): match the pull error up to the daemon text.
+
 ## v0.16.3 (Sat, 17 Oct 2026 22:02:25 UTC)
 - ci: set C42_CC_RUN_ID in the workflow environment.
 - chore(deps): update dependencies.
