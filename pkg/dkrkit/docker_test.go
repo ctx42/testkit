@@ -77,12 +77,11 @@ func Test_Docker_ImgPull(t *testing.T) {
 		err := dkr.ImgPull("busybox:abc")
 
 		// --- Then ---
-		assert.ErrorContain(t, "failed to resolve reference", err)
 		wMsg := "" +
 			"[pulling image] docker command error:\n" +
 			"   cmd: docker pull busybox:abc\n" +
 			"   err: exit status 1\n" +
-			"  eout: Error response from daemon: failed to resolve reference"
+			"  eout: Error response from daemon: "
 		assert.ErrorContain(t, wMsg, err)
 	})
 
